@@ -1,0 +1,21 @@
+{
+  "name": "glaucio-dias-advocacia-bot",
+  "version": "1.0.0",
+  "description": "Agente de IA e Automação WhatsApp para o escritório Glaucio Dias Advocacia",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.3.0",
+    "@whiskeysockets/baileys": "^7.0.0-rc14",
+    "axios": "^1.6.8",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "openai": "^4.33.0",
+    "pino": "^10.3.1",
+    "qrcode": "^1.5.4"
+  }
+}

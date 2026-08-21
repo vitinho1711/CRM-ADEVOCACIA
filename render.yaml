@@ -1,0 +1,33 @@
+services:
+  - type: web
+    name: glaucio-advocacia-crm
+    env: node
+    plan: starter
+    region: oregon
+    buildCommand: npm install
+    startCommand: npm start
+    autoDeploy: true
+    healthCheckPath: /health
+    envVars:
+      - key: PORT
+        value: 8000
+      - key: NODE_ENV
+        value: production
+      - key: OFFICE_NAME
+        value: "Glaucio Dias Advocacia"
+      - key: LAWYER_NAME
+        value: "Dr. Glaucio Dias"
+      - key: OFFICE_ADDRESS
+        value: "Av. Abílio Machado, 1380 - Alípio de Melo"
+      - key: OFFICE_CITY
+        value: "Belo Horizonte / MG"
+      - key: AI_PROVIDER
+        value: "openai"
+      - key: OPENAI_MODEL
+        value: "gpt-4o-mini"
+      - key: OPENAI_API_KEY
+        sync: false
+    disk:
+      name: data-storage
+      mountPath: /data
+      sizeGB: 1

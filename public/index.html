@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel de Atendimentos & Calendário | Glaucio Dias Advocacia</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen">
+    <!-- Topbar -->
+    <header class="bg-slate-900/90 border-b border-slate-800 backdrop-blur-md sticky top-0 z-50 px-6 py-4 flex justify-between items-center">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-600 to-amber-400 flex items-center justify-center shadow-lg shadow-amber-500/20 text-slate-950 font-black text-xl">
+                ⚖️
+            </div>
+            <div>
+                <h1 class="text-lg font-bold text-white leading-none">Glaucio Dias Advocacia</h1>
+                <span class="text-xs text-amber-400 font-medium">Painel de Leads & Calendário de Reuniões</span>
+            </div>
+        </div>
+
+        <!-- Navegação de Abas -->
+        <div class="flex items-center bg-slate-950 border border-slate-800 p-1 rounded-xl">
+            <button onclick="switchTab('leads')" id="tabBtnLeads" class="px-4 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-2 bg-amber-500 text-slate-950 shadow">
+                👥 Leads & Telefones
+            </button>
+            <button onclick="switchTab('calendar')" id="tabBtnCalendar" class="px-4 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-2 text-slate-400 hover:text-white">
+                📅 Calendário de Reuniões
+                <span id="badge-appt-count" class="px-1.5 py-0.2 bg-emerald-500/20 text-emerald-400 rounded-full text-[10px]">0</span>
+            </button>
+        </div>
+
+        <div class="flex items-center space-x-3">
+            <!-- Botão Exportar Contatos -->
+            <a href="/api/export-leads" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition" title="Baixar lista de contatos em Excel/CSV">
+                📊 <span>Exportar Contatos</span>
+            </a>
+
+            <!-- Botão Baixar Manual PDF -->
+            <a href="/api/manual-pdf" download class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/20 transition" title="Baixar Documentação Completa em PDF">
+                📄 <span>Manual em PDF</span>
+            </a>
+
+            <!-- Botão Conectar WhatsApp -->
+            <button onclick="openQrModal()" id="btnQrConnect" class="flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20 transition">
+                🟢 <span id="waStatusText">WhatsApp Conectado</span>
+            </button>
+
+            <button onclick="loadData()" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition" title="Recarregar dados">
+                🔄
+            </button>
+        </div>
+    </header>
+
+    <!-- Modal QR Code -->
+    <div id="qrModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-sm w-full shadow-2xl text-center relative">
+            <button onclick="closeQrModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white p-2 text-lg">
+                ✕
+            </button>
+            <div class="w-12 h-12 bg-emerald-500/10 text-emerald-400 rounded-2xl flex items-center justify-center mx-auto mb-3 text-2xl">
+                📱
+            </div>
+            <h3 class="text-base font-bold text-white">Conectar seu WhatsApp</h3>
+            <p class="text-xs text-slate-400 mt-1 mb-4">Abra o WhatsApp > Aparelhos Conectados > Conectar Aparelho</p>
+            
+            <div id="qrContainer" class="bg-white p-4 rounded-2xl inline-block mx-auto shadow-inner mb-4 min-w-[200px] min-h-[200px] flex items-center justify-center">
+                <div class="text-slate-500 text-xs flex flex-col items-center">
+                    Gerando QR Code...
+                </div>
+            </div>
+
+            <p id="qrHelpText" class="text-xs text-slate-400 mb-4">Aponte a câmera do seu celular para o QR Code acima.</p>
+
+            <button onclick="resetWhatsAppConnection()" class="text-xs text-rose-400 hover:text-rose-300 font-semibold bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 px-3 py-1.5 rounded-xl transition w-full">
+                🔄 Desconectar e Gerar Novo QR Code
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <main class="max-w-7xl mx-auto px-6 py-8">
+        <!-- KPI Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-5 mb-8">
+            <div class="bg-slate-900 border border-slate-800/80 p-5 rounded-2xl shadow-sm">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Contatos Salvos</p>
+                        <h3 id="stat-total-leads" class="text-3xl font-extrabold text-white mt-1">0</h3>
+                    </div>
+                    <div class="p-3 bg-blue-500/10 rounded-xl text-blue-400 text-lg">👥</div>
+                </div>
+            </div>
+            <div class="bg-slate-900 border border-slate-800/80 p-5 rounded-2xl shadow-sm cursor-pointer hover:border-emerald-500/50 transition" onclick="switchTab('calendar')">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Reuniões Agendadas</p>
+                        <h3 id="stat-appointments" class="text-3xl font-extrabold text-emerald-400 mt-1">0</h3>
+                    </div>
+                    <div class="p-3 bg-emerald-500/10 rounded-xl text-emerald-400 text-lg">📅</div>
+                </div>
+            </div>
+            <div class="bg-slate-900 border border-slate-800/80 p-5 rounded-2xl shadow-sm cursor-pointer" onclick="switchTab('leads')">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Em Triagem IA</p>
+                        <h3 id="stat-triagem" class="text-3xl font-extrabold text-amber-400 mt-1">0</h3>
+                    </div>
+                    <div class="p-3 bg-amber-500/10 rounded-xl text-amber-400 text-lg">🤖</div>
+                </div>
+            </div>
+            <div class="bg-slate-900 border border-slate-800/80 p-5 rounded-2xl shadow-sm cursor-pointer" onclick="switchTab('leads')">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Aguardando Humano</p>
+                        <h3 id="stat-human" class="text-3xl font-extrabold text-rose-400 mt-1">0</h3>
+                    </div>
+                    <div class="p-3 bg-rose-500/10 rounded-xl text-rose-400 text-lg">👤</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- ABA 1: LEADS & CRM DE ATENDIMENTOS -->
+        <!-- ========================================== -->
+        <div id="tabContentLeads" class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <!-- Coluna 1: Lista de Leads -->
+            <div class="lg:col-span-7 space-y-4">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                        📋 Banco de Contatos & Leads
+                    </h2>
+                    <input type="text" id="searchInput" oninput="filterLeads()" placeholder="Buscar por nome, telefone ou área..." class="bg-slate-900 border border-slate-800 text-sm px-4 py-2 rounded-xl text-slate-200 placeholder-slate-500 focus:outline-none focus:border-amber-500 w-64">
+                </div>
+
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+                    <div class="divide-y divide-slate-800/60" id="leadsList">
+                        <div class="p-8 text-center text-slate-500">Carregando contatos salvos...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Coluna 2: Chat & Histórico -->
+            <div class="lg:col-span-5 bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col h-[650px] shadow-xl">
+                <div id="chatHeader" class="border-b border-slate-800 pb-4 mb-4 flex justify-between items-center">
+                    <div>
+                        <h3 id="chatClientName" class="font-bold text-white text-base">Selecione um cliente</h3>
+                        <p id="chatClientPhone" class="text-xs text-slate-400">Nenhum contato selecionado</p>
+                    </div>
+                    <div id="chatControls" class="hidden flex items-center space-x-2">
+                        <button id="btnToggleAi" onclick="toggleAi()" class="text-xs px-3 py-1.5 rounded-lg font-semibold transition"></button>
+                    </div>
+                </div>
+
+                <!-- Mensagens -->
+                <div id="chatMessages" class="flex-1 overflow-y-auto space-y-3 pr-2 scrollbar-thin scrollbar-thumb-slate-700">
+                    <div class="h-full flex flex-col items-center justify-center text-slate-500 text-sm text-center p-6">
+                        <p class="text-3xl mb-2">💬</p>
+                        Clique em qualquer cliente à esquerda para ver a conversa completa em tempo real.
+                    </div>
+                </div>
+
+                <!-- Input para resposta manual -->
+                <form id="chatForm" onsubmit="sendManualMessage(event)" class="mt-4 pt-3 border-t border-slate-800 flex gap-2">
+                    <input type="text" id="manualMsgInput" placeholder="Digitar resposta manual..." class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-amber-500" disabled>
+                    <button type="submit" id="btnSendManual" class="bg-amber-500 hover:bg-amber-400 text-slate-950 px-4 py-2.5 rounded-xl font-bold transition disabled:opacity-40" disabled>
+                        ➤
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- ABA 2: CALENDÁRIO & AGENDA DE REUNIÕES -->
+        <!-- ========================================== -->
+        <div id="tabContentCalendar" class="hidden space-y-6">
+            <div class="flex justify-between items-center bg-slate-900 border border-slate-800 p-5 rounded-2xl">
+                <div>
+                    <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                        📅 Reuniões Marcadas com o Dr. Glaucio Dias
+                    </h2>
+                    <p class="text-xs text-slate-400 mt-1">Endereço Presencial: <span class="text-amber-400 font-medium">Av. Abílio Machado, 1380 - Alípio de Melo</span> | Ou Online via Google Meet.</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span class="text-xs font-semibold px-3 py-1.5 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                        ● Sincronizado com a IA
+                    </span>
+                </div>
+            </div>
+
+            <!-- Grid de Cards da Agenda -->
+            <div id="calendarList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Preenchido via JavaScript -->
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let leads = [];
+        let appointments = [];
+        let selectedPhone = null;
+        let selectedClient = null;
+        let currentTab = 'leads';
+
+        function switchTab(tab) {
+            currentTab = tab;
+            const tabLeads = document.getElementById('tabContentLeads');
+            const tabCalendar = document.getElementById('tabContentCalendar');
+            const btnLeads = document.getElementById('tabBtnLeads');
+            const btnCalendar = document.getElementById('tabBtnCalendar');
+
+            if (tab === 'leads') {
+                tabLeads.classList.remove('hidden');
+                tabCalendar.classList.add('hidden');
+                btnLeads.className = 'px-4 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-2 bg-amber-500 text-slate-950 shadow';
+                btnCalendar.className = 'px-4 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-2 text-slate-400 hover:text-white';
+            } else {
+                tabLeads.classList.add('hidden');
+                tabCalendar.classList.remove('hidden');
+                btnCalendar.className = 'px-4 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-2 bg-emerald-500 text-slate-950 shadow';
+                btnLeads.className = 'px-4 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-2 text-slate-400 hover:text-white';
+                renderCalendar();
+            }
+        }
+
+        function openQrModal() {
+            document.getElementById('qrModal').classList.remove('hidden');
+            checkWhatsAppStatus();
+        }
+
+        function closeQrModal() {
+            document.getElementById('qrModal').classList.add('hidden');
+        }
+
+        async function resetWhatsAppConnection() {
+            if (!confirm('Deseja desconectar a sessão atual e gerar um novo QR Code para escanear?')) return;
+            const qrContainer = document.getElementById('qrContainer');
+            qrContainer.innerHTML = '<div class="text-slate-500 text-xs p-4 flex flex-col items-center">Reiniciando sessão...</div>';
+            await fetch('/api/whatsapp/reset', { method: 'POST' });
+            setTimeout(checkWhatsAppStatus, 2000);
+        }
+
+        async function checkWhatsAppStatus() {
+            try {
+                const res = await fetch('/api/whatsapp/status');
+                const data = await res.json();
+                const btnText = document.getElementById('waStatusText');
+                const qrContainer = document.getElementById('qrContainer');
+                const qrHelp = document.getElementById('qrHelpText');
+
+                if (data.status === 'connected') {
+                    btnText.innerText = 'WhatsApp Conectado';
+                    qrContainer.innerHTML = '<div class="text-emerald-600 font-bold text-sm p-6">✅ Conectado com Sucesso!</div>';
+                    qrHelp.innerText = 'Seu robô está conectado e pronto para responder no WhatsApp.';
+                } else if (data.qrCode) {
+                    btnText.innerText = 'Conectar QR Code';
+                    qrContainer.innerHTML = `<img src="${data.qrCode}" class="w-56 h-56 rounded-lg" alt="QR Code WhatsApp" />`;
+                    qrHelp.innerText = 'Aponte a câmera do seu WhatsApp para escanear o QR Code acima.';
+                } else {
+                    btnText.innerText = 'Gerando QR Code...';
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        async function loadData() {
+            try {
+                const resLeads = await fetch('/api/leads');
+                leads = await resLeads.json();
+
+                const resAppt = await fetch('/api/appointments');
+                appointments = await resAppt.json();
+
+                document.getElementById('stat-total-leads').innerText = leads.length;
+                document.getElementById('stat-appointments').innerText = appointments.filter(a => a.status !== 'CANCELADO').length;
+                document.getElementById('badge-appt-count').innerText = appointments.filter(a => a.status !== 'CANCELADO').length;
+                document.getElementById('stat-triagem').innerText = leads.filter(l => l.status === 'TRIAGEM').length;
+                document.getElementById('stat-human').innerText = leads.filter(l => l.status === 'AGUARDANDO_HUMANO').length;
+
+                renderLeads(leads);
+                if (currentTab === 'calendar') renderCalendar();
+                if (selectedPhone) loadChat(selectedPhone);
+                checkWhatsAppStatus();
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        function renderLeads(list) {
+            const container = document.getElementById('leadsList');
+            if (list.length === 0) {
+                container.innerHTML = '<div class="p-8 text-center text-slate-500">Nenhum atendimento registrado ainda. Envie uma mensagem no WhatsApp para testar!</div>';
+                return;
+            }
+
+            container.innerHTML = list.map(l => {
+                const isSelected = l.phone === selectedPhone;
+                const statusBadges = {
+                    'TRIAGEM': '<span class="px-2.5 py-0.5 rounded-md text-xs font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">Triagem</span>',
+                    'AGENDADO': '<span class="px-2.5 py-0.5 rounded-md text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Agendado</span>',
+                    'AGUARDANDO_HUMANO': '<span class="px-2.5 py-0.5 rounded-md text-xs font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/20">Humano</span>',
+                    'CONCLUIDO': '<span class="px-2.5 py-0.5 rounded-md text-xs font-semibold bg-slate-500/10 text-slate-400 border border-slate-500/20">Concluído</span>'
+                };
+
+                return `
+                    <div onclick="selectClient('${l.phone}')" class="p-4 hover:bg-slate-800/50 cursor-pointer transition flex items-center justify-between ${isSelected ? 'bg-slate-800/80 border-l-4 border-amber-500' : ''}">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center font-bold text-amber-400 border border-slate-700">
+                                ${(l.name ? l.name[0] : (l.phone || 'C').slice(-2)).toUpperCase()}
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-white text-sm">${l.name || 'Cliente Novo'}</h4>
+                                <p class="text-xs text-emerald-400 font-mono flex items-center gap-1.5 font-semibold">
+                                    📱 ${l.phone}
+                                    <span class="text-slate-500">• ${l.city || 'Localidade não inf.'}</span>
+                                </p>
+                                ${l.summary ? `<p class="text-xs text-slate-300 line-clamp-1 mt-1 font-medium">${l.summary}</p>` : ''}
+                            </div>
+                        </div>
+                        <div class="text-right flex flex-col items-end space-y-1">
+                            ${statusBadges[l.status] || statusBadges['TRIAGEM']}
+                            <span class="text-[10px] text-slate-500">${l.law_area || 'Área a confirmar'}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderCalendar() {
+            const container = document.getElementById('calendarList');
+            const activeAppointments = appointments.filter(a => a.status !== 'CANCELADO');
+
+            if (activeAppointments.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full bg-slate-900 border border-slate-800 rounded-3xl p-12 text-center text-slate-400">
+                        <p class="text-5xl mb-3">📅</p>
+                        <h3 class="text-base font-bold text-white">Nenhuma reunião agendada no momento</h3>
+                        <p class="text-xs mt-1 text-slate-500">Assim que um lead concluir o agendamento pelo WhatsApp, o card aparecerá aqui com todos os detalhes da causa.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = activeAppointments.map(appt => {
+                const isOnline = (appt.meeting_type || '').toLowerCase().includes('online') || 
+                                 (appt.summary || '').toLowerCase().includes('online') ||
+                                 (appt.notes || '').toLowerCase().includes('online');
+
+                const cleanPhone = (appt.client_phone || '').replace(/\D/g, '');
+                const meetUrl = appt.meet_link || 'https://meet.google.com/glaucio-advocacia';
+                const mapsUrl = appt.maps_link || 'https://maps.google.com/?q=Av.+Ab%C3%ADlio+Machado,+1380+-+Al%C3%ADpio+de+Melo';
+
+                return `
+                    <div class="bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-3xl p-6 shadow-xl flex flex-col justify-between transition group">
+                        <div>
+                            <!-- Header do Card: Data, Horário e Tipo -->
+                            <div class="flex justify-between items-start mb-4">
+                                <div class="bg-emerald-500/10 border border-emerald-500/20 px-3.5 py-1.5 rounded-2xl flex items-center gap-2">
+                                    <span class="text-xs font-bold text-emerald-400 font-mono">🕒 ${appt.date} • ${appt.time}</span>
+                                </div>
+                                <span class="text-[11px] font-bold px-2.5 py-1 rounded-xl flex items-center gap-1.5 ${!isOnline ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' : 'bg-blue-500/10 text-blue-400 border border-blue-500/20'}">
+                                    ${!isOnline ? '🏢 Presencial' : '📹 Online (Google Meet)'}
+                                </span>
+                            </div>
+
+                            <!-- Nome, Telefone Salvo e Endereço -->
+                            <div class="mb-4">
+                                <h3 class="text-base font-extrabold text-white group-hover:text-amber-400 transition">${appt.client_name}</h3>
+                                <p class="text-xs text-emerald-400 font-mono font-semibold flex items-center gap-1.5 mt-0.5">
+                                    📱 ${appt.client_phone}
+                                </p>
+                                <div class="mt-2 text-xs">
+                                    ${!isOnline ? `
+                                        <p class="text-slate-300 flex items-start gap-1.5">
+                                            📍 <span class="font-medium text-amber-300">Av. Abílio Machado, 1380 - Alípio de Melo</span>
+                                        </p>
+                                    ` : `
+                                        <p class="text-slate-300 flex items-center gap-1.5">
+                                            🔗 <span class="font-medium text-blue-400">Google Meet:</span>
+                                            <a href="${meetUrl}" target="_blank" class="text-blue-400 underline hover:text-blue-300">meet.google.com/glaucio-advocacia</a>
+                                        </p>
+                                    `}
+                                </div>
+                            </div>
+
+                            <!-- Pauta / Assunto a tratar com o advogado -->
+                            <div class="bg-slate-950/70 border border-slate-800/80 rounded-2xl p-4 mb-4">
+                                <div class="flex justify-between items-center mb-1.5">
+                                    <span class="text-[10px] font-bold uppercase tracking-wider text-amber-400/90">
+                                        ⚖️ Pauta com o Advogado:
+                                    </span>
+                                    <span class="text-[10px] text-slate-400 px-2 py-0.5 bg-slate-900 rounded-md border border-slate-800">
+                                        ${appt.law_area || 'Geral'}
+                                    </span>
+                                </div>
+                                <p class="text-xs text-slate-200 leading-relaxed font-medium">
+                                    ${appt.summary}
+                                </p>
+                                ${appt.documents && appt.documents !== 'Nenhum' ? `
+                                    <div class="mt-2.5 pt-2 border-t border-slate-800/60 text-[11px] text-slate-400">
+                                        <span class="text-slate-500">Documentos:</span> ${appt.documents}
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+
+                        <!-- Ações do Card -->
+                        <div class="flex flex-col gap-2 pt-3 border-t border-slate-800/60">
+                            ${isOnline ? `
+                                <a href="${meetUrl}" target="_blank" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 rounded-xl text-xs transition flex items-center justify-center gap-1.5 shadow-lg shadow-blue-500/20">
+                                    📹 Entrar na Reunião (Google Meet)
+                                </a>
+                            ` : `
+                                <a href="${mapsUrl}" target="_blank" class="w-full bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold py-2 rounded-xl text-xs transition flex items-center justify-center gap-1.5 shadow-lg shadow-amber-500/20">
+                                    🗺️ Abrir no Google Maps (Rota)
+                                </a>
+                            `}
+
+                            <div class="flex items-center gap-2">
+                                <a href="https://wa.me/${cleanPhone}" target="_blank" class="flex-1 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/30 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5">
+                                    💬 Chamar WhatsApp
+                                </a>
+                                <button onclick="openChatFromAppt('${appt.client_phone}')" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold transition" title="Ver histórico da conversa">
+                                    💬
+                                </button>
+                                <button onclick="cancelAppt(${appt.id})" class="px-3 py-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 rounded-xl text-xs transition" title="Cancelar Agendamento">
+                                    🗑️
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function openChatFromAppt(phone) {
+            switchTab('leads');
+            selectClient(phone);
+        }
+
+        async function cancelAppt(id) {
+            if (!confirm('Deseja realmente desmarcar esta reunião?')) return;
+            await fetch(`/api/appointments/${id}/cancel`, { method: 'POST' });
+            loadData();
+        }
+
+        function filterLeads() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = leads.filter(l => 
+                (l.name && l.name.toLowerCase().includes(query)) ||
+                (l.phone && l.phone.includes(query)) ||
+                (l.law_area && l.law_area.toLowerCase().includes(query))
+            );
+            renderLeads(filtered);
+        }
+
+        function selectClient(phone) {
+            selectedPhone = phone;
+            selectedClient = leads.find(l => l.phone === phone);
+            renderLeads(leads);
+            loadChat(phone);
+        }
+
+        async function loadChat(phone) {
+            const res = await fetch(`/api/chat/${phone}`);
+            const msgs = await res.json();
+
+            document.getElementById('chatClientName').innerText = selectedClient?.name || 'Cliente';
+            document.getElementById('chatClientPhone').innerText = `WhatsApp: ${phone} • ${selectedClient?.law_area || 'Área a confirmar'}`;
+            
+            const btnToggle = document.getElementById('btnToggleAi');
+            document.getElementById('chatControls').classList.remove('hidden');
+            if (selectedClient?.ai_active) {
+                btnToggle.innerText = '🤖 IA Ativa (Pausar)';
+                btnToggle.className = 'text-xs px-3 py-1.5 rounded-lg font-semibold bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30';
+            } else {
+                btnToggle.innerText = '👤 Em Atendimento Humano (Reativar IA)';
+                btnToggle.className = 'text-xs px-3 py-1.5 rounded-lg font-semibold bg-rose-500/20 text-rose-400 hover:bg-rose-500/30';
+            }
+
+            document.getElementById('manualMsgInput').disabled = false;
+            document.getElementById('btnSendManual').disabled = false;
+
+            const chatContainer = document.getElementById('chatMessages');
+            chatContainer.innerHTML = msgs.map(m => {
+                const isUser = m.role === 'user';
+                return `
+                    <div class="flex ${isUser ? 'justify-start' : 'justify-end'}">
+                        <div class="max-w-[85%] rounded-2xl px-4 py-2.5 text-sm ${isUser ? 'bg-slate-800 text-slate-100 rounded-tl-sm' : 'bg-amber-600/90 text-white rounded-tr-sm shadow-md'}">
+                            <p class="whitespace-pre-wrap">${m.content}</p>
+                            <span class="text-[10px] ${isUser ? 'text-slate-400' : 'text-amber-200'} block text-right mt-1">${new Date(m.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        async function toggleAi() {
+            if (!selectedPhone) return;
+            const newStatus = !selectedClient.ai_active;
+            await fetch(`/api/leads/${selectedPhone}/toggle-ai`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ active: newStatus })
+            });
+            selectedClient.ai_active = newStatus ? 1 : 0;
+            loadData();
+        }
+
+        async function sendManualMessage(e) {
+            e.preventDefault();
+            const input = document.getElementById('manualMsgInput');
+            const msg = input.value.trim();
+            if (!msg || !selectedPhone) return;
+
+            input.value = '';
+            await fetch('/api/send-manual-message', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ phone: selectedPhone, message: msg })
+            });
+            loadChat(selectedPhone);
+        }
+
+        loadData();
+        setInterval(loadData, 4000);
+    </script>
+</body>
+</html>
