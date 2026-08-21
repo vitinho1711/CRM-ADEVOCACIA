@@ -15,6 +15,12 @@
         ::-webkit-scrollbar-track { background: #090d16; }
         ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #334155; }
+        @keyframes pulse-ring {
+            0% { transform: scale(0.95); opacity: 0.8; }
+            50% { transform: scale(1.15); opacity: 0.4; }
+            100% { transform: scale(0.95); opacity: 0.8; }
+        }
+        .animate-pulse-slow { animation: pulse-ring 2.5s infinite ease-in-out; }
     </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-full flex flex-col antialiased selection:bg-amber-500 selection:text-slate-950">
@@ -40,8 +46,9 @@
                     <button onclick="loadData()" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition text-sm" title="Recarregar">
                         🔄
                     </button>
-                    <button onclick="openQrModal()" id="btnQrMobile" class="px-2.5 py-1.5 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-bold flex items-center gap-1">
-                        🟢 <span id="waMobileCount">5 WA</span>
+                    <!-- Ícone Destacado Conectar Celular no Mobile -->
+                    <button onclick="openQrModal()" id="btnQrMobile" class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-slate-950 font-extrabold text-xs flex items-center gap-1.5 shadow-md shadow-emerald-500/20 active:scale-95">
+                        <span>📱➕</span> <span id="waMobileCount">Conectar</span>
                     </button>
                 </div>
             </div>
@@ -66,9 +73,11 @@
                     📄 <span>Manual PDF</span>
                 </a>
                 
-                <!-- Botão Gerenciador de 5 WhatsApps -->
-                <button onclick="openQrModal()" id="btnQrConnect" class="flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20 transition">
-                    📱 <span id="waStatusText">Gerenciar 5 WhatsApps</span>
+                <!-- Ícone Destacado Conectar + Celulares no Desktop -->
+                <button onclick="openQrModal()" id="btnQrConnect" class="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-extrabold bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-slate-950 shadow-lg shadow-emerald-500/25 transition active:scale-95 group">
+                    <span class="text-sm group-hover:rotate-12 transition transform">📱➕</span>
+                    <span id="waStatusText">Conectar + Celulares</span>
+                    <span class="w-2 h-2 rounded-full bg-slate-950 animate-pulse"></span>
                 </button>
                 
                 <button onclick="loadData()" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition" title="Recarregar">
@@ -85,8 +94,8 @@
             <a href="/api/manual-pdf" download class="flex-1 text-center py-1.5 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20 font-medium">
                 📄 Manual PDF
             </a>
-            <button onclick="openQrModal()" class="flex-1 text-center py-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium">
-                📱 5 WhatsApps
+            <button onclick="openQrModal()" class="flex-1 text-center py-1.5 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-bold flex items-center justify-center gap-1">
+                <span>📱➕</span> 5 Celulares
             </button>
         </div>
     </header>
@@ -99,12 +108,12 @@
             </button>
             
             <div class="flex items-center space-x-3 mb-4">
-                <div class="w-10 h-10 bg-emerald-500/10 text-emerald-400 rounded-2xl flex items-center justify-center text-xl shrink-0">
+                <div class="w-11 h-11 bg-gradient-to-tr from-emerald-600 to-emerald-400 text-slate-950 rounded-2xl flex items-center justify-center text-2xl font-black shrink-0 shadow-lg shadow-emerald-500/20">
                     📱
                 </div>
                 <div>
-                    <h3 class="text-base sm:text-lg font-bold text-white leading-tight">Gerenciador de 5 WhatsApps</h3>
-                    <p class="text-xs text-slate-400">Conecte até 5 números do escritório. Todos caem no mesmo CRM!</p>
+                    <h3 class="text-base sm:text-lg font-extrabold text-white leading-tight">Conectar Celulares (Até 5 WhatsApps)</h3>
+                    <p class="text-xs text-slate-400">Conecte os aparelhos dos advogados. Todas as mensagens caem no mesmo CRM!</p>
                 </div>
             </div>
 
@@ -147,6 +156,27 @@
     <!-- Main Container Responsivo -->
     <main class="max-w-7xl mx-auto w-full px-3 sm:px-6 py-4 sm:py-6 flex-1 flex flex-col">
         
+        <!-- BARRA VISUAL DE CONEXÃO DOS 5 CELULARES -->
+        <div class="bg-gradient-to-r from-slate-900 via-slate-900/90 to-slate-900 border border-slate-800/80 p-3 sm:p-4 rounded-2xl mb-4 sm:mb-6 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 shadow-lg">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 text-lg shrink-0">
+                    📱
+                </div>
+                <div>
+                    <h3 class="text-xs sm:text-sm font-bold text-white flex items-center gap-2">
+                        Linhas de WhatsApp Conectadas
+                        <span id="quickStatusBadge" class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-extrabold">0/5 Ativos</span>
+                    </h3>
+                    <p class="text-[11px] text-slate-400">Clique em qualquer linha abaixo para conectar ou escanear o QR Code.</p>
+                </div>
+            </div>
+
+            <!-- 5 Slots de Aparelhos Rápidos -->
+            <div class="grid grid-cols-5 gap-1.5 sm:gap-2 shrink-0" id="quickSlotsContainer">
+                <!-- Preenchido dinamicamente via JS -->
+            </div>
+        </div>
+
         <!-- KPI Cards -->
         <div id="kpiContainer" class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 mb-4 sm:mb-6">
             <div class="bg-slate-900 border border-slate-800/80 p-3.5 sm:p-4 rounded-2xl shadow-sm">
@@ -353,7 +383,10 @@
             }
         });
 
-        function openQrModal() {
+        function openQrModal(targetInstance = null) {
+            if (targetInstance) {
+                currentInstanceId = targetInstance;
+            }
             document.getElementById('qrModal').classList.remove('hidden');
             checkWhatsAppInstances();
         }
@@ -375,14 +408,34 @@
                 const connectedCount = instances.filter(i => i.status === 'connected').length;
                 const btnText = document.getElementById('waStatusText');
                 const btnMobileCount = document.getElementById('waMobileCount');
+                const quickBadge = document.getElementById('quickStatusBadge');
 
-                if (btnText) btnText.innerText = `WhatsApp (${connectedCount}/5 Conectados)`;
+                if (btnText) btnText.innerText = `Conectar + Celulares (${connectedCount}/5)`;
                 if (btnMobileCount) btnMobileCount.innerText = `${connectedCount}/5 WA`;
+                if (quickBadge) quickBadge.innerText = `${connectedCount}/5 Conectados`;
 
+                renderQuickSlots();
                 renderInstanceModal();
             } catch (e) {
                 console.error(e);
             }
+        }
+
+        function renderQuickSlots() {
+            const container = document.getElementById('quickSlotsContainer');
+            if (!container || !instances || instances.length === 0) return;
+
+            container.innerHTML = instances.map((inst, index) => {
+                const isConnected = inst.status === 'connected';
+                return `
+                    <button onclick="openQrModal('${inst.id}')" class="py-2 px-1.5 sm:px-2.5 rounded-xl border transition flex flex-col items-center justify-center gap-1 active:scale-95 ${isConnected ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20' : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-amber-500/50 hover:text-amber-400'}">
+                        <span class="text-[9px] sm:text-[10px] font-bold uppercase tracking-tight">Linha ${index + 1}</span>
+                        <span class="text-xs sm:text-sm font-extrabold flex items-center gap-1">
+                            ${isConnected ? '🟢' : '➕'}
+                        </span>
+                    </button>
+                `;
+            }).join('');
         }
 
         function renderInstanceModal() {
