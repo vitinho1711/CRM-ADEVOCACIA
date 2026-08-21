@@ -195,6 +195,24 @@ const DatabaseService = {
             return true;
         }
         return false;
+    },
+
+    deleteClient(phone) {
+        const db = readDb();
+        db.clients = db.clients.filter(c => c.phone !== phone);
+        db.messages = db.messages.filter(m => m.phone !== phone);
+        db.appointments = db.appointments.filter(a => a.client_phone !== phone);
+        writeDb(db);
+        return true;
+    },
+
+    clearAllClients() {
+        const db = readDb();
+        db.clients = [];
+        db.messages = [];
+        db.appointments = [];
+        writeDb(db);
+        return true;
     }
 };
 

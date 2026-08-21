@@ -127,6 +127,23 @@ app.post('/api/appointments/:id/cancel', (req, res) => {
     res.json({ success });
 });
 
+// Excluir um contato/lead específico
+app.post('/api/leads/:phone/delete', (req, res) => {
+    const success = DatabaseService.deleteClient(req.params.phone);
+    res.json({ success });
+});
+
+app.delete('/api/leads/:phone', (req, res) => {
+    const success = DatabaseService.deleteClient(req.params.phone);
+    res.json({ success });
+});
+
+// Limpar todos os contatos e leads
+app.post('/api/leads/clear-all', (req, res) => {
+    const success = DatabaseService.clearAllClients();
+    res.json({ success });
+});
+
 app.get('/api/chat/:phone', (req, res) => {
     const messages = DatabaseService.getRecentMessages(req.params.phone, 50);
     res.json(messages);

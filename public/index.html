@@ -130,11 +130,16 @@
         <div id="tabContentLeads" class="grid grid-cols-1 lg:grid-cols-12 gap-8">
             <!-- Coluna 1: Lista de Leads -->
             <div class="lg:col-span-7 space-y-4">
-                <div class="flex justify-between items-center">
+                <div class="flex flex-wrap justify-between items-center gap-3">
                     <h2 class="text-lg font-bold text-white flex items-center gap-2">
                         📋 Banco de Contatos & Leads
                     </h2>
-                    <input type="text" id="searchInput" oninput="filterLeads()" placeholder="Buscar por nome, telefone ou área..." class="bg-slate-900 border border-slate-800 text-sm px-4 py-2 rounded-xl text-slate-200 placeholder-slate-500 focus:outline-none focus:border-amber-500 w-64">
+                    <div class="flex items-center gap-2">
+                        <input type="text" id="searchInput" oninput="filterLeads()" placeholder="Buscar por nome, telefone..." class="bg-slate-900 border border-slate-800 text-xs px-3.5 py-2 rounded-xl text-slate-200 placeholder-slate-500 focus:outline-none focus:border-amber-500 w-48">
+                        <button onclick="clearAllLeads()" class="px-3 py-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 rounded-xl text-xs font-semibold transition" title="Excluir todos os leads e contatos">
+                            🗑️ Limpar Banco
+                        </button>
+                    </div>
                 </div>
 
                 <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
@@ -153,6 +158,9 @@
                     </div>
                     <div id="chatControls" class="hidden flex items-center space-x-2">
                         <button id="btnToggleAi" onclick="toggleAi()" class="text-xs px-3 py-1.5 rounded-lg font-semibold transition"></button>
+                        <button onclick="deleteLead(null, selectedPhone)" class="text-xs px-2.5 py-1.5 rounded-lg font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/20 hover:bg-rose-500/20 transition" title="Excluir este contato">
+                            🗑️
+                        </button>
                     </div>
                 </div>
 
@@ -308,7 +316,7 @@
                 };
 
                 return `
-                    <div onclick="selectClient('${l.phone}')" class="p-4 hover:bg-slate-800/50 cursor-pointer transition flex items-center justify-between ${isSelected ? 'bg-slate-800/80 border-l-4 border-amber-500' : ''}">
+                    <div onclick="selectClient('${l.phone}')" class="p-4 hover:bg-slate-800/50 cursor-pointer transition flex items-center justify-between group ${isSelected ? 'bg-slate-800/80 border-l-4 border-amber-500' : ''}">
                         <div class="flex items-center space-x-3">
                             <div class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center font-bold text-amber-400 border border-slate-700">
                                 ${(l.name ? l.name[0] : (l.phone || 'C').slice(-2)).toUpperCase()}
@@ -322,9 +330,14 @@
                                 ${l.summary ? `<p class="text-xs text-slate-300 line-clamp-1 mt-1 font-medium">${l.summary}</p>` : ''}
                             </div>
                         </div>
-                        <div class="text-right flex flex-col items-end space-y-1">
-                            ${statusBadges[l.status] || statusBadges['TRIAGEM']}
-                            <span class="text-[10px] text-slate-500">${l.law_area || 'Área a confirmar'}</span>
+                        <div class="flex items-center gap-3">
+                            <div class="text-right flex flex-col items-end space-y-1">
+                                ${statusBadges[l.status] || statusBadges['TRIAGEM']}
+                                <span class="text-[10px] text-slate-500">${l.law_area || 'Área a confirmar'}</span>
+                            </div>
+                            <button onclick="deleteLead(event, '${l.phone}')" class="p-2 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 transition" title="Excluir este lead">
+                                🗑️
+                            </button>
                         </div>
                     </div>
                 `;
@@ -449,6 +462,33 @@
             loadData();
         }
 
+        async function deleteLead(e, phone) {
+            if (e) e.stopPropagation();
+            if (!confirm(`Deseja realmente excluir este contato (${phone}) e todo o histórico?`)) return;
+            await fetch(`/api/leads/${encodeURIComponent(phone)}/delete`, { method: 'POST' });
+            if (selectedPhone === phone) {
+                selectedPhone = null;
+                selectedClient = null;
+                document.getElementById('chatClientName').innerText = 'Selecione um cliente';
+                document.getElementById('chatClientPhone').innerText = 'Nenhum contato selecionado';
+                document.getElementById('chatControls').classList.add('hidden');
+                document.getElementById('chatMessages').innerHTML = '<div class="h-full flex flex-col items-center justify-center text-slate-500 text-sm text-center p-6"><p class="text-3xl mb-2">💬</p>Contato excluído com sucesso.</div>';
+            }
+            loadData();
+        }
+
+        async function clearAllLeads() {
+            if (!confirm('ATENÇÃO: Deseja realmente APAGAR TODOS os leads, contatos e histórico de mensagens do banco de dados? Esta ação não pode ser desfeita.')) return;
+            await fetch('/api/leads/clear-all', { method: 'POST' });
+            selectedPhone = null;
+            selectedClient = null;
+            document.getElementById('chatClientName').innerText = 'Selecione um cliente';
+            document.getElementById('chatClientPhone').innerText = 'Nenhum contato selecionado';
+            document.getElementById('chatControls').classList.add('hidden');
+            document.getElementById('chatMessages').innerHTML = '<div class="h-full flex flex-col items-center justify-center text-slate-500 text-sm text-center p-6"><p class="text-3xl mb-2">💬</p>Banco de dados limpo com sucesso.</div>';
+            loadData();
+        }
+
         function filterLeads() {
             const query = document.getElementById('searchInput').value.toLowerCase();
             const filtered = leads.filter(l => 
@@ -467,7 +507,7 @@
         }
 
         async function loadChat(phone) {
-            const res = await fetch(`/api/chat/${phone}`);
+            const res = await fetch(`/api/chat/${encodeURIComponent(phone)}`);
             const msgs = await res.json();
 
             document.getElementById('chatClientName').innerText = selectedClient?.name || 'Cliente';
@@ -504,7 +544,7 @@
         async function toggleAi() {
             if (!selectedPhone) return;
             const newStatus = !selectedClient.ai_active;
-            await fetch(`/api/leads/${selectedPhone}/toggle-ai`, {
+            await fetch(`/api/leads/${encodeURIComponent(selectedPhone)}/toggle-ai`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({ active: newStatus })
