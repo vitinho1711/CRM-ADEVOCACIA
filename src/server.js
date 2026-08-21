@@ -6,7 +6,7 @@ const config = require('./config');
 const DatabaseService = require('./database');
 const { processIncomingMessage } = require('./agent/orchestrator');
 const EvolutionApi = require('./integrations/evolutionApi');
-const { startWhatsAppBot, getWhatsAppStatus, resetWhatsAppSession, sendDirectMessage } = require('./integrations/whatsappDirect');
+const { startWhatsAppBot, getAllWhatsAppStatus, getWhatsAppStatus, resetWhatsAppSession, renameInstance, sendDirectMessage } = require('./integrations/whatsappDirect');
 
 const app = express();
 app.use(cors());
@@ -27,14 +27,30 @@ app.get('/health', (req, res) => {
 });
 
 // ====================================================
-// ROTAS DE STATUS DO WHATSAPP (QR CODE)
+// ROTAS DE STATUS MULTI-INSTÂNCIA DO WHATSAPP (ATÉ 5 NÚMEROS)
 // ====================================================
+app.get('/api/whatsapp/instances', (req, res) => {
+    res.json(getAllWhatsAppStatus());
+});
+
 app.get('/api/whatsapp/status', (req, res) => {
-    res.json(getWhatsAppStatus());
+    res.json(getWhatsAppStatus(req.query.instance || 'instance_1'));
+});
+
+app.post('/api/whatsapp/instances/:id/reset', async (req, res) => {
+    const success = await resetWhatsAppSession(req.params.id);
+    res.json({ success });
+});
+
+app.post('/api/whatsapp/instances/:id/rename', (req, res) => {
+    const { name } = req.body;
+    if (!name) return res.status(400).json({ error: 'Nome obrigatório' });
+    const success = renameInstance(req.params.id, name);
+    res.json({ success });
 });
 
 app.post('/api/whatsapp/reset', async (req, res) => {
-    const success = await resetWhatsAppSession();
+    const success = await resetWhatsAppSession('instance_1');
     res.json({ success });
 });
 

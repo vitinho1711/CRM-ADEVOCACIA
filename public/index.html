@@ -11,7 +11,6 @@
             font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
             -webkit-tap-highlight-color: transparent;
         }
-        /* Scrollbar customizada */
         ::-webkit-scrollbar { width: 5px; height: 5px; }
         ::-webkit-scrollbar-track { background: #090d16; }
         ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
@@ -32,17 +31,17 @@
                     </div>
                     <div>
                         <h1 class="text-base sm:text-lg font-extrabold text-white tracking-tight leading-tight">Glaucio Dias Advocacia</h1>
-                        <span class="text-[11px] text-amber-400 font-semibold block">Painel CRM & Automação WhatsApp</span>
+                        <span class="text-[11px] text-amber-400 font-semibold block">Painel CRM & 5 WhatsApps IA</span>
                     </div>
                 </div>
 
-                <!-- Botão de Recarregar no Mobile -->
-                <div class="flex items-center gap-2 md:hidden">
-                    <button onclick="loadData()" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition text-sm">
+                <!-- Botão de Ações no Mobile -->
+                <div class="flex items-center gap-1.5 md:hidden">
+                    <button onclick="loadData()" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition text-sm" title="Recarregar">
                         🔄
                     </button>
-                    <button onclick="openQrModal()" id="btnQrMobile" class="p-2 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-sm">
-                        🟢 WA
+                    <button onclick="openQrModal()" id="btnQrMobile" class="px-2.5 py-1.5 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-bold flex items-center gap-1">
+                        🟢 <span id="waMobileCount">5 WA</span>
                     </button>
                 </div>
             </div>
@@ -66,9 +65,12 @@
                 <a href="/api/manual-pdf" download class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/20 transition" title="Baixar Manual PDF">
                     📄 <span>Manual PDF</span>
                 </a>
-                <button onclick="openQrModal()" id="btnQrConnect" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20 transition">
-                    🟢 <span id="waStatusText">WhatsApp Conectado</span>
+                
+                <!-- Botão Gerenciador de 5 WhatsApps -->
+                <button onclick="openQrModal()" id="btnQrConnect" class="flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20 transition">
+                    📱 <span id="waStatusText">Gerenciar 5 WhatsApps</span>
                 </button>
+                
                 <button onclick="loadData()" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition" title="Recarregar">
                     🔄
                 </button>
@@ -83,39 +85,69 @@
             <a href="/api/manual-pdf" download class="flex-1 text-center py-1.5 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20 font-medium">
                 📄 Manual PDF
             </a>
+            <button onclick="openQrModal()" class="flex-1 text-center py-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium">
+                📱 5 WhatsApps
+            </button>
         </div>
     </header>
 
-    <!-- Modal QR Code Responsivo -->
-    <div id="qrModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-5 sm:p-6 max-w-sm w-full shadow-2xl text-center relative">
+    <!-- Modal Gerenciador de 5 Conexões WhatsApp -->
+    <div id="qrModal" class="hidden fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-5 sm:p-6 max-w-lg w-full shadow-2xl relative my-auto">
             <button onclick="closeQrModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white p-2 text-lg">
                 ✕
             </button>
-            <div class="w-12 h-12 bg-emerald-500/10 text-emerald-400 rounded-2xl flex items-center justify-center mx-auto mb-3 text-2xl">
-                📱
-            </div>
-            <h3 class="text-base font-bold text-white">Conectar seu WhatsApp</h3>
-            <p class="text-xs text-slate-400 mt-1 mb-4">Abra o WhatsApp > Aparelhos Conectados > Conectar Aparelho</p>
             
-            <div id="qrContainer" class="bg-white p-3 rounded-2xl inline-block mx-auto shadow-inner mb-4 min-w-[200px] min-h-[200px] flex items-center justify-center">
-                <div class="text-slate-500 text-xs flex flex-col items-center">
-                    Gerando QR Code...
+            <div class="flex items-center space-x-3 mb-4">
+                <div class="w-10 h-10 bg-emerald-500/10 text-emerald-400 rounded-2xl flex items-center justify-center text-xl shrink-0">
+                    📱
+                </div>
+                <div>
+                    <h3 class="text-base sm:text-lg font-bold text-white leading-tight">Gerenciador de 5 WhatsApps</h3>
+                    <p class="text-xs text-slate-400">Conecte até 5 números do escritório. Todos caem no mesmo CRM!</p>
                 </div>
             </div>
 
-            <p id="qrHelpText" class="text-xs text-slate-400 mb-4">Aponte a câmera do seu celular para o QR Code acima.</p>
+            <!-- Seletor de Linha / Instância -->
+            <div class="grid grid-cols-5 gap-1.5 bg-slate-950 p-1.5 rounded-2xl mb-4 border border-slate-800" id="instanceSelectorTabs">
+                <!-- Preenchido via JS (WA 1, WA 2, WA 3, WA 4, WA 5) -->
+            </div>
 
-            <button onclick="resetWhatsAppConnection()" class="text-xs text-rose-400 hover:text-rose-300 font-semibold bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 px-3 py-2 rounded-xl transition w-full">
-                🔄 Desconectar e Gerar Novo QR Code
-            </button>
+            <!-- Card da Instância Selecionada -->
+            <div class="bg-slate-950/70 border border-slate-800/80 rounded-2xl p-4 text-center">
+                <div class="flex items-center justify-between mb-3">
+                    <span id="selectedInstanceBadge" class="text-xs font-bold px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300">
+                        Carregando...
+                    </span>
+                    <button onclick="renameCurrentInstance()" class="text-[11px] text-amber-400 hover:underline font-medium">
+                        ✏️ Renomear Linha
+                    </button>
+                </div>
+
+                <div id="qrContainer" class="bg-white p-3 rounded-2xl inline-block mx-auto shadow-inner mb-3 min-w-[200px] min-h-[200px] flex items-center justify-center">
+                    <div class="text-slate-500 text-xs flex flex-col items-center">
+                        Carregando QR Code...
+                    </div>
+                </div>
+
+                <p id="qrHelpText" class="text-xs text-slate-400 mb-4">Abra o WhatsApp do aparelho > Aparelhos Conectados > Conectar Aparelho.</p>
+
+                <div class="flex gap-2">
+                    <button onclick="resetCurrentWhatsApp()" class="flex-1 text-xs text-rose-400 hover:text-rose-300 font-semibold bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 py-2.5 rounded-xl transition">
+                        🔄 Desconectar & Novo QR
+                    </button>
+                    <button onclick="checkWhatsAppInstances()" class="px-4 text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 py-2.5 rounded-xl font-semibold transition">
+                        🔄 Atualizar
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 
     <!-- Main Container Responsivo -->
     <main class="max-w-7xl mx-auto w-full px-3 sm:px-6 py-4 sm:py-6 flex-1 flex flex-col">
         
-        <!-- KPI Cards (Grid 2 colunas no mobile, 4 no desktop) -->
+        <!-- KPI Cards -->
         <div id="kpiContainer" class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 mb-4 sm:mb-6">
             <div class="bg-slate-900 border border-slate-800/80 p-3.5 sm:p-4 rounded-2xl shadow-sm">
                 <div class="flex justify-between items-start">
@@ -164,10 +196,10 @@
             <div id="leadsColumn" class="lg:col-span-7 flex flex-col space-y-3">
                 <div class="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-2">
                     <h2 class="text-base sm:text-lg font-bold text-white flex items-center gap-2">
-                        📋 Leads & Clientes
+                        📋 Leads & Clientes (Unificado)
                     </h2>
                     <div class="flex items-center gap-2">
-                        <input type="text" id="searchInput" oninput="filterLeads()" placeholder="Buscar nome, telefone..." class="flex-1 sm:w-48 bg-slate-900 border border-slate-800 text-xs px-3 py-2 rounded-xl text-slate-200 placeholder-slate-500 focus:outline-none focus:border-amber-500">
+                        <input type="text" id="searchInput" oninput="filterLeads()" placeholder="Buscar nome, telefone, linha..." class="flex-1 sm:w-48 bg-slate-900 border border-slate-800 text-xs px-3 py-2 rounded-xl text-slate-200 placeholder-slate-500 focus:outline-none focus:border-amber-500">
                         <button onclick="clearAllLeads()" class="px-2.5 py-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 rounded-xl text-[11px] font-semibold transition whitespace-nowrap" title="Limpar todos os contatos">
                             🗑️ Limpar
                         </button>
@@ -187,7 +219,6 @@
                 <!-- Chat Header -->
                 <div id="chatHeader" class="border-b border-slate-800 pb-3 mb-3 flex justify-between items-center gap-2">
                     <div class="flex items-center gap-2.5 min-w-0">
-                        <!-- Botão Voltar para Lista no Mobile -->
                         <button onclick="closeMobileChat()" class="lg:hidden p-2 rounded-xl bg-slate-800 text-slate-300 hover:text-white text-xs font-bold flex items-center gap-1">
                             ← Voltar
                         </button>
@@ -251,6 +282,8 @@
     <script>
         let leads = [];
         let appointments = [];
+        let instances = [];
+        let currentInstanceId = 'instance_1';
         let selectedPhone = null;
         let selectedClient = null;
         let currentTab = 'leads';
@@ -322,46 +355,93 @@
 
         function openQrModal() {
             document.getElementById('qrModal').classList.remove('hidden');
-            checkWhatsAppStatus();
+            checkWhatsAppInstances();
         }
 
         function closeQrModal() {
             document.getElementById('qrModal').classList.add('hidden');
         }
 
-        async function resetWhatsAppConnection() {
-            if (!confirm('Deseja desconectar a sessão atual e gerar um novo QR Code para escanear?')) return;
-            const qrContainer = document.getElementById('qrContainer');
-            qrContainer.innerHTML = '<div class="text-slate-500 text-xs p-4 flex flex-col items-center">Reiniciando sessão...</div>';
-            await fetch('/api/whatsapp/reset', { method: 'POST' });
-            setTimeout(checkWhatsAppStatus, 2000);
+        function selectInstanceTab(instanceId) {
+            currentInstanceId = instanceId;
+            renderInstanceModal();
         }
 
-        async function checkWhatsAppStatus() {
+        async function checkWhatsAppInstances() {
             try {
-                const res = await fetch('/api/whatsapp/status');
-                const data = await res.json();
+                const res = await fetch('/api/whatsapp/instances');
+                instances = await res.json();
+                
+                const connectedCount = instances.filter(i => i.status === 'connected').length;
                 const btnText = document.getElementById('waStatusText');
-                const btnMobile = document.getElementById('btnQrMobile');
-                const qrContainer = document.getElementById('qrContainer');
-                const qrHelp = document.getElementById('qrHelpText');
+                const btnMobileCount = document.getElementById('waMobileCount');
 
-                if (data.status === 'connected') {
-                    if (btnText) btnText.innerText = 'WhatsApp Conectado';
-                    if (btnMobile) btnMobile.innerHTML = '🟢 Conectado';
-                    qrContainer.innerHTML = '<div class="text-emerald-600 font-bold text-sm p-6">✅ Conectado com Sucesso!</div>';
-                    qrHelp.innerText = 'Seu robô está conectado e pronto para responder no WhatsApp.';
-                } else if (data.qrCode) {
-                    if (btnText) btnText.innerText = 'Conectar QR Code';
-                    if (btnMobile) btnMobile.innerHTML = '📱 QR Code';
-                    qrContainer.innerHTML = `<img src="${data.qrCode}" class="w-52 h-52 sm:w-56 sm:h-56 rounded-lg" alt="QR Code WhatsApp" />`;
-                    qrHelp.innerText = 'Aponte a câmera do seu WhatsApp para escanear o QR Code acima.';
-                } else {
-                    if (btnText) btnText.innerText = 'Gerando QR Code...';
-                }
+                if (btnText) btnText.innerText = `WhatsApp (${connectedCount}/5 Conectados)`;
+                if (btnMobileCount) btnMobileCount.innerText = `${connectedCount}/5 WA`;
+
+                renderInstanceModal();
             } catch (e) {
                 console.error(e);
             }
+        }
+
+        function renderInstanceModal() {
+            const tabsContainer = document.getElementById('instanceSelectorTabs');
+            if (!instances || instances.length === 0) return;
+
+            tabsContainer.innerHTML = instances.map((inst, index) => {
+                const isSelected = inst.id === currentInstanceId;
+                const isConnected = inst.status === 'connected';
+                return `
+                    <button onclick="selectInstanceTab('${inst.id}')" class="py-2 px-1 rounded-xl text-center transition flex flex-col items-center justify-center gap-1 ${isSelected ? 'bg-amber-500 text-slate-950 font-bold shadow' : 'bg-slate-900 text-slate-400 hover:text-white'}">
+                        <span class="text-[10px] leading-none uppercase tracking-tight">Linha ${index + 1}</span>
+                        <span class="text-xs">${isConnected ? '🟢' : '📱'}</span>
+                    </button>
+                `;
+            }).join('');
+
+            const curr = instances.find(i => i.id === currentInstanceId) || instances[0];
+            const badge = document.getElementById('selectedInstanceBadge');
+            const qrContainer = document.getElementById('qrContainer');
+            const qrHelp = document.getElementById('qrHelpText');
+
+            if (curr.status === 'connected') {
+                badge.innerText = `🟢 ${curr.name} • CONECTADO`;
+                badge.className = 'text-xs font-bold px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
+                qrContainer.innerHTML = '<div class="text-emerald-600 font-bold text-sm p-6">✅ Número Conectado e Ativo 24h!</div>';
+                qrHelp.innerText = 'Esta linha de WhatsApp está conectada e pronta para responder.';
+            } else if (curr.qrCode) {
+                badge.innerText = `📱 ${curr.name} • ESCANEAR QR`;
+                badge.className = 'text-xs font-bold px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-400 border border-amber-500/30';
+                qrContainer.innerHTML = `<img src="${curr.qrCode}" class="w-52 h-52 sm:w-56 sm:h-56 rounded-lg" alt="QR Code" />`;
+                qrHelp.innerText = `Aponte o WhatsApp do aparelho ${curr.name} para o QR Code acima.`;
+            } else {
+                badge.innerText = `⏳ ${curr.name} • GERANDO QR...`;
+                badge.className = 'text-xs font-bold px-2.5 py-1 rounded-lg bg-slate-800 text-slate-400';
+                qrContainer.innerHTML = '<div class="text-slate-500 text-xs p-6 flex flex-col items-center">Gerando QR Code...</div>';
+                qrHelp.innerText = 'Aguarde alguns segundos enquanto a sessão é preparada.';
+            }
+        }
+
+        async function resetCurrentWhatsApp() {
+            const curr = instances.find(i => i.id === currentInstanceId) || instances[0];
+            if (!confirm(`Deseja desconectar a linha "${curr.name}" e gerar um novo QR Code?`)) return;
+            const qrContainer = document.getElementById('qrContainer');
+            qrContainer.innerHTML = '<div class="text-slate-500 text-xs p-4 flex flex-col items-center">Reiniciando sessão...</div>';
+            await fetch(`/api/whatsapp/instances/${currentInstanceId}/reset`, { method: 'POST' });
+            setTimeout(checkWhatsAppInstances, 2500);
+        }
+
+        async function renameCurrentInstance() {
+            const curr = instances.find(i => i.id === currentInstanceId) || instances[0];
+            const newName = prompt(`Digite o novo nome para esta linha:`, curr.name);
+            if (!newName || newName.trim() === '') return;
+            await fetch(`/api/whatsapp/instances/${currentInstanceId}/rename`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: newName.trim() })
+            });
+            checkWhatsAppInstances();
         }
 
         async function loadData() {
@@ -381,7 +461,7 @@
                 renderLeads(leads);
                 if (currentTab === 'calendar') renderCalendar();
                 if (selectedPhone) loadChat(selectedPhone);
-                checkWhatsAppStatus();
+                checkWhatsAppInstances();
             } catch (err) {
                 console.error(err);
             }
@@ -403,6 +483,8 @@
                     'CONCLUIDO': '<span class="px-2 py-0.5 rounded-md text-[10px] sm:text-xs font-semibold bg-slate-500/10 text-slate-400 border border-slate-500/20">Concluído</span>'
                 };
 
+                const lineLabel = l.instance_id ? l.instance_id.replace('instance_', 'Linha ') : 'Linha 1';
+
                 return `
                     <div onclick="selectClient('${l.phone}')" class="p-3 sm:p-4 hover:bg-slate-800/50 cursor-pointer transition flex items-center justify-between group active:bg-slate-800/80 ${isSelected ? 'bg-slate-800/80 border-l-4 border-amber-500' : ''}">
                         <div class="flex items-center space-x-2.5 sm:space-x-3 min-w-0 pr-2">
@@ -410,7 +492,10 @@
                                 ${(l.name ? l.name[0] : (l.phone || 'C').slice(-2)).toUpperCase()}
                             </div>
                             <div class="min-w-0">
-                                <h4 class="font-bold text-white text-xs sm:text-sm truncate">${l.name || 'Cliente Novo'}</h4>
+                                <div class="flex items-center gap-1.5">
+                                    <h4 class="font-bold text-white text-xs sm:text-sm truncate">${l.name || 'Cliente Novo'}</h4>
+                                    <span class="text-[9px] px-1.5 py-0.2 rounded bg-slate-800 text-slate-400 border border-slate-700 font-mono">${lineLabel}</span>
+                                </div>
                                 <p class="text-[11px] text-emerald-400 font-mono flex items-center gap-1 font-semibold truncate">
                                     📱 ${l.phone}
                                     <span class="text-slate-500 truncate">• ${l.city || 'Local não inf.'}</span>
@@ -571,7 +656,8 @@
             const filtered = leads.filter(l => 
                 (l.name && l.name.toLowerCase().includes(query)) ||
                 (l.phone && l.phone.includes(query)) ||
-                (l.law_area && l.law_area.toLowerCase().includes(query))
+                (l.law_area && l.law_area.toLowerCase().includes(query)) ||
+                (l.instance_id && l.instance_id.toLowerCase().includes(query))
             );
             renderLeads(filtered);
         }
@@ -588,8 +674,9 @@
             const res = await fetch(`/api/chat/${encodeURIComponent(phone)}`);
             const msgs = await res.json();
 
+            const lineName = selectedClient?.instance_id ? selectedClient.instance_id.replace('instance_', 'Linha ') : 'Linha 1';
             document.getElementById('chatClientName').innerText = selectedClient?.name || 'Cliente';
-            document.getElementById('chatClientPhone').innerText = `WhatsApp: ${phone} • ${selectedClient?.law_area || 'Área a confirmar'}`;
+            document.getElementById('chatClientPhone').innerText = `WhatsApp: ${phone} • ${selectedClient?.law_area || 'Geral'} • [${lineName}]`;
             
             const btnToggle = document.getElementById('btnToggleAi');
             document.getElementById('chatControls').classList.remove('hidden');
@@ -641,7 +728,11 @@
             await fetch('/api/send-manual-message', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ phone: selectedPhone, message: msg })
+                body: JSON.stringify({ 
+                    phone: selectedPhone, 
+                    message: msg,
+                    instanceId: selectedClient?.instance_id || 'instance_1'
+                })
             });
             loadChat(selectedPhone);
         }

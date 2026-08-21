@@ -51,6 +51,7 @@ const DatabaseService = {
             client = {
                 id: Date.now(),
                 phone: phone,
+                instance_id: data.instance_id || 'instance_1',
                 name: data.name || null,
                 city: data.city || null,
                 law_area: data.law_area || null,
@@ -66,7 +67,7 @@ const DatabaseService = {
             };
             db.clients.push(client);
         } else {
-            for (const key of ['name', 'city', 'law_area', 'summary', 'urgency', 'documents', 'client_goal', 'status']) {
+            for (const key of ['name', 'city', 'law_area', 'summary', 'urgency', 'documents', 'client_goal', 'status', 'instance_id']) {
                 if (data[key] !== undefined && data[key] !== null) {
                     client[key] = data[key];
                 }

@@ -29,7 +29,7 @@ function isMessageFromAd(text) {
     return keywords.some(kw => normalized.includes(kw));
 }
 
-async function processIncomingMessage(phone, userMessageText) {
+async function processIncomingMessage(phone, userMessageText, instanceId = 'instance_1') {
     let client = DatabaseService.getClientByPhone(phone);
 
     // ========================================================
@@ -46,6 +46,7 @@ async function processIncomingMessage(phone, userMessageText) {
 
             console.log(`[FILTRO ANÚNCIOS] Novo lead de ANÚNCIO detectado de ${phone}!`);
             client = DatabaseService.saveOrUpdateClient(phone, {
+                instance_id: instanceId,
                 status: 'TRIAGEM',
                 from_ad: 1,
                 ai_active: 1
@@ -55,7 +56,7 @@ async function processIncomingMessage(phone, userMessageText) {
             if (client.from_ad === 0) {
                 // Se não era de anúncio, verifica se agora mandou algo de anúncio
                 if (isMessageFromAd(userMessageText)) {
-                    DatabaseService.saveOrUpdateClient(phone, { from_ad: 1, ai_active: 1 });
+                    DatabaseService.saveOrUpdateClient(phone, { instance_id: instanceId, from_ad: 1, ai_active: 1 });
                     client.from_ad = 1;
                     client.ai_active = 1;
                 } else {
@@ -66,7 +67,7 @@ async function processIncomingMessage(phone, userMessageText) {
         }
     } else {
         if (!client) {
-            client = DatabaseService.saveOrUpdateClient(phone, { status: 'TRIAGEM', ai_active: 1 });
+            client = DatabaseService.saveOrUpdateClient(phone, { instance_id: instanceId, status: 'TRIAGEM', ai_active: 1 });
         }
     }
 
