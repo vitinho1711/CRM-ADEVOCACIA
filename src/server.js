@@ -138,6 +138,23 @@ app.get('/api/appointments', (req, res) => {
     res.json(appointments);
 });
 
+app.post('/api/appointments/create', (req, res) => {
+    const { name, phone, date, time, meeting_type, law_area, summary } = req.body;
+    if (!name || !phone || !date || !time) {
+        return res.status(400).json({ error: 'Campos obrigatórios ausentes' });
+    }
+    const appt = DatabaseService.createAppointment({
+        name,
+        phone,
+        date,
+        time,
+        meeting_type: meeting_type || 'Presencial',
+        law_area: law_area || 'Direito Geral',
+        summary: summary || 'Reunião agendada manualmente pelo advogado'
+    });
+    res.json({ success: true, appointment: appt });
+});
+
 app.post('/api/appointments/:id/cancel', (req, res) => {
     const success = DatabaseService.cancelAppointment(req.params.id);
     res.json({ success });
