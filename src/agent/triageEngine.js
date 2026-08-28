@@ -84,11 +84,36 @@ function matchOption(options, userText) {
     return null;
 }
 
+function extractEmail(text) {
+    const match = text.match(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)/);
+    return match ? match[1].toLowerCase() : null;
+}
+
+function cleanName(text) {
+    let name = text.replace(/meu nome é/gi, '')
+                   .replace(/me chamo/gi, '')
+                   .replace(/sou o/gi, '')
+                   .replace(/sou a/gi, '')
+                   .replace(/ola/gi, '')
+                   .replace(/olá/gi, '')
+                   .trim();
+    if (name.length > 50) name = name.substring(0, 50);
+    return name.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+}
+
+function formatPhoneDisplay(phone) {
+    const p = String(phone).replace(/\D/g, '');
+    if (p.length === 13 && p.startsWith('55')) {
+        return `+55 (${p.substring(2,4)}) ${p.substring(4,9)}-${p.substring(9)}`;
+    }
+    return phone;
+}
+
 function getNextBusinessDayFormatted() {
     const d = new Date();
     d.setDate(d.getDate() + 1);
-    if (d.getDay() === 0) d.setDate(d.getDate() + 1); // se domingo -> segunda
-    if (d.getDay() === 6) d.setDate(d.getDate() + 2); // se sábado -> segunda
+    if (d.getDay() === 0) d.setDate(d.getDate() + 1);
+    if (d.getDay() === 6) d.setDate(d.getDate() + 2);
 
     const dia = String(d.getDate()).padStart(2, '0');
     const mes = String(d.getMonth() + 1).padStart(2, '0');
@@ -123,7 +148,7 @@ const TriageEngine = {
         // ========================================================
         if (client) {
             if (client.from_ad === 0 || client.ai_active === 0) {
-                console.log(`[BLOQUEIO IA] ${cleanPhone} é contato antigo/orgânico ou humano. IA em silêncio.`);
+                console.log(`[BLOQUEIO IA] ${cleanPhone} é contato antigo ou humano. IA em silêncio.`);
                 return null;
             }
         } else {
@@ -141,26 +166,111 @@ const TriageEngine = {
             }
 
             console.log(`🎯 [NOVO LEAD DE ANÚNCIO DETECTADO] ${cleanPhone}`);
+            // Detecta se na mensagem inicial do anúncio já veio o nicho
+            const initialNiche = detectNicheFromText(messageText);
+
             client = DatabaseService.saveOrUpdateClient(cleanPhone, {
                 instance_id: instanceId,
                 from_ad: 1,
                 ai_active: 1,
                 status: 'NOVO LEAD',
                 source: 'anuncio',
-                triage_step: 'area_selection'
+                campaign: initialNiche || 'Campanha Geral',
+                triage_step: 'collect_name'
             });
 
             Logger.log('LEAD_CREATED', { phone: cleanPhone, source: 'anuncio', instanceId });
         }
 
-        // Salva a mensagem recebida no histórico
         DatabaseService.addMessage(cleanPhone, 'user', messageText);
 
         if (client.ai_active === 0) {
             return null;
         }
 
-        const currentStepId = client.triage_step || 'area_selection';
+        const currentStepId = client.triage_step || 'collect_name';
+
+        // ========================================================
+        // ETAPA 0.1: COLETAR NOME COMPLETO DO LEAD ANTES DAS PERGUNTAS
+        // ========================================================
+        if (currentStepId === 'collect_name') {
+            // Se acabou de entrar (primeira mensagem do anúncio), pede o Nome Completo
+            if (!client.name) {
+                // Se a mensagem do anúncio já contém um nome ou se é a mensagem do ad:
+                const reply = `Olá! Seja muito bem-vindo(a) ao escritório Glaucio Dias Advocacia. 👋⚖️\n\nSou a assistente virtual e estou aqui para agilizar seu atendimento direto com o **Dr. Glaucio Dias**.\n\nPara iniciarmos seu atendimento exclusivo com o advogado, por favor: **qual é o seu Nome Completo?**`;
+                
+                DatabaseService.saveOrUpdateClient(cleanPhone, { triage_step: 'waiting_name' });
+                DatabaseService.addMessage(cleanPhone, 'assistant', reply);
+                return reply;
+            }
+        }
+
+        if (currentStepId === 'waiting_name') {
+            const leadName = cleanName(messageText);
+            const formattedPhone = formatPhoneDisplay(cleanPhone);
+
+            DatabaseService.saveOrUpdateClient(cleanPhone, {
+                name: leadName,
+                triage_step: 'waiting_email'
+            });
+
+            Logger.log('TRIAGE_ANSWER_SAVED', {
+                phone: cleanPhone,
+                step: 'collect_name',
+                name: leadName
+            });
+
+            const reply = `Muito prazer em conhecê-lo(a), **${leadName}**! 🤝\n\nSeu número de WhatsApp já foi identificado como: **${formattedPhone}**.\n\nAgora, para registrarmos sua ficha e enviarmos a confirmação da reunião e documentos por e-mail, por favor: **qual é o seu E-mail (Gmail)?**`;
+            DatabaseService.addMessage(cleanPhone, 'assistant', reply);
+            return reply;
+        }
+
+        // ========================================================
+        // ETAPA 0.2: COLETAR GMAIL DO LEAD ANTES DAS PERGUNTAS
+        // ========================================================
+        if (currentStepId === 'waiting_email') {
+            let leadEmail = extractEmail(messageText);
+            if (!leadEmail) {
+                // Se o lead digitou algo sem @, tenta tratar como email se tiver formato simples ou aceita o texto
+                if (messageText.includes('@')) {
+                    leadEmail = messageText.trim().toLowerCase();
+                } else {
+                    leadEmail = `${messageText.trim().replace(/\s+/g, '')}@gmail.com`.toLowerCase();
+                }
+            }
+
+            DatabaseService.saveOrUpdateClient(cleanPhone, {
+                email: leadEmail,
+                triage_step: 'area_selection'
+            });
+
+            Logger.log('TRIAGE_ANSWER_SAVED', {
+                phone: cleanPhone,
+                step: 'collect_email',
+                email: leadEmail
+            });
+
+            // Se já tínhamos detectado a área na mensagem do anúncio (ex: campanha trabalhista)
+            const preDetected = detectNicheFromText(client.campaign || '');
+            if (preDetected && rules.niches[preDetected]) {
+                const nicheConfig = rules.niches[preDetected];
+                const firstStep = nicheConfig.steps[0];
+
+                DatabaseService.saveOrUpdateClient(cleanPhone, {
+                    law_area: nicheConfig.name,
+                    triage_step: firstStep ? firstStep.id : 'scheduling_format',
+                    status: 'EM TRIAGEM'
+                });
+
+                const reply = `Perfeito, **${client.name || 'Cliente'}**! Seus dados de contato estão salvos:\n📱 Telefone: ${formatPhoneDisplay(cleanPhone)}\n📧 E-mail: ${leadEmail}\n\nIdentifiquei que sua solicitação é sobre **${nicheConfig.name}**. ⚖️\n\nPara analisarmos sua causa com máxima precisão:\n\n${firstStep.question}`;
+                DatabaseService.addMessage(cleanPhone, 'assistant', reply);
+                return reply;
+            }
+
+            const reply = `Perfeito, **${client.name || 'Cliente'}**! Cadastro inicial realizado com sucesso. ✅\n\nAgora, para direcionarmos sua situação para o advogado especialista:\n\n${rules.initial_step.question}`;
+            DatabaseService.addMessage(cleanPhone, 'assistant', reply);
+            return reply;
+        }
 
         // ========================================================
         // ETAPA 1: SELEÇÃO DA ÁREA JURÍDICA
@@ -191,7 +301,7 @@ const TriageEngine = {
                     area: nicheConfig.name
                 });
 
-                const reply = `Excelente! O escritório Glaucio Dias Advocacia é especialista em **${nicheConfig.name}**. ⚖️\n\nPara que possamos esclarecer sua situação e preparar seu atendimento com o advogado:\n\n${firstStep ? firstStep.question : 'Poderia me contar brevemente o que aconteceu?'}`;
+                const reply = `Excelente! O Dr. Glaucio Dias e nossa equipe têm grande experiência em **${nicheConfig.name}**. ⚖️\n\nPara esclarecer seus direitos e preparar sua reunião:\n\n${firstStep ? firstStep.question : 'Poderia me contar brevemente o que aconteceu?'}`;
                 DatabaseService.addMessage(cleanPhone, 'assistant', reply);
                 return reply;
             } else {
@@ -217,14 +327,15 @@ const TriageEngine = {
 
             DatabaseService.saveOrUpdateClient(cleanPhone, {
                 triage_step: 'scheduling_slot',
-                summary: `Formato escolhido: ${chosenFormat}. Caso em agendamento com Dr. Glaucio.`
+                summary: `Formato escolhido: ${chosenFormat}. Reunião com Dr. Glaucio Dias.`
             });
 
+            // Disponibiliza horários de 09:00 às 18:00
             let reply = '';
             if (chosenFormat === 'Presencial') {
-                reply = `Perfeito! Será um grande prazer recebê-lo(a) pessoalmente em nosso escritório na **Av. Abílio Machado, 1380 - Alípio de Melo (Belo Horizonte / MG)**. 🏢\n\nTemos estes horários disponíveis na agenda do Dr. Glaucio Dias para **${nextDay.display}**:\n\n1️⃣ **10:00**\n2️⃣ **14:30**\n3️⃣ **16:30**\n\nQual desses horários fica melhor para você? (Ou pode me sugerir outro horário de sua preferência!)`;
+                reply = `Perfeito, **${client.name || 'Cliente'}**! Será um prazer te receber pessoalmente em nosso escritório na **Av. Abílio Machado, 1380 - Alípio de Melo (Belo Horizonte / MG)**. 🏢\n\nDisponibilizamos horários de atendimento das **09:00 às 18:00** para **${nextDay.display}**:\n\n1️⃣ **09:30** (Manhã)\n2️⃣ **11:00** (Manhã)\n3️⃣ **14:00** (Tarde)\n4️⃣ **15:30** (Tarde)\n5️⃣ **17:00** (Fim de tarde)\n\nQual desses horários é melhor para você? (Ou pode me sugerir outro horário entre 09:00 e 18:00!)`;
             } else {
-                reply = `Excelente! O atendimento **Online pelo Google Meet** é muito prático e seguro: você fala diretamente com o Dr. Glaucio Dias pelo celular ou computador, sem precisar pegar trânsito. 📹\n\nTemos estes horários livres para **${nextDay.display}**:\n\n1️⃣ **10:00**\n2️⃣ **14:30**\n3️⃣ **16:30**\n\nQual desses horários você prefere? (Ou pode me sugerir outro horário!)`;
+                reply = `Excelente, **${client.name || 'Cliente'}**! O atendimento **Online pelo Google Meet** é prático, seguro e sem trânsito. 📹\n\nDisponibilizamos horários de atendimento das **09:00 às 18:00** para **${nextDay.display}**:\n\n1️⃣ **09:30** (Manhã)\n2️⃣ **11:00** (Manhã)\n3️⃣ **14:00** (Tarde)\n4️⃣ **15:30** (Tarde)\n5️⃣ **17:00** (Fim de tarde)\n\nQual desses horários fica melhor para você? (Ou pode me sugerir qualquer outro horário entre 09:00 e 18:00!)`;
             }
 
             DatabaseService.addMessage(cleanPhone, 'assistant', reply);
@@ -232,39 +343,45 @@ const TriageEngine = {
         }
 
         // ========================================================
-        // ETAPA DE FECHAMENTO 2: CONFIRMAÇÃO DO HORÁRIO DA REUNIÃO
+        // ETAPA DE FECHAMENTO 2: CONFIRMAÇÃO DO HORÁRIO E MEET AUTOMÁTICO
         // ========================================================
         if (currentStepId === 'scheduling_slot') {
             const nextDay = getNextBusinessDayFormatted();
-            let chosenTime = '14:30';
+            let chosenTime = '14:00';
 
-            if (['1', '10', '10h', '10:00', 'manha', 'manhã'].some(k => normMsg.includes(k))) {
-                chosenTime = '10:00';
-            } else if (['2', '14', '14h', '14:30', 'duas'].some(k => normMsg.includes(k))) {
-                chosenTime = '14:30';
-            } else if (['3', '16', '16h', '16:30', 'quatro'].some(k => normMsg.includes(k))) {
-                chosenTime = '16:30';
-            } else {
-                // Tenta capturar qualquer horário digitado pelo usuário (ex: 15h, 11:00)
+            if (['1', '09:30', '9:30', '9h30'].some(k => normMsg.includes(k))) chosenTime = '09:30';
+            else if (['2', '11:00', '11h', '11'].some(k => normMsg.includes(k))) chosenTime = '11:00';
+            else if (['3', '14:00', '14h', '14', 'duas'].some(k => normMsg.includes(k))) chosenTime = '14:00';
+            else if (['4', '15:30', '15h30', '3h30'].some(k => normMsg.includes(k))) chosenTime = '15:30';
+            else if (['5', '17:00', '17h', '17', 'cinco'].some(k => normMsg.includes(k))) chosenTime = '17:00';
+            else {
                 const timeMatch = messageText.match(/(\d{1,2})[:hH](\d{2})?/);
                 if (timeMatch) {
-                    const hour = timeMatch[1].padStart(2, '0');
+                    let hour = parseInt(timeMatch[1], 10);
                     const min = timeMatch[2] || '00';
-                    chosenTime = `${hour}:${min}`;
+                    // Garante que o horário esteja entre 09:00 e 18:00
+                    if (hour < 9) hour = 9;
+                    if (hour > 18) hour = 17;
+                    chosenTime = `${String(hour).padStart(2, '0')}:${min}`;
                 }
             }
 
             const meetingType = client.summary?.includes('Presencial') ? 'Presencial' : 'Online (Google Meet)';
+            const isOnline = meetingType.includes('Online');
+            
+            // GERA LINK AUTOMÁTICO DO GOOGLE MEET EXCLUSIVO
+            const meetLink = isOnline ? DatabaseService.generateGoogleMeetLink() : null;
 
-            // Cria oficialmente a reunião no banco de dados e agenda do CRM
             const appointment = DatabaseService.createAppointment({
                 phone: cleanPhone,
-                name: client.name || 'Cliente (Novo Lead)',
+                name: client.name || 'Cliente',
+                email: client.email || 'Não informado',
                 date: nextDay.iso,
                 time: chosenTime,
                 meeting_type: meetingType,
+                meet_link: meetLink,
                 law_area: client.law_area || 'Direito Geral',
-                summary: `Reunião agendada via Triagem WhatsApp para tratar do caso de ${client.law_area || 'área jurídica'}. Score: ${client.qualification_score}/100.`
+                summary: `Reunião agendada com Dr. Glaucio Dias. Lead: ${client.name || 'Cliente'} (${client.email || ''}). Caso: ${client.law_area || 'Área'}.`
             });
 
             DatabaseService.saveOrUpdateClient(cleanPhone, {
@@ -275,14 +392,46 @@ const TriageEngine = {
             Logger.log('CRM_SYNC_SUCCESS', {
                 phone: cleanPhone,
                 action: 'appointment_created',
-                appointmentId: appointment.id
+                appointmentId: appointment.id,
+                meetLink
             });
 
+            // MENSAGEM PRINCIPAL DE CONFIRMAÇÃO + FOLLOW-UP AUTOMÁTICO
             let reply = '';
-            if (meetingType === 'Presencial') {
-                reply = `🎉 **Reunião confirmada com sucesso com o Dr. Glaucio Dias!**\n\n📅 **Data:** ${nextDay.display}\n🕒 **Horário:** ${chosenTime}\n📍 **Local:** Av. Abílio Machado, 1380 - Alípio de Melo, Belo Horizonte / MG\n🗺️ **Rota:** https://maps.google.com/?q=Av.+Ab%C3%ADlio+Machado,+1380+-+Al%C3%ADpio+de+Melo\n⚖️ **Advogado Responsável:** Dr. Glaucio Dias\n\nJá reservei esse horário exclusivo na agenda. Por favor, traga seus documentos e registros para analisarmos juntos. Se tiver qualquer imprevisto, avise por aqui. Te esperamos!`;
+            if (isOnline) {
+                reply = `🎉 **Reunião Online Agendada com Sucesso com o Dr. Glaucio Dias!**\n\n` +
+                        `👤 **Cliente:** ${client.name || 'Cliente'}\n` +
+                        `📧 **E-mail:** ${client.email || 'Cadastrado'}\n` +
+                        `📱 **WhatsApp:** ${formatPhoneDisplay(cleanPhone)}\n` +
+                        `📅 **Data:** ${nextDay.display}\n` +
+                        `🕒 **Horário:** ${chosenTime} (Disponibilidade das 09:00 às 18:00)\n` +
+                        `📹 **Formato:** Online pelo Google Meet\n` +
+                        `🔗 **Link Automático do Google Meet:**\n${meetLink}\n\n` +
+                        `⚖️ **Advogado Responsável:** Dr. Glaucio Dias\n\n` +
+                        `━━━━━━━━━━━━━━━━━━━━\n` +
+                        `📌 **FOLLOW-UP & ORIENTAÇÕES IMPORTANTES:**\n` +
+                        `1. O horário foi reservado exclusivamente para você na agenda oficial do Dr. Glaucio;\n` +
+                        `2. Deixe separados os documentos ou comprovantes do caso;\n` +
+                        `3. No dia e horário marcados, basta clicar no link acima do Google Meet para entrar na sala;\n` +
+                        `4. Enviaremos um lembrete no seu WhatsApp antes do início da reunião.\n\n` +
+                        `Se tiver qualquer dúvida ou imprevisto, pode nos avisar por aqui a qualquer momento. Até breve!`;
             } else {
-                reply = `🎉 **Reunião Online confirmada com sucesso com o Dr. Glaucio Dias!**\n\n📅 **Data:** ${nextDay.display}\n🕒 **Horário:** ${chosenTime}\n📹 **Formato:** Online (Google Meet)\n🔗 **Link da Reunião:** https://meet.google.com/glaucio-advocacia\n⚖️ **Advogado Responsável:** Dr. Glaucio Dias\n\nJá reservei seu horário na agenda do Dr. Glaucio. No horário marcado, basta clicar no link acima para falar diretamente com o advogado. Qualquer dúvida até lá, estou à disposição por aqui!`;
+                reply = `🎉 **Reunião Presencial Agendada com Sucesso com o Dr. Glaucio Dias!**\n\n` +
+                        `👤 **Cliente:** ${client.name || 'Cliente'}\n` +
+                        `📧 **E-mail:** ${client.email || 'Cadastrado'}\n` +
+                        `📱 **WhatsApp:** ${formatPhoneDisplay(cleanPhone)}\n` +
+                        `📅 **Data:** ${nextDay.display}\n` +
+                        `🕒 **Horário:** ${chosenTime} (Atendimento das 09:00 às 18:00)\n` +
+                        `🏢 **Local:** Av. Abílio Machado, 1380 - Alípio de Melo, Belo Horizonte / MG\n` +
+                        `🗺️ **Rota Google Maps:** https://maps.google.com/?q=Av.+Ab%C3%ADlio+Machado,+1380+-+Al%C3%ADpio+de+Melo\n` +
+                        `⚖️ **Advogado Responsável:** Dr. Glaucio Dias\n\n` +
+                        `━━━━━━━━━━━━━━━━━━━━\n` +
+                        `📌 **FOLLOW-UP & ORIENTAÇÕES IMPORTANTES:**\n` +
+                        `1. Sua vaga está garantida na agenda do escritório;\n` +
+                        `2. Traga seus documentos e anotações para análise conjunta com o Dr. Glaucio;\n` +
+                        `3. Nosso escritório possui fácil estacionamento e recepção climatizada;\n` +
+                        `4. Enviaremos uma mensagem de confirmação antes da reunião.\n\n` +
+                        `Qualquer dúvida antes do atendimento, estamos à disposição por aqui. Te esperamos!`;
             }
 
             DatabaseService.addMessage(cleanPhone, 'assistant', reply);
@@ -314,7 +463,6 @@ const TriageEngine = {
             const points = matched ? (matched.points || 20) : 15;
 
             const nextStepObj = niche.steps[currentStepIndex + 1] || null;
-            // Se não houver mais perguntas no nicho, o PRÓXIMO PASSO OBRIGATÓRIO É O AGENDAMENTO DA REUNIÃO!
             const nextStepId = nextStepObj ? nextStepObj.id : 'scheduling_format';
 
             client = DatabaseService.saveTriageAnswer(
@@ -335,12 +483,10 @@ const TriageEngine = {
             });
 
             if (nextStepObj) {
-                // Próxima pergunta de aprofundamento da causa
                 const reply = nextStepObj.question;
                 DatabaseService.addMessage(cleanPhone, 'assistant', reply);
                 return reply;
             } else {
-                // CONCLUIU O QUESTIONÁRIO DO NICHO -> CONDUÇÃO IMEDIATA PARA A REUNIÃO!
                 Logger.log('TRIAGE_COMPLETED', {
                     phone: cleanPhone,
                     score: client.qualification_score,
@@ -353,8 +499,8 @@ const TriageEngine = {
                     qualificationStatus: client.qualification_status
                 });
 
-                // Mensagem de valorização do caso e ponte direta para a reunião
-                const reply = `Entendido perfeitamente! Com base em todos os dados que você me passou, seu caso tem pontos jurídicos muito importantes e prazos que precisam de atenção rápida para resguardar seus direitos.\n\nO objetivo agora é esclarecer tudo em detalhes, fazer os cálculos e traçar a melhor estratégia diretamente em uma **reunião com o Dr. Glaucio Dias**. ⚖️\n\nComo fica mais prático e confortável para você?\n\n1️⃣ **Online (via Google Meet)** — Prático, seguro e sem trânsito\n2️⃣ **Presencial** — Em nosso escritório na Av. Abílio Machado, 1380 - Alípio de Melo (BH)`;
+                // Ponte de valorização e condução para agendamento das 9h às 18h
+                const reply = `Entendido perfeitamente, **${client.name || 'Cliente'}**! Com base em tudo o que você me relatou, sua causa tem fundamentos jurídicos consistentes e prazos importantes a serem observados.\n\nO objetivo agora é esclarecer todas as dúvidas, fazer os cálculos e traçar a melhor estratégia diretamente em uma **reunião com o Dr. Glaucio Dias** ⚖️.\n\nNosso atendimento funciona das **09:00 às 18:00**. Como fica mais confortável para você?\n\n1️⃣ **Online (via Google Meet)** — Link gerado na hora, seguro e sem trânsito\n2️⃣ **Presencial** — Em nosso escritório na Av. Abílio Machado, 1380 - Alípio de Melo (BH)`;
 
                 DatabaseService.addMessage(cleanPhone, 'assistant', reply);
                 return reply;

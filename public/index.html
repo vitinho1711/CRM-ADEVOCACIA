@@ -64,18 +64,24 @@
                 <div class="w-10 h-10 bg-emerald-500/20 text-emerald-400 rounded-2xl flex items-center justify-center text-xl font-bold shrink-0">➕</div>
                 <div>
                     <h3 class="text-base sm:text-lg font-bold text-white leading-tight">Novo Agendamento de Reunião</h3>
-                    <p class="text-xs text-slate-400">Cadastre uma reunião presencial ou online para a equipe de advogados.</p>
+                    <p class="text-xs text-slate-400">Atendimento disponível das 09:00 às 18:00.</p>
                 </div>
             </div>
 
             <form onsubmit="handleCreateAppt(event)" class="space-y-3.5 text-xs">
                 <div>
-                    <label class="block text-slate-300 font-semibold mb-1">Nome do Cliente *</label>
-                    <input type="text" id="apptName" required placeholder="Ex: Dr. Roberto Carlos" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-emerald-500">
+                    <label class="block text-slate-300 font-semibold mb-1">Nome Completo do Cliente *</label>
+                    <input type="text" id="apptName" required placeholder="Ex: Carlos Eduardo Silva" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-emerald-500">
                 </div>
-                <div>
-                    <label class="block text-slate-300 font-semibold mb-1">Telefone WhatsApp *</label>
-                    <input type="text" id="apptPhone" required placeholder="Ex: 31988776655" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-emerald-500">
+                <div class="grid grid-cols-2 gap-2.5">
+                    <div>
+                        <label class="block text-slate-300 font-semibold mb-1">Telefone WhatsApp *</label>
+                        <input type="text" id="apptPhone" required placeholder="Ex: 31988776655" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-emerald-500">
+                    </div>
+                    <div>
+                        <label class="block text-slate-300 font-semibold mb-1">E-mail / Gmail</label>
+                        <input type="email" id="apptEmail" placeholder="cliente@gmail.com" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-emerald-500">
+                    </div>
                 </div>
                 <div class="grid grid-cols-2 gap-2.5">
                     <div>
@@ -83,16 +89,16 @@
                         <input type="date" id="apptDate" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-emerald-500">
                     </div>
                     <div>
-                        <label class="block text-slate-300 font-semibold mb-1">Horário *</label>
-                        <input type="time" id="apptTime" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-emerald-500">
+                        <label class="block text-slate-300 font-semibold mb-1">Horário (09:00 às 18:00) *</label>
+                        <input type="time" id="apptTime" min="09:00" max="18:00" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-emerald-500">
                     </div>
                 </div>
                 <div class="grid grid-cols-2 gap-2.5">
                     <div>
                         <label class="block text-slate-300 font-semibold mb-1">Formato *</label>
                         <select id="apptType" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-emerald-500">
-                            <option value="Presencial">🏢 Presencial (Av. Abílio Machado)</option>
-                            <option value="Online">📹 Online (Google Meet)</option>
+                            <option value="Online">📹 Online (Link Google Meet Automático)</option>
+                            <option value="Presencial">🏢 Presencial (Av. Abílio Machado, 1380)</option>
                         </select>
                     </div>
                     <div>
@@ -101,8 +107,8 @@
                     </div>
                 </div>
                 <div>
-                    <label class="block text-slate-300 font-semibold mb-1">Pauta / Resumo da Causa</label>
-                    <textarea id="apptSummary" rows="2" placeholder="Resumo dos fatos e documentos a analisar..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-emerald-500"></textarea>
+                    <label class="block text-slate-300 font-semibold mb-1">Pauta / Resumo do Atendimento</label>
+                    <textarea id="apptSummary" rows="2" placeholder="Resumo dos fatos e documentos..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-emerald-500"></textarea>
                 </div>
                 <div class="flex gap-2.5 pt-2">
                     <button type="button" onclick="closeNewApptModal()" class="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold transition">Cancelar</button>
@@ -158,7 +164,7 @@
                         Linhas de WhatsApp Conectadas
                         <span id="quickStatusBadge" class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-extrabold">0/5 Conectados</span>
                     </h3>
-                    <p class="text-[11px] text-slate-400">Conecte os números dos advogados e recepcionistas.</p>
+                    <p class="text-[11px] text-slate-400">Atendimento e Follow-up automático das 09:00 às 18:00.</p>
                 </div>
             </div>
             <div class="grid grid-cols-5 gap-1.5 sm:gap-2 shrink-0" id="quickSlotsContainer"></div>
@@ -201,12 +207,11 @@
             <div id="leadsColumn" class="lg:col-span-6 flex flex-col space-y-3">
                 <div class="bg-slate-900 border border-slate-800 rounded-2xl p-3 space-y-2.5 shadow">
                     <div class="flex items-center justify-between gap-2">
-                        <input type="text" id="searchInput" oninput="filterLeads()" placeholder="🔍 Buscar nome, telefone, área, campanha..." class="flex-1 bg-slate-950 border border-slate-800 text-xs px-3 py-2 rounded-xl text-slate-200 placeholder-slate-500 focus:outline-none focus:border-amber-500">
+                        <input type="text" id="searchInput" oninput="filterLeads()" placeholder="🔍 Buscar nome, telefone, email, área..." class="flex-1 bg-slate-950 border border-slate-800 text-xs px-3 py-2 rounded-xl text-slate-200 placeholder-slate-500 focus:outline-none focus:border-amber-500">
                         <a href="/api/export-leads" target="_blank" class="px-2.5 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 rounded-xl text-[11px] font-semibold transition" title="Exportar CSV">📊 CSV</a>
                         <button onclick="clearAllLeads()" class="px-2.5 py-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 rounded-xl text-[11px] font-semibold transition" title="Limpar contatos">🗑️</button>
                     </div>
 
-                    <!-- Linha de Filtros por Nicho, Status e Score -->
                     <div class="grid grid-cols-3 gap-2">
                         <select id="filterArea" onchange="filterLeads()" class="bg-slate-950 border border-slate-800 text-[11px] text-slate-300 rounded-xl px-2 py-1.5 focus:outline-none focus:border-amber-500">
                             <option value="">Todas as Áreas</option>
@@ -245,7 +250,6 @@
             <!-- Coluna 2: Detalhes do Lead (Chat & Ficha de Qualificação) -->
             <div id="chatColumn" class="hidden lg:flex lg:col-span-6 bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 flex-col h-[650px] shadow-xl">
                 
-                <!-- Header com Seletor de Visão (Chat vs Ficha da Triagem) -->
                 <div class="border-b border-slate-800 pb-3 mb-3 flex justify-between items-center gap-2">
                     <div class="flex items-center gap-2.5 min-w-0">
                         <button onclick="closeMobileChat()" class="lg:hidden p-2 rounded-xl bg-slate-800 text-slate-300 hover:text-white text-xs font-bold">← Voltar</button>
@@ -255,10 +259,9 @@
                         </div>
                     </div>
 
-                    <!-- Tabs Chat vs Ficha -->
                     <div class="flex items-center space-x-1 bg-slate-950 p-1 rounded-xl border border-slate-800" id="leadViewTabs">
                         <button id="btnViewChat" onclick="switchLeadView('chat')" class="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-amber-500 text-slate-950">💬 Chat</button>
-                        <button id="btnViewFicha" onclick="switchLeadView('ficha')" class="px-2.5 py-1 text-[11px] font-bold rounded-lg text-slate-400 hover:text-white">📋 Ficha da Triagem</button>
+                        <button id="btnViewFicha" onclick="switchLeadView('ficha')" class="px-2.5 py-1 text-[11px] font-bold rounded-lg text-slate-400 hover:text-white">📋 Ficha & Dados</button>
                     </div>
 
                     <div id="chatControls" class="hidden flex items-center space-x-1.5 shrink-0">
@@ -281,11 +284,9 @@
                     </form>
                 </div>
 
-                <!-- Visão 2: Ficha Completa de Qualificação & Respostas -->
+                <!-- Visão 2: Ficha Completa de Qualificação, Contato & Respostas -->
                 <div id="leadFichaView" class="hidden flex-1 overflow-y-auto space-y-4 pr-1 text-xs">
-                    <div id="fichaContent" class="space-y-3.5">
-                        <!-- Preenchido via JavaScript -->
-                    </div>
+                    <div id="fichaContent" class="space-y-3.5"></div>
                 </div>
 
             </div>
@@ -298,7 +299,7 @@
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-slate-900 border border-slate-800 p-4 sm:p-5 rounded-2xl gap-3">
                 <div>
                     <h2 class="text-base sm:text-lg font-bold text-white flex items-center gap-2">📅 Agenda de Reuniões — Glaucio Dias Advocacia</h2>
-                    <p class="text-[11px] sm:text-xs text-slate-400 mt-0.5">Presencial: <span class="text-amber-400 font-medium">Av. Abílio Machado, 1380 - Alípio de Melo</span> | Ou Online via Google Meet.</p>
+                    <p class="text-[11px] sm:text-xs text-slate-400 mt-0.5">Horário oficial: <span class="text-emerald-400 font-semibold">09:00 às 18:00</span> | Links automáticos do Google Meet & Follow-up.</p>
                 </div>
                 <button onclick="openNewApptModal()" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-lg shadow-emerald-500/20 transition active:scale-95">➕ Agendar Reunião</button>
             </div>
@@ -385,10 +386,24 @@
             else if (score >= 31) scoreColor = 'bg-amber-500';
 
             container.innerHTML = `
+                <!-- Dados Cadastrais Essenciais Coletados -->
+                <div class="bg-slate-950 border border-slate-800 p-4 rounded-2xl space-y-2.5">
+                    <h4 class="text-[11px] font-bold text-amber-400 uppercase tracking-wider flex items-center justify-between">
+                        <span>👤 Dados Cadastrais do Lead</span>
+                        <span class="px-2 py-0.5 rounded text-[10px] bg-emerald-500/20 text-emerald-400 font-bold">100% Identificado</span>
+                    </h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
+                        <div><span class="text-slate-500">Nome Completo:</span> <span class="text-white font-bold block">${c.name || 'Não informado'}</span></div>
+                        <div><span class="text-slate-500">WhatsApp:</span> <span class="text-emerald-400 font-mono font-bold block">${c.phone}</span></div>
+                        <div><span class="text-slate-500">E-mail (Gmail):</span> <span class="text-blue-400 font-mono font-semibold block">${c.email || 'Não informado'}</span></div>
+                        <div><span class="text-slate-500">Origem:</span> <span class="text-slate-300 block">${c.source === 'anuncio' ? '🎯 Anúncio' : 'Orgânico'}</span></div>
+                    </div>
+                </div>
+
                 <!-- Bloco de Qualificação & Score -->
                 <div class="bg-slate-950 border border-slate-800 p-4 rounded-2xl">
                     <div class="flex justify-between items-center mb-2">
-                        <span class="text-slate-400 text-[10px] font-bold uppercase">Qualificação do Caso</span>
+                        <span class="text-slate-400 text-[10px] font-bold uppercase">Score de Qualificação</span>
                         <span class="px-2 py-0.5 rounded text-[10px] font-bold ${score >= 61 ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'}">${c.qualification_status || 'EM ANÁLISE'}</span>
                     </div>
                     <div class="flex items-center gap-3">
@@ -397,26 +412,13 @@
                             <div class="${scoreColor} h-full transition-all duration-500" style="width: ${score}%"></div>
                         </div>
                     </div>
-                    <p class="text-[11px] text-slate-400 mt-2">Etapa Atual: <span class="text-amber-400 font-semibold">${c.triage_step || 'Início'}</span> • Status: <span class="text-white font-semibold">${c.status}</span></p>
-                </div>
-
-                <!-- Dados do Contato & Origem -->
-                <div class="bg-slate-950 border border-slate-800 p-4 rounded-2xl space-y-2">
-                    <h4 class="text-[11px] font-bold text-slate-300 uppercase tracking-wider">Origem & Atribuição</h4>
-                    <div class="grid grid-cols-2 gap-2 text-[11px]">
-                        <div><span class="text-slate-500">Área Jurídica:</span> <span class="text-white font-medium">${c.law_area || 'Não informada'}</span></div>
-                        <div><span class="text-slate-500">Origem:</span> <span class="text-emerald-400 font-semibold">${c.source || 'Anúncio'}</span></div>
-                        <div><span class="text-slate-500">Campanha:</span> <span class="text-slate-300">${c.campaign || 'Geral'}</span></div>
-                        <div><span class="text-slate-500">Criativo:</span> <span class="text-slate-300">${c.creative || 'Padrão'}</span></div>
-                        <div><span class="text-slate-500">Entrada:</span> <span class="text-slate-300">${new Date(c.created_at).toLocaleDateString('pt-BR')}</span></div>
-                        <div><span class="text-slate-500">Advogado:</span> <span class="text-amber-400 font-medium">${c.assigned_to || 'Dr. Glaucio Dias'}</span></div>
-                    </div>
+                    <p class="text-[11px] text-slate-400 mt-2">Área: <span class="text-white font-semibold">${c.law_area || 'Em triagem'}</span> • Status: <span class="text-amber-400 font-semibold">${c.status}</span></p>
                 </div>
 
                 <!-- Respostas Coletadas na Triagem -->
                 <div class="bg-slate-950 border border-slate-800 p-4 rounded-2xl space-y-3">
                     <h4 class="text-[11px] font-bold text-slate-300 uppercase tracking-wider flex items-center justify-between">
-                        <span>Respostas da Triagem Automática</span>
+                        <span>Respostas Esclarecedoras da Causa</span>
                         <span class="text-amber-400 font-mono text-[10px]">${answers.length} respostas</span>
                     </h4>
                     ${answers.length === 0 ? '<p class="text-slate-500 text-[11px]">Nenhuma pergunta respondida ainda.</p>' : `
@@ -444,6 +446,7 @@
             if (selectedClient) {
                 document.getElementById('apptName').value = selectedClient.name || '';
                 document.getElementById('apptPhone').value = selectedClient.phone || '';
+                document.getElementById('apptEmail').value = selectedClient.email || '';
                 document.getElementById('apptArea').value = selectedClient.law_area || '';
             }
         }
@@ -456,6 +459,7 @@
             e.preventDefault();
             const name = document.getElementById('apptName').value.trim();
             const phone = document.getElementById('apptPhone').value.trim();
+            const email = document.getElementById('apptEmail').value.trim();
             const date = document.getElementById('apptDate').value;
             const time = document.getElementById('apptTime').value;
             const meeting_type = document.getElementById('apptType').value;
@@ -465,7 +469,7 @@
             const res = await fetch('/api/appointments/create', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, phone, date, time, meeting_type, law_area, summary })
+                body: JSON.stringify({ name, phone, email, date, time, meeting_type, law_area, summary })
             });
             const data = await res.json();
             if (data.success) {
@@ -474,6 +478,18 @@
                 switchTab('calendar');
             } else {
                 alert('Erro ao agendar: ' + (data.error || 'Verifique os campos.'));
+            }
+        }
+
+        async function sendFollowUp(appointmentId) {
+            if (!confirm('Deseja enviar a mensagem de follow-up / confirmação de reunião no WhatsApp deste cliente agora?')) return;
+            const res = await fetch(`/api/appointments/${appointmentId}/follow-up`, { method: 'POST' });
+            const data = await res.json();
+            if (data.success) {
+                alert('✅ Follow-up enviado com sucesso no WhatsApp do cliente!');
+                loadData();
+            } else {
+                alert('Erro ao enviar follow-up: ' + (data.error || 'Tente novamente.'));
             }
         }
 
@@ -580,7 +596,7 @@
                 badge.innerText = `🟢 ${curr.name} • CONECTADO`;
                 badge.className = 'text-xs font-bold px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
                 qrContainer.innerHTML = `<div class="text-emerald-600 font-bold text-sm p-6">✅ Conectado e Ativo 24h!<br><span class="text-xs text-slate-500 font-mono">${curr.user || ''}</span></div>`;
-                qrHelp.innerText = 'Esta linha está pronta para responder novos leads de anúncios.';
+                qrHelp.innerText = 'Esta linha está pronta para responder e agendar reuniões.';
             } else if (curr.qrCode) {
                 badge.innerText = `📱 ${curr.name} • ESCANEAR QR`;
                 badge.className = 'text-xs font-bold px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-400 border border-amber-500/30';
@@ -663,9 +679,9 @@
                 const matchesQuery = !query || 
                     (l.name && l.name.toLowerCase().includes(query)) ||
                     (l.phone && l.phone.includes(query)) ||
+                    (l.email && l.email.toLowerCase().includes(query)) ||
                     (l.law_area && l.law_area.toLowerCase().includes(query)) ||
-                    (l.source && l.source.toLowerCase().includes(query)) ||
-                    (l.campaign && l.campaign.toLowerCase().includes(query));
+                    (l.source && l.source.toLowerCase().includes(query));
 
                 const matchesArea = !areaFilter || (l.law_area && l.law_area.toLowerCase().includes(areaFilter.toLowerCase()));
                 const matchesStatus = !statusFilter || l.status === statusFilter;
@@ -717,11 +733,11 @@
                                     <span class="text-[9px] px-1.5 py-0.2 rounded bg-slate-800 text-slate-400 border border-slate-700 font-mono">${lineLabel}</span>
                                     <span class="text-[9px] px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold">${l.source === 'anuncio' ? '🎯 Anúncio' : 'Orgânico'}</span>
                                 </div>
-                                <p class="text-[11px] text-emerald-400 font-mono flex items-center gap-1 font-semibold truncate">
+                                <p class="text-[11px] text-emerald-400 font-mono font-semibold truncate mt-0.5">
                                     📱 ${l.phone}
-                                    <span class="text-slate-500 truncate">• ${l.law_area || 'Área em triagem'}</span>
+                                    ${l.email ? `<span class="text-blue-400 font-normal"> • 📧 ${l.email}</span>` : ''}
                                 </p>
-                                ${l.summary ? `<p class="text-[11px] text-slate-300 line-clamp-1 mt-0.5 font-medium">${l.summary}</p>` : ''}
+                                <p class="text-[11px] text-slate-400 truncate">⚖️ ${l.law_area || 'Área em triagem'}</p>
                             </div>
                         </div>
                         <div class="flex items-center gap-2 shrink-0">
@@ -745,7 +761,7 @@
                     <div class="col-span-full bg-slate-900 border border-slate-800 rounded-3xl p-8 sm:p-12 text-center text-slate-400">
                         <p class="text-4xl sm:text-5xl mb-3">📅</p>
                         <h3 class="text-base font-bold text-white">Nenhuma reunião agendada no momento</h3>
-                        <p class="text-xs mt-1 text-slate-500">Agende manualmente ou aguarde o lead finalizar pelo WhatsApp.</p>
+                        <p class="text-xs mt-1 text-slate-500">Atendimentos marcados entre 09:00 e 18:00 aparecerão aqui com link do Google Meet e Follow-up.</p>
                         <button onclick="openNewApptModal()" class="mt-4 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs inline-flex items-center gap-1.5 shadow-lg shadow-emerald-500/20 transition">➕ Agendar Nova Reunião</button>
                     </div>
                 `;
@@ -776,11 +792,16 @@
                             <div class="mb-3 sm:mb-4">
                                 <h3 class="text-sm sm:text-base font-extrabold text-white group-hover:text-amber-400 transition">${appt.client_name}</h3>
                                 <p class="text-xs text-emerald-400 font-mono font-semibold mt-0.5">📱 ${appt.client_phone}</p>
-                                <div class="mt-2 text-xs">
+                                ${appt.client_email && appt.client_email !== 'Não informado' ? `<p class="text-xs text-blue-400 font-mono mt-0.5">📧 ${appt.client_email}</p>` : ''}
+                                
+                                <div class="mt-2.5 text-xs bg-slate-950/80 p-2.5 rounded-xl border border-slate-800">
                                     ${!isOnline ? `
-                                        <p class="text-slate-300">📍 <span class="font-medium text-amber-300">Av. Abílio Machado, 1380 - Alípio de Melo</span></p>
+                                        <p class="text-slate-300">📍 <span class="font-medium text-amber-300">Av. Abílio Machado, 1380 - Alípio de Melo (BH)</span></p>
                                     ` : `
-                                        <p class="text-slate-300">🔗 <a href="${meetUrl}" target="_blank" class="text-blue-400 underline hover:text-blue-300">Google Meet</a></p>
+                                        <p class="text-slate-300 flex items-center gap-1 flex-wrap">
+                                            <span>📹 Meet:</span> 
+                                            <a href="${meetUrl}" target="_blank" class="text-blue-400 underline hover:text-blue-300 font-mono font-semibold break-all">${meetUrl}</a>
+                                        </p>
                                     `}
                                 </div>
                             </div>
@@ -791,14 +812,21 @@
                             </div>
                         </div>
 
+                        <!-- Ações do Card + Disparo de Follow-up -->
                         <div class="flex flex-col gap-2 pt-2.5 border-t border-slate-800/60">
+                            <!-- Botão de Follow-up WhatsApp -->
+                            <button onclick="sendFollowUp(${appt.id})" class="w-full bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white font-bold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-1.5 shadow-lg shadow-emerald-500/20 active:scale-95">
+                                📲 Enviar Follow-up / Lembrete WhatsApp
+                            </button>
+
                             ${isOnline ? `
-                                <a href="${meetUrl}" target="_blank" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-1.5 shadow-lg shadow-blue-500/20">📹 Entrar no Google Meet</a>
+                                <a href="${meetUrl}" target="_blank" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 rounded-xl text-xs transition flex items-center justify-center gap-1.5 shadow-md">📹 Entrar no Google Meet</a>
                             ` : `
-                                <a href="${mapsUrl}" target="_blank" class="w-full bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-1.5 shadow-lg shadow-amber-500/20">🗺️ Abrir Rota Google Maps</a>
+                                <a href="${mapsUrl}" target="_blank" class="w-full bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold py-2 rounded-xl text-xs transition flex items-center justify-center gap-1.5 shadow-md">🗺️ Rota Google Maps</a>
                             `}
+
                             <div class="flex items-center gap-2">
-                                <a href="https://wa.me/${cleanPhone}" target="_blank" class="flex-1 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/30 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1">💬 WhatsApp</a>
+                                <a href="https://wa.me/${cleanPhone}" target="_blank" class="flex-1 bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-slate-700 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1">💬 Conversar</a>
                                 <button onclick="cancelAppt(${appt.id})" class="px-3 py-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 rounded-xl text-xs transition" title="Cancelar">🗑️</button>
                             </div>
                         </div>
@@ -826,7 +854,7 @@
         }
 
         async function clearAllLeads() {
-            if (!confirm('ATENÇÃO: Deseja realmente APAGAR TODOS os leads do banco de dados? Esta ação é irreversível.')) return;
+            if (!confirm('ATENÇÃO: Deseja realmente APAGAR TODOS os leads do banco de dados?')) return;
             await fetch('/api/leads/clear-all', { method: 'POST' });
             selectedPhone = null;
             selectedClient = null;
@@ -849,7 +877,7 @@
 
             const lineName = selectedClient?.instance_id ? selectedClient.instance_id.replace('instance_', 'Linha ') : 'Linha 1';
             document.getElementById('chatClientName').innerText = selectedClient?.name || 'Lead Anúncio';
-            document.getElementById('chatClientPhone').innerText = `📱 ${phone} • ${selectedClient?.law_area || 'Em Triagem'} • [${lineName}]`;
+            document.getElementById('chatClientPhone').innerText = `📱 ${phone} • 📧 ${selectedClient?.email || 'Sem e-mail'} • [${lineName}]`;
             
             const btnToggle = document.getElementById('btnToggleAi');
             document.getElementById('chatControls').classList.remove('hidden');

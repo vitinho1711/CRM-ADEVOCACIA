@@ -23,7 +23,7 @@ app.get('/health', (req, res) => {
         status: 'online',
         service: config.office.name,
         timestamp: new Date().toISOString(),
-        version: '2.0.0'
+        version: '2.1.0'
     });
 });
 
@@ -155,11 +155,12 @@ app.get('/api/leads', (req, res) => {
 
 app.get('/api/export-leads', (req, res) => {
     const clients = DatabaseService.getAllClients();
-    let csv = 'Nome,Telefone,Cidade,Area_Juridica,Status,Score,Qualificacao,Origem,Campanha,Criado_Em\n';
+    let csv = 'Nome,Telefone,Email,Cidade,Area_Juridica,Status,Score,Qualificacao,Origem,Campanha,Criado_Em\n';
     
     clients.forEach(c => {
         const name = (c.name || 'Cliente').replace(/,/g, ' ');
         const phone = (c.phone || '').replace(/,/g, ' ');
+        const email = (c.email || '').replace(/,/g, ' ');
         const city = (c.city || '').replace(/,/g, ' ');
         const area = (c.law_area || '').replace(/,/g, ' ');
         const status = (c.status || '').replace(/,/g, ' ');
@@ -168,7 +169,7 @@ app.get('/api/export-leads', (req, res) => {
         const source = (c.source || '').replace(/,/g, ' ');
         const camp = (c.campaign || '').replace(/,/g, ' ');
         const date = (c.created_at || '').substring(0, 10);
-        csv += `"${name}","${phone}","${city}","${area}","${status}",${score},"${qual}","${source}","${camp}","${date}"\n`;
+        csv += `"${name}","${phone}","${email}","${city}","${area}","${status}",${score},"${qual}","${source}","${camp}","${date}"\n`;
     });
 
     res.setHeader('Content-Type', 'text/csv; charset=utf-8');
@@ -176,7 +177,6 @@ app.get('/api/export-leads', (req, res) => {
     res.send('\uFEFF' + csv);
 });
 
-// Download do Manual Completo do CRM em PDF
 app.get('/api/manual-pdf', (req, res) => {
     const pdfPath = path.join(__dirname, '..', 'Manual_Completo_CRM_Glaucio_Advocacia.pdf');
     if (fs.existsSync(pdfPath)) {
@@ -192,13 +192,14 @@ app.get('/api/appointments', (req, res) => {
 });
 
 app.post('/api/appointments/create', (req, res) => {
-    const { name, phone, date, time, meeting_type, law_area, summary } = req.body;
+    const { name, phone, email, date, time, meeting_type, law_area, summary } = req.body;
     if (!name || !phone || !date || !time) {
         return res.status(400).json({ error: 'Campos obrigatórios ausentes' });
     }
     const appt = DatabaseService.createAppointment({
         name,
         phone,
+        email,
         date,
         time,
         meeting_type: meeting_type || 'Presencial',
@@ -206,6 +207,34 @@ app.post('/api/appointments/create', (req, res) => {
         summary: summary || 'Reunião agendada pelo advogado'
     });
     res.json({ success: true, appointment: appt });
+});
+
+// DISPARO DE FOLLOW-UP / LEMBRETE NO WHATSAPP DO CLIENTE
+app.post('/api/appointments/:id/follow-up', async (req, res) => {
+    try {
+        const appts = DatabaseService.getAllAppointments();
+        const appt = appts.find(a => a.id == req.params.id);
+        if (!appt) return res.status(404).json({ error: 'Reunião não encontrada' });
+
+        const isOnline = (appt.meeting_type || '').includes('Online');
+        const meetText = isOnline 
+            ? `📹 Link do Google Meet: ${appt.meet_link || 'https://meet.google.com/glaucio-advocacia'}`
+            : `📍 Endereço Presencial: Av. Abílio Machado, 1380 - Alípio de Melo, Belo Horizonte / MG`;
+
+        const followupMsg = `Olá, ${appt.client_name}! 👋⚖️\n\nPassando para confirmar sua reunião com o **Dr. Glaucio Dias**:\n\n📅 **Data:** ${appt.date}\n🕒 **Horário:** ${appt.time}\n${meetText}\n\n📌 **Orientações:**\nPor favor, deixe separados seus documentos e registros para analisarmos juntos. Se precisar de qualquer ajuste no horário, basta responder esta mensagem. Até breve!`;
+
+        DatabaseService.addMessage(appt.client_phone, 'assistant', followupMsg);
+        DatabaseService.registerFollowUpSent(appt.id);
+
+        const sent = await sendDirectMessage(appt.client_phone, followupMsg);
+        if (!sent) {
+            await EvolutionApi.sendTextMessage(appt.client_phone, followupMsg);
+        }
+
+        res.json({ success: true, message: 'Follow-up de confirmação enviado com sucesso no WhatsApp!' });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
 });
 
 app.post('/api/appointments/:id/cancel', (req, res) => {

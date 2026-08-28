@@ -19,32 +19,33 @@ function normalizePhone(rawPhone) {
     if (!rawPhone) return '';
     let digits = String(rawPhone).replace(/\D/g, '');
     
-    // Remove sufixo de dispositivo WhatsApp se houver (ex: :1, :2)
     if (digits.length > 15) {
         digits = digits.substring(0, 13);
     }
 
-    // Se começar com 0, remove o zero
     if (digits.startsWith('0')) {
         digits = digits.substring(1);
     }
 
-    // Se for número BR sem DDI (10 ou 11 dígitos, ex: 31988776655)
     if (digits.length === 10 || digits.length === 11) {
         digits = '55' + digits;
     }
 
-    // Se tiver 12 dígitos (55 + DDD + 8 dígitos móvel), adiciona o 9º dígito se for celular
     if (digits.length === 12 && digits.startsWith('55')) {
         const ddd = digits.substring(2, 4);
         const rest = digits.substring(4);
-        // Se primeiro dígito do número for 6, 7, 8 ou 9, insere o 9
         if (['6', '7', '8', '9'].includes(rest[0])) {
             digits = `55${ddd}9${rest}`;
         }
     }
 
     return digits;
+}
+
+function generateGoogleMeetLink() {
+    const chars = 'abcdefghijklmnopqrstuvwxyz';
+    const rand = (len) => Array.from({ length: len }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+    return `https://meet.google.com/${rand(3)}-${rand(4)}-${rand(3)}`;
 }
 
 function readDb() {
@@ -71,6 +72,7 @@ function writeDb(data) {
 
 const DatabaseService = {
     normalizePhone,
+    generateGoogleMeetLink,
 
     getClientByPhone(phone) {
         const cleanPhone = normalizePhone(phone);
@@ -94,6 +96,7 @@ const DatabaseService = {
                 whatsapp: `https://wa.me/${cleanPhone}`,
                 instance_id: data.instance_id || 'instance_1',
                 name: data.name || null,
+                email: data.email || null,
                 city: data.city || null,
                 law_area: data.law_area || null,
                 source: data.source || (data.from_ad ? 'anuncio' : 'organico'),
@@ -106,7 +109,7 @@ const DatabaseService = {
                 utm_medium: data.utm_medium || null,
                 utm_content: data.utm_content || null,
                 status: data.status || 'NOVO LEAD',
-                triage_step: data.triage_step || 'area_selection',
+                triage_step: data.triage_step || 'collect_name',
                 triage_answers: Array.isArray(data.triage_answers) ? data.triage_answers : [],
                 qualification_score: data.qualification_score !== undefined ? Number(data.qualification_score) : 0,
                 qualification_status: data.qualification_status || 'EM TRIAGEM',
@@ -124,7 +127,7 @@ const DatabaseService = {
             db.clients.push(client);
         } else {
             const updatableKeys = [
-                'name', 'city', 'law_area', 'source', 'campaign', 'adset', 'ad', 'creative',
+                'name', 'email', 'city', 'law_area', 'source', 'campaign', 'adset', 'ad', 'creative',
                 'utm_source', 'utm_campaign', 'utm_medium', 'utm_content', 'status',
                 'triage_step', 'triage_answers', 'qualification_score', 'qualification_status',
                 'summary', 'urgency', 'documents', 'client_goal', 'notes', 'assigned_to',
@@ -161,7 +164,6 @@ const DatabaseService = {
             client.triage_answers = [];
         }
 
-        // Se já havia resposta para este step, atualiza, senão adiciona
         const existingIdx = client.triage_answers.findIndex(a => a.step === step);
         const answerObj = {
             step,
@@ -177,11 +179,9 @@ const DatabaseService = {
             client.triage_answers.push(answerObj);
         }
 
-        // Recalcula score total somando todas as respostas
         const totalScore = Math.min(100, client.triage_answers.reduce((acc, curr) => acc + (curr.points || 0), 0));
         client.qualification_score = totalScore;
 
-        // Classificação automática conforme faixas
         if (totalScore >= 81) {
             client.qualification_status = 'ALTA PRIORIDADE';
         } else if (totalScore >= 61) {
@@ -243,7 +243,7 @@ const DatabaseService = {
         return clientMsgs.slice(-limit);
     },
 
-    createAppointment({ phone, name, date, time, law_area, notes, summary, city, meeting_type }) {
+    createAppointment({ phone, name, email, date, time, law_area, notes, summary, city, meeting_type, meet_link }) {
         const db = readDb();
         const cleanPhone = normalizePhone(phone) || (db.clients[0]?.phone || 'WhatsApp');
         const client = db.clients.find(c => normalizePhone(c.phone) === cleanPhone);
@@ -254,28 +254,50 @@ const DatabaseService = {
             finalMeetingType = 'Online (Google Meet)';
         }
 
+        const isOnline = finalMeetingType.includes('Online');
+        const finalMeetLink = isOnline ? (meet_link || generateGoogleMeetLink()) : null;
+
         const appointment = {
             id: Date.now(),
             client_phone: cleanPhone,
             client_name: name || client?.name || 'Cliente',
+            client_email: email || client?.email || 'Não informado',
             date: date,
             time: time,
             meeting_type: finalMeetingType,
-            meet_link: finalMeetingType.includes('Online') ? 'https://meet.google.com/glaucio-advocacia' : null,
-            maps_link: finalMeetingType.includes('Presencial') ? 'https://maps.google.com/?q=Av.+Ab%C3%ADlio+Machado,+1380+-+Al%C3%ADpio+de+Melo' : null,
+            meet_link: finalMeetLink,
+            maps_link: !isOnline ? 'https://maps.google.com/?q=Av.+Ab%C3%ADlio+Machado,+1380+-+Al%C3%ADpio+de+Melo' : null,
             law_area: law_area || client?.law_area || 'Direito Geral',
             city: city || client?.city || 'Belo Horizonte / MG',
             summary: summary || notes || client?.summary || 'Pauta da reunião com o advogado',
             documents: client?.documents || 'Nenhum informado',
             notes: notes || '',
             status: 'CONFIRMADO',
+            followup_count: 1,
+            last_followup_at: new Date().toISOString(),
             created_at: new Date().toISOString()
         };
         db.appointments.push(appointment);
         writeDb(db);
 
-        this.saveOrUpdateClient(cleanPhone, { status: 'AGENDADO' });
+        this.saveOrUpdateClient(cleanPhone, { 
+            name: appointment.client_name,
+            email: appointment.client_email,
+            status: 'AGENDADO' 
+        });
         return appointment;
+    },
+
+    registerFollowUpSent(appointmentId) {
+        const db = readDb();
+        const appt = db.appointments.find(a => a.id == appointmentId);
+        if (appt) {
+            appt.followup_count = (appt.followup_count || 0) + 1;
+            appt.last_followup_at = new Date().toISOString();
+            writeDb(db);
+            return appt;
+        }
+        return null;
     },
 
     getAppointmentsForDate(date) {
@@ -296,9 +318,10 @@ const DatabaseService = {
                 ...a,
                 client_phone: cleanPhone || client?.phone || 'WhatsApp',
                 client_name: a.client_name || client?.name || 'Cliente',
+                client_email: a.client_email || client?.email || 'Não informado',
                 city: a.city || client?.city || 'Belo Horizonte / MG',
                 meeting_type: meetingType,
-                meet_link: isOnline ? 'https://meet.google.com/glaucio-advocacia' : null,
+                meet_link: a.meet_link || (isOnline ? 'https://meet.google.com/glaucio-advocacia' : null),
                 maps_link: !isOnline ? 'https://maps.google.com/?q=Av.+Ab%C3%ADlio+Machado,+1380+-+Al%C3%ADpio+de+Melo' : null,
                 summary: a.summary || client?.summary || a.notes || 'Pauta da reunião com o advogado',
                 documents: a.documents || client?.documents || 'Nenhum'
@@ -351,7 +374,6 @@ const DatabaseService = {
 
         const taxaQualificacao = totalLeads > 0 ? Math.round((qualificados / totalLeads) * 100) : 0;
 
-        // Por área
         const porArea = {
             trabalhista: clients.filter(c => (c.law_area || '').toLowerCase().includes('trabalh')).length,
             previdenciario: clients.filter(c => (c.law_area || '').toLowerCase().includes('previd')).length,
@@ -363,7 +385,6 @@ const DatabaseService = {
             }).length
         };
 
-        // Campanhas
         const campanhasMap = {};
         clients.forEach(c => {
             const camp = c.campaign || c.source || 'Não Identificada';

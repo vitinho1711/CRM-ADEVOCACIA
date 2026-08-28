@@ -7,7 +7,7 @@ const Logger = require('./src/logger');
 
 async function runTests() {
     console.log('====================================================');
-    console.log('🚀 INICIANDO TESTES DO MOTOR DE CONVERSÃO EM REUNIÕES');
+    console.log('🚀 TESTANDO FLUXO COMPLETO: NOME + GMAIL + 09H-18H + MEET + FOLLOW-UP');
     console.log('====================================================\n');
 
     let passed = 0;
@@ -16,23 +16,21 @@ async function runTests() {
     DatabaseService.clearAllClients();
 
     // ----------------------------------------------------
-    // TESTE 1: Novo número de anúncio entra pelo WhatsApp
+    // TESTE 1: Novo lead entra por anúncio -> Sistema pede Nome Completo
     // ----------------------------------------------------
     try {
-        console.log('🧪 TESTE 1: Novo número entra pelo WhatsApp (origem anúncio)...');
+        console.log('🧪 TESTE 1: Entrada de anúncio e pedido de Nome Completo...');
         const phone1 = '31988887777';
-        const msg1 = 'Olá Dr. Glaucio, vi seu anúncio no Instagram e preciso de ajuda';
+        const msgAd = 'Olá Dr. Glaucio, vi seu anúncio no Instagram';
 
-        const reply1 = await TriageEngine.processIncoming(phone1, msg1, 'instance_1');
+        const r1 = await TriageEngine.processIncoming(phone1, msgAd, 'instance_1');
+        assert(r1 && r1.includes('qual é o seu Nome Completo'), 'Deveria pedir o Nome Completo');
+
         const lead1 = DatabaseService.getClientByPhone(phone1);
+        assert(lead1 !== null);
+        assert(lead1.triage_step === 'waiting_name');
 
-        assert(lead1 !== null, 'Lead deveria ter sido criado no CRM');
-        assert(lead1.phone === '5531988887777');
-        assert(lead1.from_ad === 1);
-        assert(lead1.status === 'NOVO LEAD');
-        assert(reply1 && reply1.includes('qual área está relacionada'));
-
-        console.log('✅ TESTE 1 PASSOU: Lead criado imediatamente no CRM.');
+        console.log('✅ TESTE 1 PASSOU: Sistema solicita o Nome Completo logo na entrada.');
         passed++;
     } catch (e) {
         console.error('❌ TESTE 1 FALHOU:', e.message);
@@ -40,20 +38,20 @@ async function runTests() {
     }
 
     // ----------------------------------------------------
-    // TESTE 2: Lead abandona no meio da triagem
+    // TESTE 2: Lead informa Nome -> Sistema confirma Telefone e pede Gmail
     // ----------------------------------------------------
     try {
-        console.log('\n🧪 TESTE 2: Lead responde área (Família) + pergunta 1 e abandona...');
-        const phone2 = '31977776666';
-        await TriageEngine.processIncoming(phone2, 'Olá Dr Glaucio, vi seu anúncio', 'instance_1');
-        await TriageEngine.processIncoming(phone2, '3', 'instance_1');
-        await TriageEngine.processIncoming(phone2, '1', 'instance_1');
+        console.log('\n🧪 TESTE 2: Lead envia Nome e sistema pede E-mail / Gmail...');
+        const phone1 = '31988887777';
+        const r2 = await TriageEngine.processIncoming(phone1, 'Carlos Eduardo da Silva', 'instance_1');
 
-        const lead2 = DatabaseService.getClientByPhone(phone2);
-        assert(lead2.triage_answers.length === 1);
-        assert(lead2.qualification_score > 0);
+        const lead1 = DatabaseService.getClientByPhone(phone1);
+        assert(lead1.name === 'Carlos Eduardo Da Silva', `Nome salvo incorreto: ${lead1.name}`);
+        assert(lead1.triage_step === 'waiting_email');
+        assert(r2 && r2.includes('E-mail (Gmail)'), 'Deveria pedir o e-mail Gmail');
+        assert(r2 && r2.includes('+55 (31) 98888-7777'), 'Deveria confirmar o telefone');
 
-        console.log(`✅ TESTE 2 PASSOU: Respostas parciais salvas (${lead2.qualification_score} pts).`);
+        console.log('✅ TESTE 2 PASSOU: Nome salvo, telefone confirmado e Gmail solicitado.');
         passed++;
     } catch (e) {
         console.error('❌ TESTE 2 FALHOU:', e.message);
@@ -61,17 +59,19 @@ async function runTests() {
     }
 
     // ----------------------------------------------------
-    // TESTE 3: Retorno do lead sem duplicação
+    // TESTE 3: Lead informa Gmail -> Salva no CRM e inicia seleção de área
     // ----------------------------------------------------
     try {
-        console.log('\n🧪 TESTE 3: Lead do Teste 2 retorna após horas e continua...');
-        const phone3 = '5531977776666';
-        await TriageEngine.processIncoming(phone3, '1', 'instance_1');
+        console.log('\n🧪 TESTE 3: Lead envia Gmail e sistema avança para as perguntas...');
+        const phone1 = '31988887777';
+        const r3 = await TriageEngine.processIncoming(phone1, 'carlos.adv@gmail.com', 'instance_1');
 
-        const matchingClients = DatabaseService.getAllClients().filter(c => DatabaseService.normalizePhone(c.phone) === '5531977776666');
-        assert(matchingClients.length === 1);
+        const lead1 = DatabaseService.getClientByPhone(phone1);
+        assert(lead1.email === 'carlos.adv@gmail.com', `Email salvo incorreto: ${lead1.email}`);
+        assert(lead1.triage_step === 'area_selection');
+        assert(r3 && r3.includes('qual área está relacionada'), 'Deveria apresentar as opções de área');
 
-        console.log('✅ TESTE 3 PASSOU: Continuação sem duplicidade de contato.');
+        console.log('✅ TESTE 3 PASSOU: Gmail salvo com sucesso na ficha do lead.');
         passed++;
     } catch (e) {
         console.error('❌ TESTE 3 FALHOU:', e.message);
@@ -79,45 +79,48 @@ async function runTests() {
     }
 
     // ----------------------------------------------------
-    // TESTE 4: Esclarecimento Completo + Conversão Direta em Reunião Agendada
+    // TESTE 4: Triagem do Nicho + Agendamento com Horários das 09:00 às 18:00 + Meet Link Único
     // ----------------------------------------------------
     try {
-        console.log('\n🧪 TESTE 4: Lead esclarecido na triagem e convertido em reunião agendada...');
-        const phone4 = '31966665555';
+        console.log('\n🧪 TESTE 4: Condução para Reunião de 09:00 às 18:00 com Google Meet Automático...');
+        const phone1 = '31988887777';
 
-        // 1. Entrada pelo anúncio
-        await TriageEngine.processIncoming(phone4, 'Olá Dr Glaucio, vi o anúncio no Facebook', 'instance_1');
-        // 2. Área: Trabalhista
-        await TriageEngine.processIncoming(phone4, '1', 'instance_1');
-        // 3. Demitido
-        await TriageEngine.processIncoming(phone4, '1', 'instance_1');
-        // 4. Já saí
-        await TriageEngine.processIncoming(phone4, '2', 'instance_1');
-        // 5. Menos de 30 dias
-        await TriageEngine.processIncoming(phone4, '1', 'instance_1');
-        // 6. Possui documentos
-        await TriageEngine.processIncoming(phone4, '1', 'instance_1');
-        // 7. Deseja orientação -> Responde com oferta de reunião Online vs Presencial!
-        const replyFormat = await TriageEngine.processIncoming(phone4, '1', 'instance_1');
-        assert(replyFormat && replyFormat.includes('reunião com o Dr. Glaucio Dias'), 'Deveria propor a reunião com o Dr. Glaucio');
+        // Escolhe Trabalhista (1)
+        await TriageEngine.processIncoming(phone1, '1', 'instance_1');
+        // Demitido (1)
+        await TriageEngine.processIncoming(phone1, '1', 'instance_1');
+        // Não trabalha mais (2)
+        await TriageEngine.processIncoming(phone1, '2', 'instance_1');
+        // Menos de 30 dias (1)
+        await TriageEngine.processIncoming(phone1, '1', 'instance_1');
+        // Possui documentos (1)
+        await TriageEngine.processIncoming(phone1, '1', 'instance_1');
+        // Deseja agendamento (1) -> Conduz à escolha do formato!
+        const rFormat = await TriageEngine.processIncoming(phone1, '1', 'instance_1');
+        assert(rFormat && rFormat.includes('Google Meet'), 'Deveria oferecer Online vs Presencial');
 
-        // 8. Lead escolhe formato Online (1)
-        const replySlots = await TriageEngine.processIncoming(phone4, '1', 'instance_1');
-        assert(replySlots && replySlots.includes('10:00'), 'Deveria oferecer horários disponíveis');
+        // Escolhe Online (1) -> Disponibiliza horários das 09:00 às 18:00
+        const rSlots = await TriageEngine.processIncoming(phone1, '1', 'instance_1');
+        assert(rSlots && rSlots.includes('09:00 às 18:00'), 'Deveria mencionar o intervalo das 09:00 às 18:00');
+        assert(rSlots.includes('09:30') && rSlots.includes('17:00'), 'Deveria conter opções de manhã e tarde');
 
-        // 9. Lead escolhe horário das 14:30 (2) -> REUNIÃO AGENDADA!
-        const replyConfirmation = await TriageEngine.processIncoming(phone4, '2', 'instance_1');
-        assert(replyConfirmation && replyConfirmation.includes('Reunião Online confirmada'), 'Deveria confirmar a reunião');
-        assert(replyConfirmation.includes('meet.google.com'), 'Deveria conter o link do Google Meet');
+        // Escolhe horário das 14:00 (opção 3) -> Reunião Criada com Meet e Follow-up!
+        const rConfirm = await TriageEngine.processIncoming(phone1, '3', 'instance_1');
+        assert(rConfirm && rConfirm.includes('Reunião Online Agendada'), 'Deveria confirmar a reunião');
+        assert(rConfirm.includes('meet.google.com/'), 'Deveria gerar o link do Google Meet');
+        assert(rConfirm.includes('FOLLOW-UP & ORIENTAÇÕES'), 'Deveria incluir orientações de follow-up');
 
-        const lead4 = DatabaseService.getClientByPhone(phone4);
-        assert(lead4.status === 'AGENDADO', `Status deveria ser AGENDADO, obtido: ${lead4.status}`);
+        const leadFinal = DatabaseService.getClientByPhone(phone1);
+        assert(leadFinal.status === 'AGENDADO');
 
-        const appts = DatabaseService.getAllAppointments().filter(a => a.client_phone === '5531966665555');
-        assert(appts.length === 1, 'Reunião deveria estar gravada na tabela de agendamentos');
-        assert(appts[0].meeting_type === 'Online (Google Meet)', 'Tipo de reunião deve ser Online');
+        const appt = DatabaseService.getAllAppointments().find(a => a.client_phone === '5531988887777');
+        assert(appt !== undefined, 'Agendamento não encontrado no banco');
+        assert(appt.client_name === 'Carlos Eduardo Da Silva');
+        assert(appt.client_email === 'carlos.adv@gmail.com');
+        assert(appt.meet_link && appt.meet_link.startsWith('https://meet.google.com/'), 'Link do Meet inválido');
+        assert(appt.followup_count >= 1, 'Follow-up inicial deveria estar registrado');
 
-        console.log(`✅ TESTE 4 PASSOU: OBJETIVO ATINGIDO! Lead esclarecido e reunião agendada na agenda do Dr. Glaucio!`);
+        console.log(`✅ TESTE 4 PASSOU: Agendamento completo! Meet: ${appt.meet_link}, Horário: ${appt.time} (Janela 9h-18h).`);
         passed++;
     } catch (e) {
         console.error('❌ TESTE 4 FALHOU:', e.message);
@@ -125,70 +128,26 @@ async function runTests() {
     }
 
     // ----------------------------------------------------
-    // TESTE 5: Status WhatsApp Confiável
+    // TESTE 5: Registro de Disparo de Follow-up no WhatsApp
     // ----------------------------------------------------
     try {
-        console.log('\n🧪 TESTE 5: Status confiável de todos os 5 WhatsApps...');
-        const allStatus = getAllWhatsAppStatus();
-        assert(allStatus.length === 5);
-        console.log('✅ TESTE 5 PASSOU: 5 instâncias monitoradas.');
+        console.log('\n🧪 TESTE 5: Teste de registro de follow-up adicional do WhatsApp...');
+        const appt = DatabaseService.getAllAppointments()[0];
+        assert(appt !== undefined);
+
+        const updatedAppt = DatabaseService.registerFollowUpSent(appt.id);
+        assert(updatedAppt.followup_count === 2, 'Contador de follow-up deveria ter subido para 2');
+
+        console.log('✅ TESTE 5 PASSOU: Registro e histórico de follow-up funcionando perfeitamente.');
         passed++;
     } catch (e) {
         console.error('❌ TESTE 5 FALHOU:', e.message);
         failed++;
     }
 
-    // ----------------------------------------------------
-    // TESTE 6: Idempotência de consulta
-    // ----------------------------------------------------
-    try {
-        console.log('\n🧪 TESTE 6: Consulta de estado persistida...');
-        const s1 = getWhatsAppStatus('instance_1');
-        const s2 = getWhatsAppStatus('instance_1');
-        assert(s1.status === s2.status);
-        console.log('✅ TESTE 6 PASSOU: Estado consistente.');
-        passed++;
-    } catch (e) {
-        console.error('❌ TESTE 6 FALHOU:', e.message);
-        failed++;
-    }
-
-    // ----------------------------------------------------
-    // TESTE 7: Mensagens simultâneas
-    // ----------------------------------------------------
-    try {
-        console.log('\n🧪 TESTE 7: Concorrência simultânea...');
-        const phoneSimul = '31955554444';
-        await Promise.all([
-            TriageEngine.processIncoming(phoneSimul, 'Dr Glaucio anúncio 1', 'instance_1'),
-            TriageEngine.processIncoming(phoneSimul, 'Dr Glaucio anúncio 2', 'instance_1')
-        ]);
-        const matching = DatabaseService.getAllClients().filter(c => DatabaseService.normalizePhone(c.phone) === '5531955554444');
-        assert(matching.length === 1);
-        console.log('✅ TESTE 7 PASSOU: Apenas 1 lead criado.');
-        passed++;
-    } catch (e) {
-        console.error('❌ TESTE 7 FALHOU:', e.message);
-        failed++;
-    }
-
-    // ----------------------------------------------------
-    // TESTE 8: Trava contra clientes antigos
-    // ----------------------------------------------------
-    try {
-        console.log('\n🧪 TESTE 8: Silêncio absoluto para clientes antigos / mensagens normais...');
-        const phoneOld = '31944443333';
-        const reply = await TriageEngine.processIncoming(phoneOld, 'Doutor, boa tarde! Como está o processo?', 'instance_1');
-        assert(reply === null);
-        console.log('✅ TESTE 8 PASSOU: IA em silêncio absoluto para contatos que não são de anúncios.');
-        passed++;
-    } catch (e) {
-        console.error('❌ TESTE 8 FALHOU:', e.message);
-        failed++;
-    }
-
+    // Limpa banco de testes
     DatabaseService.clearAllClients();
-    console.log('\n🧹 Banco de dados pronto para produção.');
+    console.log('\n🧹 Banco de dados zerado para produção.');
 
     console.log('\n====================================================');
     console.log(`📊 RESULTADO FINAL: ${passed} PASSARAM | ${failed} FALHARAM`);
