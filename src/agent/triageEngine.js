@@ -529,6 +529,41 @@ const TriageEngine = {
             }
         }
 
+        // ========================================================
+        // ETAPA 3: CLIENTE JÁ CONCLUIU A TRIAGEM / AGENDAMENTO
+        // ========================================================
+        if (currentStepId === 'completed' || client.status === 'AGENDADO') {
+            const isRestart = ['teste', 'reiniciar', 'recomecar', 'novo', 'iniciar', '3'].some(k => normMsg.includes(k));
+            const isReschedule = ['reagendar', 'mudar horario', 'outro horario', 'trocar', '2'].some(k => normMsg.includes(k));
+
+            if (isRestart) {
+                DatabaseService.saveOrUpdateClient(cleanPhone, {
+                    triage_step: 'waiting_name',
+                    triage_answers: [],
+                    qualification_score: 0,
+                    qualification_status: 'EM TRIAGEM',
+                    status: 'NOVO LEAD'
+                });
+                const reply = `Olá novamente! 🔄 Vamos reiniciar seu atendimento do zero para uma nova análise com o **Dr. Glaucio Dias**.\n\nPor favor: **qual é o seu Nome Completo?**`;
+                DatabaseService.addMessage(cleanPhone, 'assistant', reply);
+                return reply;
+            }
+
+            if (isReschedule) {
+                DatabaseService.saveOrUpdateClient(cleanPhone, {
+                    triage_step: 'scheduling_format'
+                });
+                const reply = `Com certeza, **${client.name || 'Cliente'}**! Vamos ajustar o seu horário de atendimento com o Dr. Glaucio.\n\nComo fica melhor para você?\n1️⃣ **Online (via Google Meet)**\n2️⃣ **Presencial (Escritório BH)**`;
+                DatabaseService.addMessage(cleanPhone, 'assistant', reply);
+                return reply;
+            }
+
+            // Resposta de apoio inteligente para evitar que o bot fique em silêncio
+            const reply = `Olá, **${client.name || 'Cliente'}**! 👋⚖️\n\nSua mensagem foi recebida com sucesso e registrada na sua ficha com o **Dr. Glaucio Dias**.\n\nOpções rápidas:\n1️⃣ Digite **"reagendar"** para alterar o horário da sua reunião;\n2️⃣ Digite **"reiniciar"** para realizar uma nova triagem do zero;\n3️⃣ Ou aguarde o contato do advogado diretamente por aqui!`;
+            DatabaseService.addMessage(cleanPhone, 'assistant', reply);
+            return reply;
+        }
+
         return null;
     }
 };
