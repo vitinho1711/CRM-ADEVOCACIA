@@ -20,13 +20,16 @@ async function runTests() {
         console.log('🧪 TESTE 1: Entrada do Lead e coleta de Nome e Gmail...');
         let reply = await TriageEngine.processIncoming(testPhone, 'Olá Dr. Glaucio, vi seu anúncio no Instagram');
         assert(reply.includes('qual é o seu Nome Completo'), 'Deveria pedir o Nome');
+        assert(!reply.toLowerCase().includes('assistente virtual'), 'NÃO deve se apresentar como assistente virtual');
+        assert(!reply.toLowerCase().includes('reunião') && !reply.toLowerCase().includes('reuniao'), 'NÃO deve falar de reunião no início');
 
         reply = await TriageEngine.processIncoming(testPhone, 'Vitor Batista de Oliveira');
         assert(reply.includes('qual é o seu melhor e-mail (Gmail)'), 'Deveria pedir o Gmail');
+        assert(!reply.toLowerCase().includes('reunião') && !reply.toLowerCase().includes('reuniao'), 'NÃO deve falar de reunião na coleta de e-mail');
 
         reply = await TriageEngine.processIncoming(testPhone, 'vitor@gmail.com');
         assert(reply.includes('qual área está relacionada'), 'Deveria apresentar as áreas jurídicas');
-        console.log('✅ TESTE 1 PASSOU: Nome e Gmail coletados com sucesso.\n');
+        console.log('✅ TESTE 1 PASSOU: Nome e Gmail coletados humanamente (sem reunião e sem assistente virtual).\n');
         passed++;
 
         // ----------------------------------------------------

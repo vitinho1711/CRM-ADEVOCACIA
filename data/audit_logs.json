@@ -3208,5 +3208,263 @@
     "message": "Perfeito, muito obrigado!",
     "instanceId": "instance_1",
     "existingLead": true
+  },
+  {
+    "id": "17878880398716trdh",
+    "event": "LEAD_RECEIVED",
+    "timestamp": "2026-08-28T03:33:59.871Z",
+    "phone": "5531997875764",
+    "message": "Olá Dr. Glaucio, vi seu anúncio no Instagram",
+    "instanceId": "instance_1",
+    "existingLead": false
+  },
+  {
+    "id": "1787888039874m9uyd",
+    "event": "LEAD_CREATED",
+    "timestamp": "2026-08-28T03:33:59.874Z",
+    "phone": "5531997875764",
+    "source": "anuncio",
+    "instanceId": "instance_1"
+  },
+  {
+    "id": "1787888039877le7oj",
+    "event": "LEAD_RECEIVED",
+    "timestamp": "2026-08-28T03:33:59.877Z",
+    "phone": "5531997875764",
+    "message": "Vitor Batista de Oliveira",
+    "instanceId": "instance_1",
+    "existingLead": true
+  },
+  {
+    "id": "1787888039879wf77e",
+    "event": "TRIAGE_ANSWER_SAVED",
+    "timestamp": "2026-08-28T03:33:59.879Z",
+    "phone": "5531997875764",
+    "step": "collect_name",
+    "name": "Vitor Batista De Oliveira"
+  },
+  {
+    "id": "1787888039881wnfxj",
+    "event": "LEAD_RECEIVED",
+    "timestamp": "2026-08-28T03:33:59.881Z",
+    "phone": "5531997875764",
+    "message": "vitor@gmail.com",
+    "instanceId": "instance_1",
+    "existingLead": true
+  },
+  {
+    "id": "1787888039883taodg",
+    "event": "TRIAGE_ANSWER_SAVED",
+    "timestamp": "2026-08-28T03:33:59.883Z",
+    "phone": "5531997875764",
+    "step": "collect_email",
+    "email": "vitor@gmail.com"
+  },
+  {
+    "id": "178788803988481q9y",
+    "event": "LEAD_RECEIVED",
+    "timestamp": "2026-08-28T03:33:59.884Z",
+    "phone": "5531997875764",
+    "message": "3",
+    "instanceId": "instance_1",
+    "existingLead": true
+  },
+  {
+    "id": "1787888039887hdgle",
+    "event": "TRIAGE_STARTED",
+    "timestamp": "2026-08-28T03:33:59.887Z",
+    "phone": "5531997875764"
+  },
+  {
+    "id": "1787888039888vd2t9",
+    "event": "TRIAGE_ANSWER_SAVED",
+    "timestamp": "2026-08-28T03:33:59.888Z",
+    "phone": "5531997875764",
+    "step": "area_selection",
+    "area": "Direito de Família"
+  },
+  {
+    "id": "1787888039890en0rf",
+    "event": "LEAD_RECEIVED",
+    "timestamp": "2026-08-28T03:33:59.890Z",
+    "phone": "5531997875764",
+    "message": "1",
+    "instanceId": "instance_1",
+    "existingLead": true
+  },
+  {
+    "id": "17878880398934l1yy",
+    "event": "TRIAGE_ANSWER_SAVED",
+    "timestamp": "2026-08-28T03:33:59.893Z",
+    "phone": "5531997875764",
+    "step": "familia_situacao",
+    "answer": "Divórcio",
+    "points": 20,
+    "currentScore": 20
+  },
+  {
+    "id": "1787888039895htp5d",
+    "event": "LEAD_RECEIVED",
+    "timestamp": "2026-08-28T03:33:59.895Z",
+    "phone": "5531997875764",
+    "message": "1",
+    "instanceId": "instance_1",
+    "existingLead": true
+  },
+  {
+    "id": "17878880398960po5m",
+    "event": "TRIAGE_ANSWER_SAVED",
+    "timestamp": "2026-08-28T03:33:59.896Z",
+    "phone": "5531997875764",
+    "step": "familia_processo",
+    "answer": "Sim, já existe processo",
+    "points": 15,
+    "currentScore": 35
+  },
+  {
+    "id": "1787888039898u8vzk",
+    "event": "LEAD_RECEIVED",
+    "timestamp": "2026-08-28T03:33:59.898Z",
+    "phone": "5531997875764",
+    "message": "1",
+    "instanceId": "instance_1",
+    "existingLead": true
+  },
+  {
+    "id": "1787888039900k20b5",
+    "event": "TRIAGE_ANSWER_SAVED",
+    "timestamp": "2026-08-28T03:33:59.900Z",
+    "phone": "5531997875764",
+    "step": "familia_filhos",
+    "answer": "Sim, filhos menores",
+    "points": 15,
+    "currentScore": 50
+  },
+  {
+    "id": "1787888039902eibqc",
+    "event": "LEAD_RECEIVED",
+    "timestamp": "2026-08-28T03:33:59.902Z",
+    "phone": "5531997875764",
+    "message": "1",
+    "instanceId": "instance_1",
+    "existingLead": true
+  },
+  {
+    "id": "1787888039904bzrom",
+    "event": "TRIAGE_ANSWER_SAVED",
+    "timestamp": "2026-08-28T03:33:59.904Z",
+    "phone": "5531997875764",
+    "step": "familia_bens",
+    "answer": "Imóvel",
+    "points": 20,
+    "currentScore": 70
+  },
+  {
+    "id": "1787888039906xpo8z",
+    "event": "LEAD_RECEIVED",
+    "timestamp": "2026-08-28T03:33:59.906Z",
+    "phone": "5531997875764",
+    "message": "1",
+    "instanceId": "instance_1",
+    "existingLead": true
+  },
+  {
+    "id": "1787888039909830p0",
+    "event": "TRIAGE_ANSWER_SAVED",
+    "timestamp": "2026-08-28T03:33:59.909Z",
+    "phone": "5531997875764",
+    "step": "familia_acordo",
+    "answer": "Chance de acordo amigável",
+    "points": 15,
+    "currentScore": 85
+  },
+  {
+    "id": "17878880399107rmdt",
+    "event": "LEAD_RECEIVED",
+    "timestamp": "2026-08-28T03:33:59.910Z",
+    "phone": "5531997875764",
+    "message": "3",
+    "instanceId": "instance_1",
+    "existingLead": true
+  },
+  {
+    "id": "1787888039912r7kxf",
+    "event": "TRIAGE_ANSWER_SAVED",
+    "timestamp": "2026-08-28T03:33:59.912Z",
+    "phone": "5531997875764",
+    "step": "familia_momento",
+    "answer": "Urgência em guarda/pensão/bens",
+    "points": 25,
+    "currentScore": 100
+  },
+  {
+    "id": "1787888039914sr7yv",
+    "event": "TRIAGE_COMPLETED",
+    "timestamp": "2026-08-28T03:33:59.914Z",
+    "phone": "5531997875764",
+    "score": 100,
+    "status": "ALTA PRIORIDADE"
+  },
+  {
+    "id": "17878880399152h196",
+    "event": "LEAD_QUALIFIED",
+    "timestamp": "2026-08-28T03:33:59.915Z",
+    "phone": "5531997875764",
+    "score": 100,
+    "qualificationStatus": "ALTA PRIORIDADE"
+  },
+  {
+    "id": "1787888039917dbimc",
+    "event": "LEAD_RECEIVED",
+    "timestamp": "2026-08-28T03:33:59.917Z",
+    "phone": "5531997875764",
+    "message": "1",
+    "instanceId": "instance_1",
+    "existingLead": true
+  },
+  {
+    "id": "1787888039920xg8oa",
+    "event": "LEAD_RECEIVED",
+    "timestamp": "2026-08-28T03:33:59.920Z",
+    "phone": "5531997875764",
+    "message": "vou ter horario somente as 13:00",
+    "instanceId": "instance_1",
+    "existingLead": true
+  },
+  {
+    "id": "1787888039923klea1",
+    "event": "CRM_SYNC_SUCCESS",
+    "timestamp": "2026-08-28T03:33:59.923Z",
+    "phone": "5531997875764",
+    "action": "appointment_created",
+    "appointmentId": 1787888039922,
+    "meetLink": "https://meet.google.com/gla-ucio-dia"
+  },
+  {
+    "id": "17878880399254b87b",
+    "event": "LEAD_RECEIVED",
+    "timestamp": "2026-08-28T03:33:59.925Z",
+    "phone": "5531997875764",
+    "message": "Quais documentos preciso levar para a reunião?",
+    "instanceId": "instance_1",
+    "existingLead": true
+  },
+  {
+    "id": "1787888039927tv67n",
+    "event": "LEAD_RECEIVED",
+    "timestamp": "2026-08-28T03:33:59.927Z",
+    "phone": "5531997875764",
+    "message": "Onde fica o escritório em BH?",
+    "instanceId": "instance_1",
+    "existingLead": true
+  },
+  {
+    "id": "1787888039929wj8jl",
+    "event": "LEAD_RECEIVED",
+    "timestamp": "2026-08-28T03:33:59.929Z",
+    "phone": "5531997875764",
+    "message": "Perfeito, muito obrigado!",
+    "instanceId": "instance_1",
+    "existingLead": true
   }
 ]

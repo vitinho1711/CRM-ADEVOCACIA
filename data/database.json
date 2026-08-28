@@ -38,6 +38,56 @@
       "remote_jid": null
     }
   ],
-  "messages": [],
+  "messages": [
+    {
+      "id": 257,
+      "phone": "5531997875764",
+      "role": "user",
+      "content": "Olá Dr. Glaucio, vi seu anúncio no Instagram",
+      "created_at": "2026-08-28T03:33:59.876Z"
+    },
+    {
+      "id": 258,
+      "phone": "5531997875764",
+      "role": "assistant",
+      "content": "Olá! Seja muito bem-vindo(a) ao escritório Glaucio Dias Advocacia. 👋⚖️\n\nEstou aqui para dar início ao seu atendimento e entender melhor a sua situação para o **Dr. Glaucio Dias**.\n\nPara começarmos: **qual é o seu Nome Completo?**",
+      "created_at": "2026-08-28T03:33:59.877Z"
+    },
+    {
+      "id": 259,
+      "phone": "5531997875764",
+      "role": "user",
+      "content": "Vitor Batista de Oliveira",
+      "created_at": "2026-08-28T03:33:59.878Z"
+    },
+    {
+      "id": 260,
+      "phone": "5531997875764",
+      "role": "assistant",
+      "content": "Muito prazer, **Vitor Batista De Oliveira**! 🤝\n\nPara podermos registrar seu caso e formalizar seu contato com o escritório, por favor: **qual é o seu melhor e-mail (Gmail)?**",
+      "created_at": "2026-08-28T03:33:59.881Z"
+    },
+    {
+      "id": 261,
+      "phone": "5531997875764",
+      "role": "user",
+      "content": "vitor@gmail.com",
+      "created_at": "2026-08-28T03:33:59.882Z"
+    },
+    {
+      "id": 262,
+      "phone": "5531997875764",
+      "role": "assistant",
+      "content": "Perfeito, **Vitor Batista De Oliveira**! Seu e-mail foi registrado com sucesso. 📧\n\nAgora vamos entender os detalhes do seu caso para que o **Dr. Glaucio Dias** já tenha todas as informações em mãos.\n\nOlá! Seja bem-vindo(a) ao escritório Glaucio Dias Advocacia. 👋\n\nPara direcionarmos seu atendimento corretamente, qual área está relacionada à sua situação?\n\n1️⃣ Direito Trabalhista\n2️⃣ Direito Previdenciário / INSS\n3️⃣ Direito de Família\n4️⃣ Direito Bancário & Consumidor\n5️⃣ Outro assunto",
+      "created_at": "2026-08-28T03:33:59.884Z"
+    },
+    {
+      "id": 263,
+      "phone": "5531997875764",
+      "role": "assistant",
+      "content": "Excelente! Vamos tratar da sua questão de **Direito de Família**.\n\nPara entendermos sua situação com clareza, qual caso melhor representa o que você precisa?\n\n1️⃣ Divórcio ou Dissolução de União Estável\n2️⃣ Separação de Corpos / Afastamento do Lar\n3️⃣ Guarda ou Regulamentação de Convivência dos Filhos\n4️⃣ Pensão Alimentícia (Fixação, Revisão ou Cobrança)\n5️⃣ Partilha de Bens ou Inventário / Herança\n6️⃣ Outro assunto de família",
+      "created_at": "2026-08-28T03:33:59.890Z"
+    }
+  ],
   "appointments": []
 }

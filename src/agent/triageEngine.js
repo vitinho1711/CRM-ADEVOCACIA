@@ -283,12 +283,12 @@ const TriageEngine = {
 
                 Logger.log('TRIAGE_ANSWER_SAVED', { phone: cleanPhone, step: 'collect_name', name: detectedName });
 
-                const reply = `Olá, **${detectedName}**! Seja muito bem-vindo(a) ao escritório Glaucio Dias Advocacia. 👋⚖️\n\nSou a assistente do **Dr. Glaucio Dias** e vou preparar seu atendimento para que você tenha todo o suporte necessário.\n\nPara enviarmos os comprovantes e o link da sua reunião, por favor: **qual é o seu melhor e-mail (Gmail)?**`;
+                const reply = `Olá, **${detectedName}**! Seja muito bem-vindo(a) ao escritório Glaucio Dias Advocacia. 👋⚖️\n\nJá anotei seu nome para o **Dr. Glaucio Dias**.\n\nPara mantermos seu cadastro formal e enviarmos as orientações, por favor: **qual é o seu melhor e-mail (Gmail)?**`;
                 DatabaseService.addMessage(cleanPhone, 'assistant', reply);
                 return reply;
             }
 
-            const reply = `Olá! Seja muito bem-vindo(a) ao escritório Glaucio Dias Advocacia. 👋⚖️\n\nSou a assistente virtual e estou aqui para agilizar seu atendimento direto com o **Dr. Glaucio Dias**.\n\nPara iniciarmos seu cadastro formal com o advogado, por favor: **qual é o seu Nome Completo?**`;
+            const reply = `Olá! Seja muito bem-vindo(a) ao escritório Glaucio Dias Advocacia. 👋⚖️\n\nEstou aqui para dar início ao seu atendimento e entender melhor a sua situação para o **Dr. Glaucio Dias**.\n\nPara começarmos: **qual é o seu Nome Completo?**`;
             DatabaseService.addMessage(cleanPhone, 'assistant', reply);
             return reply;
         }
@@ -306,7 +306,7 @@ const TriageEngine = {
 
             Logger.log('TRIAGE_ANSWER_SAVED', { phone: cleanPhone, step: 'collect_name', name: candidateName });
 
-            const reply = `Muito prazer, **${candidateName}**! 🤝\n\nPara podermos enviar o resumo da sua consulta e o link oficial da reunião, por favor: **qual é o seu melhor e-mail (Gmail)?**`;
+            const reply = `Muito prazer, **${candidateName}**! 🤝\n\nPara podermos registrar seu caso e formalizar seu contato com o escritório, por favor: **qual é o seu melhor e-mail (Gmail)?**`;
             DatabaseService.addMessage(cleanPhone, 'assistant', reply);
             return reply;
         }
