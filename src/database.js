@@ -1,18 +1,14 @@
 const fs = require('fs');
 const path = require('path');
+const sqlite3 = require('sqlite3').verbose();
 
 const dataDir = path.join(__dirname, '..', 'data');
-const dbFile = path.join(dataDir, 'database.json');
+const backupsDir = path.join(dataDir, 'backups');
+const sqliteFile = path.join(dataDir, 'crm_advocacia.sqlite');
+const jsonBackupFile = path.join(dataDir, 'database.json');
 
-if (!fs.existsSync(dataDir)) {
-    fs.mkdirSync(dataDir, { recursive: true });
-}
-
-const defaultData = {
-    clients: [],
-    messages: [],
-    appointments: []
-};
+if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
+if (!fs.existsSync(backupsDir)) fs.mkdirSync(backupsDir, { recursive: true });
 
 // Normalizador seguro de números de telefone brasileiros
 function normalizePhone(rawPhone) {
@@ -48,45 +44,310 @@ function generateGoogleMeetLink() {
     return `https://meet.google.com/${rand(3)}-${rand(4)}-${rand(3)}`;
 }
 
-function readDb() {
+// Inicia conexão SQLite com modo WAL (Write-Ahead Logging)
+const sqlDb = new sqlite3.Database(sqliteFile, (err) => {
+    if (err) {
+        console.error('[SQLITE CONNECTION ERROR]', err);
+    } else {
+        console.log(`[SQLITE] Conectado com sucesso ao banco permanente: ${sqliteFile}`);
+    }
+});
+
+// Inicialização síncrona das tabelas e índices
+sqlDb.serialize(() => {
+    sqlDb.run("PRAGMA journal_mode = WAL;");
+    sqlDb.run("PRAGMA synchronous = NORMAL;");
+
+    sqlDb.run(`
+        CREATE TABLE IF NOT EXISTS clients (
+            id INTEGER PRIMARY KEY,
+            phone TEXT UNIQUE NOT NULL,
+            phone_raw TEXT,
+            whatsapp TEXT,
+            instance_id TEXT DEFAULT 'instance_1',
+            name TEXT,
+            email TEXT,
+            city TEXT,
+            law_area TEXT,
+            source TEXT,
+            campaign TEXT,
+            adset TEXT,
+            ad TEXT,
+            creative TEXT,
+            utm_source TEXT,
+            utm_campaign TEXT,
+            utm_medium TEXT,
+            utm_content TEXT,
+            status TEXT DEFAULT 'NOVO LEAD',
+            triage_step TEXT DEFAULT 'collect_name',
+            triage_answers TEXT,
+            qualification_score INTEGER DEFAULT 0,
+            qualification_status TEXT DEFAULT 'EM TRIAGEM',
+            summary TEXT,
+            urgency TEXT,
+            documents TEXT,
+            client_goal TEXT,
+            notes TEXT,
+            assigned_to TEXT DEFAULT 'Dr. Glaucio Dias',
+            from_ad INTEGER DEFAULT 0,
+            ai_active INTEGER DEFAULT 1,
+            created_at TEXT,
+            updated_at TEXT
+        );
+    `);
+
+    sqlDb.run(`
+        CREATE TABLE IF NOT EXISTS messages (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            phone TEXT NOT NULL,
+            role TEXT NOT NULL,
+            content TEXT NOT NULL,
+            created_at TEXT
+        );
+    `);
+
+    sqlDb.run(`
+        CREATE TABLE IF NOT EXISTS appointments (
+            id INTEGER PRIMARY KEY,
+            client_phone TEXT NOT NULL,
+            client_name TEXT,
+            client_email TEXT,
+            date TEXT NOT NULL,
+            time TEXT NOT NULL,
+            meeting_type TEXT DEFAULT 'Presencial',
+            meet_link TEXT,
+            maps_link TEXT,
+            law_area TEXT,
+            city TEXT,
+            summary TEXT,
+            documents TEXT,
+            notes TEXT,
+            status TEXT DEFAULT 'CONFIRMADO',
+            followup_count INTEGER DEFAULT 1,
+            last_followup_at TEXT,
+            created_at TEXT
+        );
+    `);
+
+    sqlDb.run(`CREATE INDEX IF NOT EXISTS idx_clients_phone ON clients(phone);`);
+    sqlDb.run(`CREATE INDEX IF NOT EXISTS idx_messages_phone ON messages(phone);`);
+    sqlDb.run(`CREATE INDEX IF NOT EXISTS idx_appointments_phone ON appointments(client_phone);`);
+    sqlDb.run(`CREATE INDEX IF NOT EXISTS idx_appointments_date ON appointments(date);`);
+});
+
+// Cache em memória para alta performance sincronizado com SQLite
+let memoryCache = {
+    clients: [],
+    messages: [],
+    appointments: []
+};
+
+function loadInitialState() {
     try {
-        if (!fs.existsSync(dbFile)) {
-            fs.writeFileSync(dbFile, JSON.stringify(defaultData, null, 2), 'utf8');
-            return defaultData;
-        }
-        const raw = fs.readFileSync(dbFile, 'utf8');
-        return JSON.parse(raw);
+        sqlDb.all("SELECT * FROM clients", (err, rows) => {
+            if (!err && rows && rows.length > 0) {
+                memoryCache.clients = rows.map(r => ({
+                    ...r,
+                    triage_answers: r.triage_answers ? JSON.parse(r.triage_answers) : []
+                }));
+                console.log(`[SQLITE] ${rows.length} leads carregados do banco de dados SQLite.`);
+            } else if (fs.existsSync(jsonBackupFile)) {
+                // Se o SQLite estiver vazio mas o JSON de backup existir, migra automaticamente
+                try {
+                    const raw = fs.readFileSync(jsonBackupFile, 'utf8');
+                    const json = JSON.parse(raw);
+                    if (json.clients && json.clients.length > 0) {
+                        console.log(`[SQLITE] Importando ${json.clients.length} leads do arquivo JSON para o SQLite...`);
+                        json.clients.forEach(c => {
+                            persistClientToSqlite(c);
+                        });
+                        memoryCache.clients = json.clients;
+                    }
+                    if (json.appointments && json.appointments.length > 0) {
+                        json.appointments.forEach(a => {
+                            persistAppointmentToSqlite(a);
+                        });
+                        memoryCache.appointments = json.appointments;
+                    }
+                    if (json.messages && json.messages.length > 0) {
+                        memoryCache.messages = json.messages;
+                    }
+                } catch (e) {
+                    console.error('[MIGRATION ERROR]', e);
+                }
+            }
+        });
+
+        sqlDb.all("SELECT * FROM appointments", (err, rows) => {
+            if (!err && rows && rows.length > 0) {
+                memoryCache.appointments = rows;
+            }
+        });
+
+        sqlDb.all("SELECT * FROM messages ORDER BY id DESC LIMIT 500", (err, rows) => {
+            if (!err && rows && rows.length > 0) {
+                memoryCache.messages = rows.reverse();
+            }
+        });
     } catch (e) {
-        console.error('[DB READ ERROR]', e);
-        return defaultData;
+        console.error('[LOAD INITIAL STATE ERROR]', e);
     }
 }
 
-function writeDb(data) {
-    try {
-        fs.writeFileSync(dbFile, JSON.stringify(data, null, 2), 'utf8');
-    } catch (e) {
-        console.error('[DB WRITE ERROR]', e);
-    }
+loadInitialState();
+
+function persistClientToSqlite(client) {
+    const query = `
+        INSERT OR REPLACE INTO clients (
+            id, phone, phone_raw, whatsapp, instance_id, name, email, city, law_area,
+            source, campaign, adset, ad, creative, utm_source, utm_campaign, utm_medium, utm_content,
+            status, triage_step, triage_answers, qualification_score, qualification_status,
+            summary, urgency, documents, client_goal, notes, assigned_to, from_ad, ai_active,
+            created_at, updated_at
+        ) VALUES (
+            ?, ?, ?, ?, ?, ?, ?, ?, ?,
+            ?, ?, ?, ?, ?, ?, ?, ?, ?,
+            ?, ?, ?, ?, ?,
+            ?, ?, ?, ?, ?, ?, ?, ?,
+            ?, ?
+        )
+    `;
+
+    const answersJson = Array.isArray(client.triage_answers) ? JSON.stringify(client.triage_answers) : (client.triage_answers || '[]');
+
+    sqlDb.run(query, [
+        client.id || Date.now(),
+        client.phone,
+        client.phone_raw || client.phone,
+        client.whatsapp || `https://wa.me/${client.phone}`,
+        client.instance_id || 'instance_1',
+        client.name || null,
+        client.email || null,
+        client.city || null,
+        client.law_area || null,
+        client.source || null,
+        client.campaign || null,
+        client.adset || null,
+        client.ad || null,
+        client.creative || null,
+        client.utm_source || null,
+        client.utm_campaign || null,
+        client.utm_medium || null,
+        client.utm_content || null,
+        client.status || 'NOVO LEAD',
+        client.triage_step || 'collect_name',
+        answersJson,
+        client.qualification_score || 0,
+        client.qualification_status || 'EM TRIAGEM',
+        client.summary || null,
+        client.urgency || null,
+        client.documents || null,
+        client.client_goal || null,
+        client.notes || '',
+        client.assigned_to || 'Dr. Glaucio Dias',
+        client.from_ad ? 1 : 0,
+        client.ai_active ? 1 : 0,
+        client.created_at || new Date().toISOString(),
+        client.updated_at || new Date().toISOString()
+    ], (err) => {
+        if (err) console.error('[SQLITE CLIENT INSERT ERROR]', err);
+    });
+
+    // Salva cópia de espelho em JSON para redundância
+    mirrorToJson();
+}
+
+function persistAppointmentToSqlite(appt) {
+    const query = `
+        INSERT OR REPLACE INTO appointments (
+            id, client_phone, client_name, client_email, date, time, meeting_type,
+            meet_link, maps_link, law_area, city, summary, documents, notes,
+            status, followup_count, last_followup_at, created_at
+        ) VALUES (
+            ?, ?, ?, ?, ?, ?, ?,
+            ?, ?, ?, ?, ?, ?, ?,
+            ?, ?, ?, ?
+        )
+    `;
+
+    sqlDb.run(query, [
+        appt.id || Date.now(),
+        appt.client_phone,
+        appt.client_name || 'Cliente',
+        appt.client_email || 'Não informado',
+        appt.date,
+        appt.time,
+        appt.meeting_type || 'Presencial',
+        appt.meet_link || null,
+        appt.maps_link || null,
+        appt.law_area || 'Direito Geral',
+        appt.city || 'Belo Horizonte / MG',
+        appt.summary || 'Reunião',
+        appt.documents || 'Nenhum',
+        appt.notes || '',
+        appt.status || 'CONFIRMADO',
+        appt.followup_count || 1,
+        appt.last_followup_at || new Date().toISOString(),
+        appt.created_at || new Date().toISOString()
+    ], (err) => {
+        if (err) console.error('[SQLITE APPOINTMENT INSERT ERROR]', err);
+    });
+
+    mirrorToJson();
+}
+
+function persistMessageToSqlite(msg) {
+    sqlDb.run(
+        "INSERT INTO messages (phone, role, content, created_at) VALUES (?, ?, ?, ?)",
+        [msg.phone, msg.role, msg.content, msg.created_at || new Date().toISOString()],
+        (err) => {
+            if (err) console.error('[SQLITE MESSAGE INSERT ERROR]', err);
+        }
+    );
+    mirrorToJson();
+}
+
+let mirrorDebounce = null;
+function mirrorToJson() {
+    clearTimeout(mirrorDebounce);
+    mirrorDebounce = setTimeout(() => {
+        try {
+            fs.writeFileSync(jsonBackupFile, JSON.stringify(memoryCache, null, 2), 'utf8');
+        } catch (e) {
+            console.error('[MIRROR JSON ERROR]', e);
+        }
+    }, 500);
 }
 
 const DatabaseService = {
     normalizePhone,
     generateGoogleMeetLink,
+    sqliteFile,
+
+    // Cria cópia física de backup do banco de dados
+    createDatabaseBackup() {
+        try {
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            const backupPath = path.join(backupsDir, `crm_backup_${timestamp}.sqlite`);
+            fs.copyFileSync(sqliteFile, backupPath);
+            return { success: true, backupPath, filename: path.basename(backupPath) };
+        } catch (e) {
+            console.error('[BACKUP ERROR]', e);
+            return { success: false, error: e.message };
+        }
+    },
 
     getClientByPhone(phone) {
         const cleanPhone = normalizePhone(phone);
         if (!cleanPhone) return null;
-        const db = readDb();
-        return db.clients.find(c => normalizePhone(c.phone) === cleanPhone) || null;
+        return memoryCache.clients.find(c => normalizePhone(c.phone) === cleanPhone) || null;
     },
 
     saveOrUpdateClient(phone, data = {}) {
         const cleanPhone = normalizePhone(phone);
         if (!cleanPhone) return null;
 
-        const db = readDb();
-        let client = db.clients.find(c => normalizePhone(c.phone) === cleanPhone);
+        let client = memoryCache.clients.find(c => normalizePhone(c.phone) === cleanPhone);
 
         if (!client) {
             client = {
@@ -124,7 +385,7 @@ const DatabaseService = {
                 created_at: new Date().toISOString(),
                 updated_at: new Date().toISOString()
             };
-            db.clients.push(client);
+            memoryCache.clients.push(client);
         } else {
             const updatableKeys = [
                 'name', 'email', 'city', 'law_area', 'source', 'campaign', 'adset', 'ad', 'creative',
@@ -150,14 +411,13 @@ const DatabaseService = {
             client.updated_at = new Date().toISOString();
         }
 
-        writeDb(db);
+        persistClientToSqlite(client);
         return client;
     },
 
     saveTriageAnswer(phone, step, question, answer, points = 0, nextStep = null) {
         const cleanPhone = normalizePhone(phone);
-        const db = readDb();
-        const client = db.clients.find(c => normalizePhone(c.phone) === cleanPhone);
+        const client = memoryCache.clients.find(c => normalizePhone(c.phone) === cleanPhone);
         if (!client) return null;
 
         if (!Array.isArray(client.triage_answers)) {
@@ -202,51 +462,47 @@ const DatabaseService = {
         }
 
         client.updated_at = new Date().toISOString();
-        writeDb(db);
+        persistClientToSqlite(client);
         return client;
     },
 
     setAiActive(phone, isActive) {
         const cleanPhone = normalizePhone(phone);
-        const db = readDb();
-        const client = db.clients.find(c => normalizePhone(c.phone) === cleanPhone);
+        const client = memoryCache.clients.find(c => normalizePhone(c.phone) === cleanPhone);
         if (client) {
             client.ai_active = isActive ? 1 : 0;
             client.updated_at = new Date().toISOString();
-            writeDb(db);
+            persistClientToSqlite(client);
         }
     },
 
     getAllClients() {
-        const db = readDb();
-        return db.clients.filter(c => c.phone && c.phone !== 'undefined')
+        return memoryCache.clients.filter(c => c.phone && c.phone !== 'undefined')
             .sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
     },
 
     addMessage(phone, role, content) {
         const cleanPhone = normalizePhone(phone);
-        const db = readDb();
-        db.messages.push({
+        const msg = {
             id: Date.now() + Math.random(),
             phone: cleanPhone,
             role,
             content,
             created_at: new Date().toISOString()
-        });
-        writeDb(db);
+        };
+        memoryCache.messages.push(msg);
+        persistMessageToSqlite(msg);
     },
 
     getRecentMessages(phone, limit = 30) {
         const cleanPhone = normalizePhone(phone);
-        const db = readDb();
-        const clientMsgs = db.messages.filter(m => normalizePhone(m.phone) === cleanPhone);
+        const clientMsgs = memoryCache.messages.filter(m => normalizePhone(m.phone) === cleanPhone);
         return clientMsgs.slice(-limit);
     },
 
     createAppointment({ phone, name, email, date, time, law_area, notes, summary, city, meeting_type, meet_link }) {
-        const db = readDb();
-        const cleanPhone = normalizePhone(phone) || (db.clients[0]?.phone || 'WhatsApp');
-        const client = db.clients.find(c => normalizePhone(c.phone) === cleanPhone);
+        const cleanPhone = normalizePhone(phone) || (memoryCache.clients[0]?.phone || 'WhatsApp');
+        const client = memoryCache.clients.find(c => normalizePhone(c.phone) === cleanPhone);
 
         let finalMeetingType = 'Presencial';
         const checkText = `${meeting_type || ''} ${summary || ''} ${notes || ''}`.toLowerCase();
@@ -277,8 +533,8 @@ const DatabaseService = {
             last_followup_at: new Date().toISOString(),
             created_at: new Date().toISOString()
         };
-        db.appointments.push(appointment);
-        writeDb(db);
+        memoryCache.appointments.push(appointment);
+        persistAppointmentToSqlite(appointment);
 
         this.saveOrUpdateClient(cleanPhone, { 
             name: appointment.client_name,
@@ -289,27 +545,24 @@ const DatabaseService = {
     },
 
     registerFollowUpSent(appointmentId) {
-        const db = readDb();
-        const appt = db.appointments.find(a => a.id == appointmentId);
+        const appt = memoryCache.appointments.find(a => a.id == appointmentId);
         if (appt) {
             appt.followup_count = (appt.followup_count || 0) + 1;
             appt.last_followup_at = new Date().toISOString();
-            writeDb(db);
+            persistAppointmentToSqlite(appt);
             return appt;
         }
         return null;
     },
 
     getAppointmentsForDate(date) {
-        const db = readDb();
-        return db.appointments.filter(a => a.date === date && a.status !== 'CANCELADO');
+        return memoryCache.appointments.filter(a => a.date === date && a.status !== 'CANCELADO');
     },
 
     getAllAppointments() {
-        const db = readDb();
-        return db.appointments.map(a => {
+        return memoryCache.appointments.map(a => {
             const cleanPhone = normalizePhone(a.client_phone);
-            const client = db.clients.find(c => normalizePhone(c.phone) === cleanPhone) || db.clients[0];
+            const client = memoryCache.clients.find(c => normalizePhone(c.phone) === cleanPhone) || memoryCache.clients[0];
             const checkText = `${a.meeting_type || ''} ${a.summary || ''} ${a.notes || ''}`.toLowerCase();
             const isOnline = checkText.includes('online') || checkText.includes('meet') || checkText.includes('video');
             const meetingType = isOnline ? 'Online (Google Meet)' : 'Presencial';
@@ -330,11 +583,10 @@ const DatabaseService = {
     },
 
     cancelAppointment(id) {
-        const db = readDb();
-        const appt = db.appointments.find(a => a.id == id);
+        const appt = memoryCache.appointments.find(a => a.id == id);
         if (appt) {
             appt.status = 'CANCELADO';
-            writeDb(db);
+            persistAppointmentToSqlite(appt);
             return true;
         }
         return false;
@@ -342,26 +594,33 @@ const DatabaseService = {
 
     deleteClient(phone) {
         const cleanPhone = normalizePhone(phone);
-        const db = readDb();
-        db.clients = db.clients.filter(c => normalizePhone(c.phone) !== cleanPhone);
-        db.messages = db.messages.filter(m => normalizePhone(m.phone) !== cleanPhone);
-        db.appointments = db.appointments.filter(a => normalizePhone(a.client_phone) !== cleanPhone);
-        writeDb(db);
+        memoryCache.clients = memoryCache.clients.filter(c => normalizePhone(c.phone) !== cleanPhone);
+        memoryCache.messages = memoryCache.messages.filter(m => normalizePhone(m.phone) !== cleanPhone);
+        memoryCache.appointments = memoryCache.appointments.filter(a => normalizePhone(a.client_phone) !== cleanPhone);
+
+        sqlDb.run("DELETE FROM clients WHERE phone = ?", [cleanPhone]);
+        sqlDb.run("DELETE FROM messages WHERE phone = ?", [cleanPhone]);
+        sqlDb.run("DELETE FROM appointments WHERE client_phone = ?", [cleanPhone]);
+
+        mirrorToJson();
         return true;
     },
 
     clearAllClients() {
-        const db = readDb();
-        db.clients = [];
-        db.messages = [];
-        db.appointments = [];
-        writeDb(db);
+        memoryCache.clients = [];
+        memoryCache.messages = [];
+        memoryCache.appointments = [];
+
+        sqlDb.run("DELETE FROM clients;");
+        sqlDb.run("DELETE FROM messages;");
+        sqlDb.run("DELETE FROM appointments;");
+
+        mirrorToJson();
         return true;
     },
 
     getLeadMetrics() {
-        const db = readDb();
-        const clients = db.clients || [];
+        const clients = memoryCache.clients || [];
         const totalLeads = clients.length;
 
         const emTriagem = clients.filter(c => c.status === 'EM TRIAGEM' || c.status === 'NOVO LEAD').length;

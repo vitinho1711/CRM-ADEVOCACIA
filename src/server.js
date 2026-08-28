@@ -259,6 +259,22 @@ app.post('/api/leads/clear-all', (req, res) => {
     res.json({ success });
 });
 
+// ====================================================
+// ROTAS DE BACKUP E DOWNLOAD DO BANCO DE DADOS SQLITE
+// ====================================================
+app.get('/api/database/backup', (req, res) => {
+    const result = DatabaseService.createDatabaseBackup();
+    res.json(result);
+});
+
+app.get('/api/database/download', (req, res) => {
+    if (fs.existsSync(DatabaseService.sqliteFile)) {
+        res.download(DatabaseService.sqliteFile, 'crm_advocacia.sqlite');
+    } else {
+        res.status(404).send('Banco de dados não encontrado.');
+    }
+});
+
 app.get('/api/chat/:phone', (req, res) => {
     const messages = DatabaseService.getRecentMessages(req.params.phone, 50);
     res.json(messages);
