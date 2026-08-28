@@ -7,13 +7,13 @@ const { toolDefinitions, executeTool } = require('./tools');
 const TriageEngine = require('./triageEngine');
 const Logger = require('../logger');
 
-async function processIncomingMessage(phone, userMessageText, instanceId = 'instance_1') {
+async function processIncomingMessage(phone, userMessageText, instanceId = 'instance_1', remoteJid = null) {
     const cleanPhone = DatabaseService.normalizePhone(phone);
     if (!cleanPhone || !userMessageText || !userMessageText.trim()) return null;
 
     try {
         // 1. Processa via Motor de Triagem Estruturada
-        const triageReply = await TriageEngine.processIncoming(cleanPhone, userMessageText, instanceId);
+        const triageReply = await TriageEngine.processIncoming(cleanPhone, userMessageText, instanceId, remoteJid);
         if (triageReply) {
             Logger.log('CRM_SYNC_SUCCESS', { phone: cleanPhone, step: 'triage_reply' });
             return triageReply;

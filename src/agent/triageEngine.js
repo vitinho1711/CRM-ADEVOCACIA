@@ -107,6 +107,9 @@ function formatPhoneDisplay(phone) {
     if (p.length === 13 && p.startsWith('55')) {
         return `+55 (${p.substring(2,4)}) ${p.substring(4,9)}-${p.substring(9)}`;
     }
+    if (p.length === 12 && p.startsWith('55')) {
+        return `+55 (${p.substring(2,4)}) ${p.substring(4,8)}-${p.substring(8)}`;
+    }
     if (p.length === 11) {
         return `(${p.substring(0,2)}) ${p.substring(2,7)}-${p.substring(7)}`;
     }
@@ -137,7 +140,7 @@ const TriageEngine = {
     isAdMessage,
     loadRules,
 
-    async processIncoming(phone, messageText, instanceId = 'instance_1') {
+    async processIncoming(phone, messageText, instanceId = 'instance_1', remoteJid = null) {
         const cleanPhone = DatabaseService.normalizePhone(phone);
         let client = DatabaseService.getClientByPhone(cleanPhone);
         const rules = loadRules();
@@ -154,6 +157,9 @@ const TriageEngine = {
         // REGRA DE OURO: IA RESPONDE EXCLUSIVAMENTE ANÚNCIOS / NOVOS LEADS
         // ========================================================
         if (client) {
+            if (remoteJid && !client.remote_jid) {
+                DatabaseService.saveOrUpdateClient(cleanPhone, { remote_jid: remoteJid });
+            }
             if (client.from_ad === 0 || client.ai_active === 0) {
                 console.log(`[BLOQUEIO IA] ${cleanPhone} é contato antigo ou humano. IA em silêncio.`);
                 return null;
@@ -165,6 +171,7 @@ const TriageEngine = {
                 console.log(`[BLOQUEIO IA] ${cleanPhone} perguntando de processo em andamento. IA em silêncio.`);
                 DatabaseService.saveOrUpdateClient(cleanPhone, {
                     instance_id: instanceId,
+                    remote_jid: remoteJid,
                     from_ad: 0,
                     ai_active: 0,
                     status: 'NÃO QUALIFICADO',
@@ -178,6 +185,7 @@ const TriageEngine = {
                 console.log(`[BLOQUEIO IA] Mensagem de ${cleanPhone} NÃO é de anúncio. IA não responde.`);
                 DatabaseService.saveOrUpdateClient(cleanPhone, {
                     instance_id: instanceId,
+                    remote_jid: remoteJid,
                     from_ad: 0,
                     ai_active: 0,
                     status: 'NÃO QUALIFICADO',
@@ -189,8 +197,10 @@ const TriageEngine = {
             console.log(`🎯 [NOVO LEAD DE ANÚNCIO DETECTADO] ${cleanPhone}`);
             const initialNiche = detectNicheFromText(messageText);
 
+            // O TELEFONE JÁ É CAPTURADO AUTOMATICAMENTE NA ENTRADA!
             client = DatabaseService.saveOrUpdateClient(cleanPhone, {
                 instance_id: instanceId,
+                remote_jid: remoteJid,
                 from_ad: 1,
                 ai_active: 1,
                 status: 'NOVO LEAD',
@@ -215,19 +225,23 @@ const TriageEngine = {
         // ========================================================
         if (currentStepId === 'collect_name') {
             if (!client.name) {
-                const reply = `Olá! Seja muito bem-vindo(a) ao escritório Glaucio Dias Advocacia. 👋⚖️\n\nSou a assistente virtual e estou aqui para agilizar seu atendimento com o **Dr. Glaucio Dias**.\n\nPara iniciarmos seu cadastro com exclusividade, por favor: **qual é o seu Nome Completo?**`;
+                const reply = `Olá! Seja muito bem-vindo(a) ao escritório Glaucio Dias Advocacia. 👋⚖️\n\nSou a assistente virtual e estou aqui para agilizar seu atendimento direto com o **Dr. Glaucio Dias**.\n\nPara iniciarmos seu cadastro formal com o advogado, por favor: **qual é o seu Nome Completo?**`;
                 DatabaseService.saveOrUpdateClient(cleanPhone, { triage_step: 'waiting_name' });
                 DatabaseService.addMessage(cleanPhone, 'assistant', reply);
                 return reply;
             }
         }
 
+        // ========================================================
+        // ETAPA 0.2: NOME RECEBIDO -> AVANÇA DIRETO PARA O GMAIL
+        // (NÃO pergunta o WhatsApp, pois a pessoa já está no WhatsApp!)
+        // ========================================================
         if (currentStepId === 'waiting_name') {
             const leadName = cleanName(messageText);
 
             DatabaseService.saveOrUpdateClient(cleanPhone, {
                 name: leadName,
-                triage_step: 'waiting_phone'
+                triage_step: 'waiting_email'
             });
 
             Logger.log('TRIAGE_ANSWER_SAVED', {
@@ -236,33 +250,7 @@ const TriageEngine = {
                 name: leadName
             });
 
-            const reply = `Muito prazer em conhecê-lo(a), **${leadName}**! 🤝\n\nPara registrarmos sua ficha e podermos entrar em contato, por favor: **qual é o seu número de WhatsApp com DDD?** (Ex: 31 99999-8888)`;
-            DatabaseService.addMessage(cleanPhone, 'assistant', reply);
-            return reply;
-        }
-
-        // ========================================================
-        // ETAPA 0.2: COLETAR NÚMERO DE WHATSAPP DO LEAD (SEM PEGAR LID)
-        // ========================================================
-        if (currentStepId === 'waiting_phone') {
-            let typedPhone = DatabaseService.normalizePhone(messageText);
-            if (!typedPhone || typedPhone.length < 10) {
-                typedPhone = messageText.replace(/\D/g, '');
-            }
-
-            DatabaseService.saveOrUpdateClient(cleanPhone, {
-                phone_contact: typedPhone,
-                phone_raw: messageText.trim(),
-                triage_step: 'waiting_email'
-            });
-
-            Logger.log('TRIAGE_ANSWER_SAVED', {
-                phone: cleanPhone,
-                step: 'collect_phone',
-                phone_contact: typedPhone
-            });
-
-            const reply = `Perfeito! WhatsApp **${formatPhoneDisplay(typedPhone)}** salvo com sucesso. ✅\n\nAgora, para enviarmos a confirmação da reunião e documentos por e-mail, por favor: **qual é o seu E-mail (Gmail)?**`;
+            const reply = `Muito prazer em conhecê-lo(a), **${leadName}**! 🤝\n\nSeu contato de WhatsApp já foi registrado com sucesso em nosso sistema.\n\nAgora, para enviarmos a confirmação da reunião e documentos por e-mail, por favor: **qual é o seu E-mail (Gmail)?**`;
             DatabaseService.addMessage(cleanPhone, 'assistant', reply);
             return reply;
         }
@@ -302,7 +290,7 @@ const TriageEngine = {
                     status: 'EM TRIAGEM'
                 });
 
-                const reply = `Perfeito, **${client.name || 'Cliente'}**! Seus dados de contato estão salvos:\n📱 Telefone: ${formatPhoneDisplay(client.phone_contact || cleanPhone)}\n📧 E-mail: ${leadEmail}\n\nIdentifiquei que sua solicitação é sobre **${nicheConfig.name}**. ⚖️\n\nPara analisarmos sua causa com máxima precisão:\n\n${firstStep.question}`;
+                const reply = `Perfeito, **${client.name || 'Cliente'}**! Seus dados de contato estão salvos:\n📱 Telefone: ${formatPhoneDisplay(cleanPhone)}\n📧 E-mail: ${leadEmail}\n\nIdentifiquei que sua solicitação é sobre **${nicheConfig.name}**. ⚖️\n\nPara analisarmos sua causa com máxima precisão:\n\n${firstStep.question}`;
                 DatabaseService.addMessage(cleanPhone, 'assistant', reply);
                 return reply;
             }
@@ -409,7 +397,7 @@ const TriageEngine = {
             
             // UTILIZA A SALA OFICIAL PERMANENTE DO GOOGLE MEET
             const meetLink = isOnline ? DatabaseService.getOfficeMeetLink() : null;
-            const displayPhone = formatPhoneDisplay(client.phone_contact || cleanPhone);
+            const displayPhone = formatPhoneDisplay(cleanPhone);
 
             const appointment = DatabaseService.createAppointment({
                 phone: cleanPhone,

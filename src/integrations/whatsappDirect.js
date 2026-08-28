@@ -40,6 +40,26 @@ function saveInstancesMeta(meta) {
     }
 }
 
+// Resolve o número de telefone real brasileiro a partir do JID ou do LID
+function resolveRealPhone(authDir, remoteJid) {
+    if (!remoteJid) return '';
+    const jid = remoteJid.split(':')[0];
+    if (jid.endsWith('@s.whatsapp.net')) {
+        return jid.split('@')[0];
+    }
+    if (jid.endsWith('@lid')) {
+        const lid = jid.split('@')[0];
+        const reverseFile = path.join(authDir, `lid-mapping-${lid}_reverse.json`);
+        if (fs.existsSync(reverseFile)) {
+            try {
+                const phone = JSON.parse(fs.readFileSync(reverseFile, 'utf8'));
+                if (phone) return String(phone);
+            } catch (e) {}
+        }
+    }
+    return jid.split('@')[0];
+}
+
 const instances = new Map();
 const messageBuffers = new Map();
 const processedMessageIds = new Set();
@@ -67,14 +87,18 @@ async function handleBufferedMessages(instanceId, cleanPhone, remoteJid) {
     const instance = instances.get(instanceId);
     if (!instance || !instance.sock || instance.status !== 'CONNECTED') return;
 
-    console.log(`\n📩 [${instance.name} RECEBIDO de ${cleanPhone}]: "${combinedText}"`);
+    // Tenta re-resolver o telefone caso o mapping tenha sido gravado no debounce
+    const realPhone = resolveRealPhone(instance.authDir, remoteJid);
+    const finalCleanPhone = DatabaseService.normalizePhone(realPhone) || cleanPhone;
+
+    console.log(`\n📩 [${instance.name} RECEBIDO de ${finalCleanPhone} (JID: ${remoteJid})]: "${combinedText}"`);
 
     try {
         await instance.sock.sendPresenceUpdate('composing', remoteJid);
     } catch (e) {}
 
-    // Processa com o motor de triagem inteligente
-    const reply = await processIncomingMessage(cleanPhone, combinedText, instanceId);
+    // Processa com o motor de triagem inteligente passando o remoteJid para persistência
+    const reply = await processIncomingMessage(finalCleanPhone, combinedText, instanceId, remoteJid);
 
     if (reply && instance.sock && instance.status === 'CONNECTED') {
         const sent = await instance.sock.sendMessage(remoteJid, { text: reply });
@@ -85,7 +109,7 @@ async function handleBufferedMessages(instanceId, cleanPhone, remoteJid) {
                 sentByBotMessageIds.delete(first);
             }
         }
-        console.log(`🤖 [${instance.name} RESPOSTA ENVIADA para ${cleanPhone}]: "${reply.substring(0, 70)}..."`);
+        console.log(`🤖 [${instance.name} RESPOSTA ENVIADA para ${finalCleanPhone}]: "${reply.substring(0, 70)}..."`);
     }
 }
 
@@ -182,8 +206,8 @@ async function startInstance(instanceId, instanceName) {
                     continue;
                 }
 
-                // Normaliza e limpa o número (remove sufixos de aparelho :1, :59, etc.)
-                const rawPhone = remoteJid.split('@')[0].split(':')[0];
+                // Resolve o número real do contato (converte LID para número de telefone real)
+                const rawPhone = resolveRealPhone(authDir, remoteJid);
                 const cleanPhone = DatabaseService.normalizePhone(rawPhone);
 
                 // Detecta se é o próprio robô falando em outro chat
@@ -202,6 +226,12 @@ async function startInstance(instanceId, instanceName) {
                                   msg.message?.templateButtonReplyMessage?.selectedId || '';
 
                 if (!messageText.trim()) continue;
+
+                // Garante que o remote_jid fica salvo para este cliente
+                DatabaseService.saveOrUpdateClient(cleanPhone, {
+                    remote_jid: remoteJid,
+                    phone_raw: rawPhone
+                });
 
                 const bufferKey = `${instanceId}:${cleanPhone}`;
 
@@ -328,7 +358,8 @@ async function sendDirectMessage(phone, messageText, instanceId = 'instance_1') 
     }
 
     const clean = DatabaseService.normalizePhone(phone);
-    const jid = `${clean}@s.whatsapp.net`;
+    const client = DatabaseService.getClientByPhone(clean);
+    const jid = (client && client.remote_jid) ? client.remote_jid : `${clean}@s.whatsapp.net`;
 
     try {
         const sent = await instance.sock.sendMessage(jid, { text: messageText });
@@ -348,5 +379,6 @@ module.exports = {
     getWhatsAppStatus,
     resetWhatsAppSession,
     renameInstance,
-    sendDirectMessage
+    sendDirectMessage,
+    resolveRealPhone
 };
