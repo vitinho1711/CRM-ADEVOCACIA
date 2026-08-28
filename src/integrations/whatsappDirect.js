@@ -1,4 +1,4 @@
-const { default: makeWASocket, useMultiFileAuthState, DisconnectReason, fetchLatestBaileysVersion } = require('@whiskeysockets/baileys');
+const { default: makeWASocket, useMultiFileAuthState, DisconnectReason, fetchLatestBaileysVersion, Browsers } = require('@whiskeysockets/baileys');
 const pino = require('pino');
 const path = require('path');
 const fs = require('fs');
@@ -202,11 +202,13 @@ async function startInstance(instanceId, instanceName) {
             logger: pino({ level: 'silent' }),
             auth: state,
             printQRInTerminal: false,
-            browser: ['Glaucio Dias Advocacia CRM', 'Chrome', '2.0.0'],
+            browser: Browsers.macOS('Chrome'),
             syncFullHistory: false,
+            generateHighQualityLinkPreview: false,
             connectTimeoutMs: 60000,
             defaultQueryTimeoutMs: 60000,
-            keepAliveIntervalMs: 25000
+            keepAliveIntervalMs: 25000,
+            getMessage: async () => ({ conversation: '' })
         });
 
         instanceObj.sock = sock;
@@ -252,6 +254,7 @@ async function startInstance(instanceId, instanceName) {
         });
 
         sock.ev.on('messages.upsert', async ({ messages, type }) => {
+            console.log(`[BAILEYS MSG UPSERT] Recebido ${messages?.length || 0} msgs, tipo: ${type}`);
             for (const msg of messages) {
                 const msgId = msg.key?.id;
                 if (!msgId) continue;
@@ -404,7 +407,7 @@ async function resetWhatsAppSession(instanceId = 'instance_1') {
         if (fs.existsSync(authDir)) {
             fs.rmSync(authDir, { recursive: true, force: true });
         }
-        DatabaseService.clearSessionFiles(instanceId);
+        await DatabaseService.clearSessionFiles(instanceId);
 
         const meta = loadInstancesMeta();
         const name = meta[instanceId]?.name || `WhatsApp ${instanceId.replace('instance_', '')}`;

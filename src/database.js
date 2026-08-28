@@ -749,7 +749,12 @@ const DatabaseService = {
     },
 
     clearSessionFiles(instanceId) {
-        sqlDb.run("DELETE FROM baileys_sessions WHERE id LIKE ?", [`${instanceId}:%`]);
+        return new Promise((resolve) => {
+            sqlDb.run("DELETE FROM baileys_sessions WHERE id LIKE ?", [`${instanceId}:%`], (err) => {
+                if (err) console.error('[CLEAR SESSION ERROR]', err);
+                resolve();
+            });
+        });
     }
 };
 
