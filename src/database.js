@@ -155,6 +155,7 @@ sqlDb.serialize(() => {
     // Migração segura para colunas adicionais
     sqlDb.run("ALTER TABLE clients ADD COLUMN phone_contact TEXT;", () => {});
     sqlDb.run("ALTER TABLE clients ADD COLUMN remote_jid TEXT;", () => {});
+    sqlDb.run("UPDATE clients SET ai_active = 1, from_ad = 1 WHERE status = 'NOVO LEAD' OR status = 'NÃO QUALIFICADO';", () => {});
 });
 
 let memoryCache = {

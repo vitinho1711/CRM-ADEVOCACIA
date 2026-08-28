@@ -60,6 +60,26 @@ function resolveRealPhone(authDir, remoteJid) {
     return jid.split('@')[0];
 }
 
+// Extrai texto de mensagens, desempacotando wrappers do WhatsApp (deviceSentMessage, ephemeral, etc.)
+function extractMessageText(msg) {
+    if (!msg || !msg.message) return '';
+
+    let m = msg.message;
+    if (m.deviceSentMessage?.message) m = m.deviceSentMessage.message;
+    if (m.ephemeralMessage?.message) m = m.ephemeralMessage.message;
+    if (m.viewOnceMessage?.message) m = m.viewOnceMessage.message;
+    if (m.viewOnceMessageV2?.message) m = m.viewOnceMessageV2.message;
+    if (m.documentWithCaptionMessage?.message) m = m.documentWithCaptionMessage.message;
+
+    return m.conversation || 
+           m.extendedTextMessage?.text || 
+           m.imageMessage?.caption || 
+           m.videoMessage?.caption || 
+           m.buttonsResponseMessage?.selectedButtonId || 
+           m.listResponseMessage?.singleSelectReply?.selectedRowId || 
+           m.templateButtonReplyMessage?.selectedId || '';
+}
+
 const instances = new Map();
 const messageBuffers = new Map();
 const processedMessageIds = new Set();
@@ -101,7 +121,12 @@ async function handleBufferedMessages(instanceId, cleanPhone, remoteJid) {
     const reply = await processIncomingMessage(finalCleanPhone, combinedText, instanceId, remoteJid);
 
     if (reply && instance.sock && instance.status === 'CONNECTED') {
-        const sent = await instance.sock.sendMessage(remoteJid, { text: reply });
+        // Se o remoteJid for @lid, envia diretamente para o número @s.whatsapp.net do cliente para garantir entrega
+        const targetJid = (remoteJid.endsWith('@lid') && finalCleanPhone) 
+            ? `${finalCleanPhone}@s.whatsapp.net` 
+            : remoteJid;
+
+        const sent = await instance.sock.sendMessage(targetJid, { text: reply });
         if (sent?.key?.id) {
             sentByBotMessageIds.add(sent.key.id);
             addToProcessedCache(sent.key.id);
@@ -110,7 +135,7 @@ async function handleBufferedMessages(instanceId, cleanPhone, remoteJid) {
                 sentByBotMessageIds.delete(first);
             }
         }
-        console.log(`🤖 [${instance.name} RESPOSTA ENVIADA para ${finalCleanPhone}]: "${reply.substring(0, 70)}..."`);
+        console.log(`🤖 [${instance.name} RESPOSTA ENVIADA para ${finalCleanPhone} (JID: ${targetJid})]: "${reply.substring(0, 70)}..."`);
     }
 }
 
@@ -220,14 +245,7 @@ async function startInstance(instanceId, instanceName) {
                     continue;
                 }
 
-                let messageText = msg.message?.conversation || 
-                                  msg.message?.extendedTextMessage?.text || 
-                                  msg.message?.imageMessage?.caption || 
-                                  msg.message?.videoMessage?.caption || 
-                                  msg.message?.buttonsResponseMessage?.selectedButtonId || 
-                                  msg.message?.listResponseMessage?.singleSelectReply?.selectedRowId || 
-                                  msg.message?.templateButtonReplyMessage?.selectedId || '';
-
+                const messageText = extractMessageText(msg);
                 if (!messageText.trim()) continue;
 
                 // Registra evento de mensagem recebida para auditoria em tempo real
@@ -372,13 +390,13 @@ async function sendDirectMessage(phone, messageText, instanceId = 'instance_1') 
     }
 
     const clean = DatabaseService.normalizePhone(phone);
-    const client = DatabaseService.getClientByPhone(clean);
-    const jid = (client && client.remote_jid) ? client.remote_jid : `${clean}@s.whatsapp.net`;
+    const jid = `${clean}@s.whatsapp.net`;
 
     try {
         const sent = await instance.sock.sendMessage(jid, { text: messageText });
         if (sent?.key?.id) {
             sentByBotMessageIds.add(sent.key.id);
+            addToProcessedCache(sent.key.id);
         }
         return true;
     } catch (e) {
@@ -394,5 +412,6 @@ module.exports = {
     resetWhatsAppSession,
     renameInstance,
     sendDirectMessage,
-    resolveRealPhone
+    resolveRealPhone,
+    extractMessageText
 };
