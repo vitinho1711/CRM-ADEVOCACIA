@@ -161,7 +161,7 @@ const TriageEngine = {
                 DatabaseService.saveOrUpdateClient(cleanPhone, { remote_jid: remoteJid });
             }
             // Se foi marcado como NÃO QUALIFICADO automaticamente em teste anterior, reativa para acolher
-            if (client.ai_active === 0 && client.status === 'NÃO QUALIFICADO' && client.source === 'organico_ou_pessoal') {
+            if (client.ai_active === 0 && client.status === 'NÃO QUALIFICADO') {
                 DatabaseService.saveOrUpdateClient(cleanPhone, {
                     ai_active: 1,
                     from_ad: 1,
@@ -171,8 +171,8 @@ const TriageEngine = {
                 client.from_ad = 1;
             }
 
-            if (client.from_ad === 0 || client.ai_active === 0) {
-                console.log(`[BLOQUEIO IA] ${cleanPhone} é contato antigo ou pausado manualmente. IA em silêncio.`);
+            if (client.ai_active === 0) {
+                console.log(`[BLOQUEIO IA] ${cleanPhone} está pausado manualmente pelo advogado. IA em silêncio.`);
                 return null;
             }
         } else {

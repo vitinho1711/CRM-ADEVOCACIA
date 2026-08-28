@@ -239,10 +239,12 @@ async function startInstance(instanceId, instanceName) {
                     isSelfMessage
                 });
 
-                // Garante que o remote_jid fica salvo para este cliente
+                // Garante que o remote_jid fica salvo para este cliente com IA ativa
                 DatabaseService.saveOrUpdateClient(cleanPhone, {
                     remote_jid: remoteJid,
-                    phone_raw: rawPhone
+                    phone_raw: rawPhone,
+                    from_ad: 1,
+                    ai_active: 1
                 });
 
                 const bufferKey = `${instanceId}:${cleanPhone}`;

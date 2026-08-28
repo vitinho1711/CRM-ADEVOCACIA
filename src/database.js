@@ -378,7 +378,7 @@ const DatabaseService = {
                 email: data.email || null,
                 city: data.city || null,
                 law_area: data.law_area || null,
-                source: data.source || (data.from_ad ? 'anuncio' : 'organico'),
+                source: data.source || 'anuncio',
                 campaign: data.campaign || null,
                 adset: data.adset || null,
                 ad: data.ad || null,
@@ -398,7 +398,7 @@ const DatabaseService = {
                 client_goal: data.client_goal || null,
                 notes: data.notes || '',
                 assigned_to: data.assigned_to || 'Dr. Glaucio Dias',
-                from_ad: data.from_ad !== undefined ? (data.from_ad ? 1 : 0) : 0,
+                from_ad: data.from_ad !== undefined ? (data.from_ad ? 1 : 0) : 1,
                 ai_active: data.ai_active !== undefined ? (data.ai_active ? 1 : 0) : 1,
                 created_at: new Date().toISOString(),
                 updated_at: new Date().toISOString()

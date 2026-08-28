@@ -2289,5 +2289,217 @@
     "action": "appointment_created",
     "appointmentId": 1787883791061,
     "meetLink": "https://meet.google.com/glaucio-advocacia"
+  },
+  {
+    "id": "1787884296031rd04x",
+    "event": "LEAD_RECEIVED",
+    "timestamp": "2026-08-28T02:31:36.031Z",
+    "phone": "5531997875764",
+    "message": "Olá Dr. Glaucio, vi seu anúncio no Instagram",
+    "instanceId": "instance_1",
+    "existingLead": false
+  },
+  {
+    "id": "17878842960351nxvg",
+    "event": "LEAD_CREATED",
+    "timestamp": "2026-08-28T02:31:36.035Z",
+    "phone": "5531997875764",
+    "source": "anuncio",
+    "instanceId": "instance_1"
+  },
+  {
+    "id": "1787884296038jjmb9",
+    "event": "LEAD_RECEIVED",
+    "timestamp": "2026-08-28T02:31:36.038Z",
+    "phone": "5531997875764",
+    "message": "Vitor Batista de Oliveira",
+    "instanceId": "instance_1",
+    "existingLead": true
+  },
+  {
+    "id": "17878842960408vu8b",
+    "event": "TRIAGE_ANSWER_SAVED",
+    "timestamp": "2026-08-28T02:31:36.040Z",
+    "phone": "5531997875764",
+    "step": "collect_name",
+    "name": "Vitor Batista De Oliveira"
+  },
+  {
+    "id": "1787884296042w4tcm",
+    "event": "LEAD_RECEIVED",
+    "timestamp": "2026-08-28T02:31:36.042Z",
+    "phone": "5531997875764",
+    "message": "vitor@gmail.com",
+    "instanceId": "instance_1",
+    "existingLead": true
+  },
+  {
+    "id": "17878842960440fc1a",
+    "event": "TRIAGE_ANSWER_SAVED",
+    "timestamp": "2026-08-28T02:31:36.044Z",
+    "phone": "5531997875764",
+    "step": "collect_email",
+    "email": "vitor@gmail.com"
+  },
+  {
+    "id": "1787884296045my7ns",
+    "event": "LEAD_RECEIVED",
+    "timestamp": "2026-08-28T02:31:36.045Z",
+    "phone": "5531997875764",
+    "message": "3",
+    "instanceId": "instance_1",
+    "existingLead": true
+  },
+  {
+    "id": "1787884296047ci7q5",
+    "event": "TRIAGE_STARTED",
+    "timestamp": "2026-08-28T02:31:36.047Z",
+    "phone": "5531997875764"
+  },
+  {
+    "id": "17878842960495cdi5",
+    "event": "TRIAGE_ANSWER_SAVED",
+    "timestamp": "2026-08-28T02:31:36.049Z",
+    "phone": "5531997875764",
+    "step": "area_selection",
+    "area": "Direito de Família"
+  },
+  {
+    "id": "17878842960504xy58",
+    "event": "LEAD_RECEIVED",
+    "timestamp": "2026-08-28T02:31:36.050Z",
+    "phone": "5531997875764",
+    "message": "1",
+    "instanceId": "instance_1",
+    "existingLead": true
+  },
+  {
+    "id": "1787884296052hy4mp",
+    "event": "TRIAGE_ANSWER_SAVED",
+    "timestamp": "2026-08-28T02:31:36.052Z",
+    "phone": "5531997875764",
+    "step": "familia_situacao",
+    "answer": "Divórcio",
+    "points": 25,
+    "currentScore": 25
+  },
+  {
+    "id": "1787884296054hsjzz",
+    "event": "LEAD_RECEIVED",
+    "timestamp": "2026-08-28T02:31:36.054Z",
+    "phone": "5531997875764",
+    "message": "1",
+    "instanceId": "instance_1",
+    "existingLead": true
+  },
+  {
+    "id": "17878842960552l3vk",
+    "event": "TRIAGE_ANSWER_SAVED",
+    "timestamp": "2026-08-28T02:31:36.055Z",
+    "phone": "5531997875764",
+    "step": "familia_processo",
+    "answer": "Sim, já existe processo",
+    "points": 20,
+    "currentScore": 45
+  },
+  {
+    "id": "1787884296057lbcel",
+    "event": "LEAD_RECEIVED",
+    "timestamp": "2026-08-28T02:31:36.057Z",
+    "phone": "5531997875764",
+    "message": "1",
+    "instanceId": "instance_1",
+    "existingLead": true
+  },
+  {
+    "id": "1787884296058dxo2w",
+    "event": "TRIAGE_ANSWER_SAVED",
+    "timestamp": "2026-08-28T02:31:36.058Z",
+    "phone": "5531997875764",
+    "step": "familia_bens",
+    "answer": "Imóvel",
+    "points": 25,
+    "currentScore": 70
+  },
+  {
+    "id": "17878842960608iquk",
+    "event": "LEAD_RECEIVED",
+    "timestamp": "2026-08-28T02:31:36.060Z",
+    "phone": "5531997875764",
+    "message": "1",
+    "instanceId": "instance_1",
+    "existingLead": true
+  },
+  {
+    "id": "1787884296061xaw2w",
+    "event": "TRIAGE_ANSWER_SAVED",
+    "timestamp": "2026-08-28T02:31:36.061Z",
+    "phone": "5531997875764",
+    "step": "familia_filhos",
+    "answer": "Sim, filhos menores",
+    "points": 15,
+    "currentScore": 85
+  },
+  {
+    "id": "1787884296063wpbl8",
+    "event": "LEAD_RECEIVED",
+    "timestamp": "2026-08-28T02:31:36.063Z",
+    "phone": "5531997875764",
+    "message": "1",
+    "instanceId": "instance_1",
+    "existingLead": true
+  },
+  {
+    "id": "17878842960644fgye",
+    "event": "TRIAGE_ANSWER_SAVED",
+    "timestamp": "2026-08-28T02:31:36.064Z",
+    "phone": "5531997875764",
+    "step": "familia_momento",
+    "answer": "Ainda estou avaliando",
+    "points": 10,
+    "currentScore": 95
+  },
+  {
+    "id": "1787884296065l5lfu",
+    "event": "TRIAGE_COMPLETED",
+    "timestamp": "2026-08-28T02:31:36.065Z",
+    "phone": "5531997875764",
+    "score": 95,
+    "status": "ALTA PRIORIDADE"
+  },
+  {
+    "id": "1787884296067giaho",
+    "event": "LEAD_QUALIFIED",
+    "timestamp": "2026-08-28T02:31:36.067Z",
+    "phone": "5531997875764",
+    "score": 95,
+    "qualificationStatus": "ALTA PRIORIDADE"
+  },
+  {
+    "id": "178788429606963wjk",
+    "event": "LEAD_RECEIVED",
+    "timestamp": "2026-08-28T02:31:36.069Z",
+    "phone": "5531997875764",
+    "message": "1",
+    "instanceId": "instance_1",
+    "existingLead": true
+  },
+  {
+    "id": "17878842960718hxes",
+    "event": "LEAD_RECEIVED",
+    "timestamp": "2026-08-28T02:31:36.071Z",
+    "phone": "5531997875764",
+    "message": "3",
+    "instanceId": "instance_1",
+    "existingLead": true
+  },
+  {
+    "id": "1787884296073csu32",
+    "event": "CRM_SYNC_SUCCESS",
+    "timestamp": "2026-08-28T02:31:36.073Z",
+    "phone": "5531997875764",
+    "action": "appointment_created",
+    "appointmentId": 1787884296072,
+    "meetLink": "https://meet.google.com/glaucio-advocacia"
   }
 ]

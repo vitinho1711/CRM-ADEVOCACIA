@@ -2,18 +2,32 @@
   "clients": [],
   "messages": [
     {
-      "id": 137,
+      "id": 159,
       "phone": "5531997875764",
       "role": "user",
       "content": "Olá Dr. Glaucio, vi seu anúncio no Instagram",
-      "created_at": "2026-08-28T02:23:11.024Z"
+      "created_at": "2026-08-28T02:31:36.037Z"
     },
     {
-      "id": 138,
+      "id": 160,
+      "phone": "5531997875764",
+      "role": "assistant",
+      "content": "Olá! Seja muito bem-vindo(a) ao escritório Glaucio Dias Advocacia. 👋⚖️\n\nSou a assistente virtual e estou aqui para agilizar seu atendimento direto com o **Dr. Glaucio Dias**.\n\nPara iniciarmos seu cadastro formal com o advogado, por favor: **qual é o seu Nome Completo?**",
+      "created_at": "2026-08-28T02:31:36.037Z"
+    },
+    {
+      "id": 161,
       "phone": "5531997875764",
       "role": "user",
       "content": "Vitor Batista de Oliveira",
-      "created_at": "2026-08-28T02:23:11.026Z"
+      "created_at": "2026-08-28T02:31:36.039Z"
+    },
+    {
+      "id": 162,
+      "phone": "5531997875764",
+      "role": "user",
+      "content": "vitor@gmail.com",
+      "created_at": "2026-08-28T02:31:36.043Z"
     }
   ],
   "appointments": []
