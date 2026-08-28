@@ -156,6 +156,15 @@ sqlDb.serialize(() => {
     sqlDb.run("ALTER TABLE clients ADD COLUMN phone_contact TEXT;", () => {});
     sqlDb.run("ALTER TABLE clients ADD COLUMN remote_jid TEXT;", () => {});
     sqlDb.run("UPDATE clients SET ai_active = 1, from_ad = 1 WHERE status = 'NOVO LEAD' OR status = 'NÃO QUALIFICADO';", () => {});
+
+    // Tabela permanente para salvar chaves de conexão do WhatsApp
+    sqlDb.run(`
+        CREATE TABLE IF NOT EXISTS baileys_sessions (
+            id TEXT PRIMARY KEY,
+            data TEXT,
+            updated_at TEXT
+        );
+    `);
 });
 
 let memoryCache = {
@@ -687,6 +696,39 @@ const DatabaseService = {
             porArea,
             campanhas: campanhasMap
         };
+    },
+
+    saveSessionFile(instanceId, fileName, content) {
+        const key = `${instanceId}:${fileName}`;
+        sqlDb.run(
+            "INSERT OR REPLACE INTO baileys_sessions (id, data, updated_at) VALUES (?, ?, ?)",
+            [key, content, new Date().toISOString()]
+        );
+    },
+
+    restoreSessionFiles(instanceId, targetDir) {
+        if (!fs.existsSync(targetDir)) {
+            fs.mkdirSync(targetDir, { recursive: true });
+        }
+        return new Promise((resolve) => {
+            sqlDb.all("SELECT id, data FROM baileys_sessions WHERE id LIKE ?", [`${instanceId}:%`], (err, rows) => {
+                if (!err && rows && rows.length > 0) {
+                    console.log(`[SQLITE SESSIONS] Restaurando ${rows.length} arquivos de sessão permanente para ${instanceId}...`);
+                    for (const row of rows) {
+                        const fileName = row.id.replace(`${instanceId}:`, '');
+                        const filePath = path.join(targetDir, fileName);
+                        try {
+                            fs.writeFileSync(filePath, row.data, 'utf8');
+                        } catch(e) {}
+                    }
+                }
+                resolve();
+            });
+        });
+    },
+
+    clearSessionFiles(instanceId) {
+        sqlDb.run("DELETE FROM baileys_sessions WHERE id LIKE ?", [`${instanceId}:%`]);
     }
 };
 

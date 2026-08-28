@@ -1,7 +1,7 @@
 {
   "clients": [
     {
-      "id": 1787884986421,
+      "id": 1787885612850,
       "phone": "5531997875764",
       "phone_raw": "5531997875764",
       "whatsapp": "https://wa.me/5531997875764",
@@ -27,21 +27,21 @@
           "question": "Para entendermos sua situação, qual caso melhor representa o que você precisa?",
           "answer": "Divórcio",
           "points": 25,
-          "answered_at": "2026-08-28T02:43:06.437Z"
+          "answered_at": "2026-08-28T02:53:32.867Z"
         },
         {
           "step": "familia_processo",
           "question": "Já existe algum processo judicial ou acordo formal em andamento sobre essa questão?",
           "answer": "Sim, já existe processo",
           "points": 20,
-          "answered_at": "2026-08-28T02:43:06.440Z"
+          "answered_at": "2026-08-28T02:53:32.871Z"
         },
         {
           "step": "familia_bens",
           "question": "Existem bens ou patrimônio envolvidos na situação?",
           "answer": "Imóvel",
           "points": 25,
-          "answered_at": "2026-08-28T02:43:06.443Z"
+          "answered_at": "2026-08-28T02:53:32.875Z"
         }
       ],
       "qualification_score": 70,
@@ -54,19 +54,110 @@
       "assigned_to": "Dr. Glaucio Dias",
       "from_ad": 1,
       "ai_active": 1,
-      "created_at": "2026-08-28T02:43:06.421Z",
-      "updated_at": "2026-08-28T02:43:06.443Z",
+      "created_at": "2026-08-28T02:53:32.850Z",
+      "updated_at": "2026-08-28T02:53:32.875Z",
       "phone_contact": null,
       "remote_jid": null
     }
   ],
   "messages": [
     {
-      "id": 181,
+      "id": 203,
       "phone": "5531997875764",
       "role": "user",
       "content": "Olá Dr. Glaucio, vi seu anúncio no Instagram",
-      "created_at": "2026-08-28T02:43:06.423Z"
+      "created_at": "2026-08-28T02:53:32.852Z"
+    },
+    {
+      "id": 204,
+      "phone": "5531997875764",
+      "role": "assistant",
+      "content": "Olá! Seja muito bem-vindo(a) ao escritório Glaucio Dias Advocacia. 👋⚖️\n\nSou a assistente virtual e estou aqui para agilizar seu atendimento direto com o **Dr. Glaucio Dias**.\n\nPara iniciarmos seu cadastro formal com o advogado, por favor: **qual é o seu Nome Completo?**",
+      "created_at": "2026-08-28T02:53:32.852Z"
+    },
+    {
+      "id": 205,
+      "phone": "5531997875764",
+      "role": "user",
+      "content": "Vitor Batista de Oliveira",
+      "created_at": "2026-08-28T02:53:32.854Z"
+    },
+    {
+      "id": 206,
+      "phone": "5531997875764",
+      "role": "assistant",
+      "content": "Muito prazer em conhecê-lo(a), **Vitor Batista De Oliveira**! 🤝\n\nSeu contato de WhatsApp já foi registrado com sucesso em nosso sistema.\n\nAgora, para enviarmos a confirmação da reunião e documentos por e-mail, por favor: **qual é o seu E-mail (Gmail)?**",
+      "created_at": "2026-08-28T02:53:32.857Z"
+    },
+    {
+      "id": 207,
+      "phone": "5531997875764",
+      "role": "user",
+      "content": "vitor@gmail.com",
+      "created_at": "2026-08-28T02:53:32.859Z"
+    },
+    {
+      "id": 208,
+      "phone": "5531997875764",
+      "role": "assistant",
+      "content": "Perfeito, **Vitor Batista De Oliveira**! Cadastro inicial realizado com sucesso. ✅\n\nAgora, para direcionarmos sua situação para o advogado especialista:\n\nOlá! Seja bem-vindo(a) ao escritório Glaucio Dias Advocacia. 👋\n\nPara direcionarmos seu atendimento corretamente, qual área está relacionada à sua situação?\n\n1️⃣ Direito Trabalhista\n2️⃣ Direito Previdenciário / INSS\n3️⃣ Direito de Família\n4️⃣ Direito Bancário & Consumidor\n5️⃣ Outro assunto",
+      "created_at": "2026-08-28T02:53:32.860Z"
+    },
+    {
+      "id": 209,
+      "phone": "5531997875764",
+      "role": "user",
+      "content": "3",
+      "created_at": "2026-08-28T02:53:32.862Z"
+    },
+    {
+      "id": 210,
+      "phone": "5531997875764",
+      "role": "assistant",
+      "content": "Excelente! O Dr. Glaucio Dias e nossa equipe têm grande experiência em **Direito de Família**. ⚖️\n\nPara esclarecer seus direitos e preparar sua reunião:\n\nPara entendermos sua situação, qual caso melhor representa o que você precisa?\n\n1️⃣ Divórcio ou Dissolução de União Estável\n2️⃣ Separação de Corpos / Afastamento\n3️⃣ Guarda ou Convivência de Filhos\n4️⃣ Pensão Alimentícia (Fixação, Revisão ou Cobrança)\n5️⃣ Partilha de Bens ou Inventário\n6️⃣ Outro assunto de família",
+      "created_at": "2026-08-28T02:53:32.865Z"
+    },
+    {
+      "id": 211,
+      "phone": "5531997875764",
+      "role": "assistant",
+      "content": "Já existe algum processo judicial ou acordo formal em andamento sobre essa questão?\n\n1️⃣ Sim, já existe processo\n2️⃣ Não, ainda nada formalizado\n3️⃣ Não sei informar",
+      "created_at": "2026-08-28T02:53:32.869Z"
+    },
+    {
+      "id": 212,
+      "phone": "5531997875764",
+      "role": "assistant",
+      "content": "Existem bens ou patrimônio envolvidos na situação?\n\n1️⃣ Imóvel (Casa, Apartamento, Terreno)\n2️⃣ Veículo (Carro, Moto)\n3️⃣ Empresa ou Participação Societária\n4️⃣ Dinheiro / Investimentos / Contas\n5️⃣ Outros bens\n6️⃣ Não existem bens",
+      "created_at": "2026-08-28T02:53:32.872Z"
+    },
+    {
+      "id": 213,
+      "phone": "5531997875764",
+      "role": "user",
+      "content": "1",
+      "created_at": "2026-08-28T02:53:32.874Z"
+    },
+    {
+      "id": 214,
+      "phone": "5531997875764",
+      "role": "user",
+      "content": "1",
+      "created_at": "2026-08-28T02:53:32.871Z"
+    },
+    {
+      "id": 215,
+      "phone": "5531997875764",
+      "role": "assistant",
+      "content": "Existem filhos menores de idade envolvidos?\n\n1️⃣ Sim, temos filhos menores\n2️⃣ Não temos filhos menores",
+      "created_at": "2026-08-28T02:53:32.876Z"
+    },
+    {
+      "id": 216,
+      "phone": "5531997875764",
+      "role": "user",
+      "content": "1",
+      "created_at": "2026-08-28T02:53:32.878Z"
     }
   ],
   "appointments": []

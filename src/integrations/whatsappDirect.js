@@ -135,11 +135,28 @@ async function handleBufferedMessages(instanceId, cleanPhone, remoteJid) {
     }
 }
 
+function syncAuthDirToSqlite(instanceId, authDir) {
+    try {
+        if (!fs.existsSync(authDir)) return;
+        const files = fs.readdirSync(authDir);
+        for (const file of files) {
+            if (file.endsWith('.json')) {
+                const filePath = path.join(authDir, file);
+                const content = fs.readFileSync(filePath, 'utf8');
+                DatabaseService.saveSessionFile(instanceId, file, content);
+            }
+        }
+    } catch (e) {}
+}
+
 async function startInstance(instanceId, instanceName) {
     const authDir = path.join(baseAuthDir, instanceId);
     if (!fs.existsSync(authDir)) {
         fs.mkdirSync(authDir, { recursive: true });
     }
+
+    // Restaura sessão permanente salva no SQLite antes de abrir o Baileys
+    await DatabaseService.restoreSessionFiles(instanceId, authDir);
 
     const hasStoredCreds = fs.existsSync(path.join(authDir, 'creds.json'));
 
@@ -172,7 +189,10 @@ async function startInstance(instanceId, instanceName) {
 
         instanceObj.sock = sock;
 
-        sock.ev.on('creds.update', saveCreds);
+        sock.ev.on('creds.update', async () => {
+            await saveCreds();
+            syncAuthDirToSqlite(instanceId, authDir);
+        });
 
         sock.ev.on('connection.update', async (update) => {
             const { connection, lastDisconnect, qr } = update;
@@ -204,6 +224,7 @@ async function startInstance(instanceId, instanceName) {
                 instanceObj.qrCode = null;
                 instanceObj.user = sock.user?.id || null;
                 console.log(`\n✅ [${instanceName} CONECTADO COM SUCESSO NO WHATSAPP!] User: ${instanceObj.user}`);
+                syncAuthDirToSqlite(instanceId, authDir);
                 Logger.log('CRM_SYNC_SUCCESS', { instanceId, user: instanceObj.user });
             }
         });
@@ -355,6 +376,7 @@ async function resetWhatsAppSession(instanceId = 'instance_1') {
         if (fs.existsSync(authDir)) {
             fs.rmSync(authDir, { recursive: true, force: true });
         }
+        DatabaseService.clearSessionFiles(instanceId);
 
         const meta = loadInstancesMeta();
         const name = meta[instanceId]?.name || `WhatsApp ${instanceId.replace('instance_', '')}`;
