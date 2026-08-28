@@ -1,15 +1,15 @@
 {
   "clients": [
     {
-      "id": 1787886997570,
-      "phone": "5531997875764",
-      "phone_raw": "5531997875764",
-      "whatsapp": "https://wa.me/5531997875764",
+      "id": 1787890468416,
+      "phone": "5531988887777",
+      "phone_raw": "5531988887777",
+      "whatsapp": "https://wa.me/5531988887777",
       "instance_id": "instance_1",
-      "name": null,
-      "email": null,
+      "name": "Carlos Silva",
+      "email": "carlos@gmail.com",
       "city": null,
-      "law_area": null,
+      "law_area": "Direito Trabalhista",
       "source": "anuncio",
       "campaign": "Campanha Geral",
       "adset": null,
@@ -19,12 +19,55 @@
       "utm_campaign": null,
       "utm_medium": null,
       "utm_content": null,
-      "status": "NOVO LEAD",
-      "triage_step": "collect_name",
-      "triage_answers": [],
-      "qualification_score": 0,
-      "qualification_status": "EM TRIAGEM",
-      "summary": null,
+      "status": "EM TRIAGEM",
+      "triage_step": "scheduling_slot",
+      "triage_answers": [
+        {
+          "step": "trabalhista_situacao",
+          "question": "Qual situação melhor descreve o que aconteceu ou está acontecendo no seu trabalho?",
+          "answer": "Fui demitido",
+          "points": 20,
+          "answered_at": "2026-08-28T04:14:28.434Z"
+        },
+        {
+          "step": "trabalhista_carteira",
+          "question": "Sua carteira de trabalho era devidamente assinada pela empresa?",
+          "answer": "Totalmente assinada",
+          "points": 15,
+          "answered_at": "2026-08-28T04:14:28.437Z"
+        },
+        {
+          "step": "trabalhista_vinculo",
+          "question": "Você ainda continua trabalhando nessa empresa atualmente?",
+          "answer": "Não, já saí",
+          "points": 20,
+          "answered_at": "2026-08-28T04:14:28.441Z"
+        },
+        {
+          "step": "trabalhista_tempo",
+          "question": "Há quanto tempo você saiu da empresa ou essa situação aconteceu?",
+          "answer": "Menos de 30 dias",
+          "points": 25,
+          "answered_at": "2026-08-28T04:14:28.444Z"
+        },
+        {
+          "step": "trabalhista_irregularidades",
+          "question": "Além do desligamento, quais direitos foram desrespeitados?",
+          "answer": "Horas extras / Feriados",
+          "points": 20,
+          "answered_at": "2026-08-28T04:14:28.449Z"
+        },
+        {
+          "step": "trabalhista_documentos",
+          "question": "Você possui documentos comprobatórios (holerites, mensagens de WhatsApp, extrato do FGTS, cartão de ponto ou testemunhas)?",
+          "answer": "Possui documentos completos",
+          "points": 20,
+          "answered_at": "2026-08-28T04:14:28.453Z"
+        }
+      ],
+      "qualification_score": 100,
+      "qualification_status": "ALTA PRIORIDADE",
+      "summary": "Formato escolhido: Online (Google Meet). Reunião com Dr. Glaucio Dias.",
       "urgency": "A AVALIAR",
       "documents": null,
       "client_goal": null,
@@ -32,61 +75,187 @@
       "assigned_to": "Dr. Glaucio Dias",
       "from_ad": 1,
       "ai_active": 1,
-      "created_at": "2026-08-28T03:16:37.570Z",
-      "updated_at": "2026-08-28T03:16:37.570Z",
+      "created_at": "2026-08-28T04:14:28.416Z",
+      "updated_at": "2026-08-28T04:14:28.463Z",
       "phone_contact": null,
       "remote_jid": null
     }
   ],
   "messages": [
     {
-      "id": 257,
+      "id": 368,
+      "phone": "5531988887777",
+      "role": "user",
+      "content": "Olá",
+      "created_at": "2026-08-28T04:14:28.418Z"
+    },
+    {
+      "id": 369,
+      "phone": "5531988887777",
+      "role": "assistant",
+      "content": "Olá! Seja muito bem-vindo(a) ao escritório Glaucio Dias Advocacia. 👋⚖️\n\nEstou aqui para dar início ao seu atendimento e entender melhor a sua situação para o **Dr. Glaucio Dias**.\n\nPara começarmos: **qual é o seu Nome Completo?**",
+      "created_at": "2026-08-28T04:14:28.418Z"
+    },
+    {
+      "id": 370,
+      "phone": "5531988887777",
+      "role": "assistant",
+      "content": "Muito prazer, **Carlos Silva**! 🤝\n\nPara podermos registrar seu caso e formalizar seu contato com o escritório, por favor: **qual é o seu melhor e-mail (Gmail)?**",
+      "created_at": "2026-08-28T04:14:28.422Z"
+    },
+    {
+      "id": 371,
+      "phone": "5531988887777",
+      "role": "user",
+      "content": "Carlos Silva",
+      "created_at": "2026-08-28T04:14:28.420Z"
+    },
+    {
+      "id": 372,
+      "phone": "5531988887777",
+      "role": "assistant",
+      "content": "Perfeito, **Carlos Silva**! Seu e-mail foi registrado com sucesso. 📧\n\nAgora vamos entender os detalhes do seu caso para que o **Dr. Glaucio Dias** já tenha todas as informações em mãos.\n\nOlá! Seja bem-vindo(a) ao escritório Glaucio Dias Advocacia. 👋\n\nPara direcionarmos seu atendimento corretamente, qual área está relacionada à sua situação?\n\n1️⃣ Direito Trabalhista\n2️⃣ Direito Previdenciário / INSS\n3️⃣ Direito de Família\n4️⃣ Direito Bancário & Consumidor\n5️⃣ Outro assunto",
+      "created_at": "2026-08-28T04:14:28.425Z"
+    },
+    {
+      "id": 374,
+      "phone": "5531988887777",
+      "role": "assistant",
+      "content": "Excelente! Vamos tratar da sua questão de **Direito Trabalhista**.\n\nQual situação melhor descreve o que aconteceu ou está acontecendo no seu trabalho?\n\n1️⃣ Fui demitido(a) sem justa causa\n2️⃣ Não recebi corretamente minhas verbas rescisórias\n3️⃣ Quero pedir rescisão indireta (sair por culpa da empresa)\n4️⃣ Faço horas extras sem receber ou desvio de função\n5️⃣ Empresa atrasa salários ou não deposita FGTS\n6️⃣ Sofro assédio moral ou perseguição no trabalho\n7️⃣ Outra situação",
+      "created_at": "2026-08-28T04:14:28.431Z"
+    },
+    {
+      "id": 375,
+      "phone": "5531988887777",
+      "role": "user",
+      "content": "1",
+      "created_at": "2026-08-28T04:14:28.433Z"
+    },
+    {
+      "id": 376,
+      "phone": "5531988887777",
+      "role": "user",
+      "content": "1",
+      "created_at": "2026-08-28T04:14:28.427Z"
+    },
+    {
+      "id": 377,
+      "phone": "5531988887777",
+      "role": "assistant",
+      "content": "Sua carteira de trabalho era devidamente assinada pela empresa?\n\n1️⃣ Sim, totalmente assinada desde o início\n2️⃣ Não, trabalhei todo o tempo sem carteira assinada\n3️⃣ Assinaram após meses de trabalho ou com valor menor que o real\n4️⃣ Fui contratado como PJ / MEI (pejotização)",
+      "created_at": "2026-08-28T04:14:28.435Z"
+    },
+    {
+      "id": 378,
+      "phone": "5531988887777",
+      "role": "user",
+      "content": "carlos@gmail.com",
+      "created_at": "2026-08-28T04:14:28.424Z"
+    },
+    {
+      "id": 379,
+      "phone": "5531988887777",
+      "role": "user",
+      "content": "1",
+      "created_at": "2026-08-28T04:14:28.437Z"
+    },
+    {
+      "id": 380,
+      "phone": "5531988887777",
+      "role": "user",
+      "content": "2",
+      "created_at": "2026-08-28T04:14:28.441Z"
+    },
+    {
+      "id": 381,
+      "phone": "5531988887777",
+      "role": "assistant",
+      "content": "Há quanto tempo você saiu da empresa ou essa situação aconteceu?\n\n1️⃣ Menos de 30 dias\n2️⃣ Entre 1 e 6 meses\n3️⃣ Entre 6 meses e 1 ano e meio\n4️⃣ Mais de 2 anos (Atenção ao prazo de prescrição)",
+      "created_at": "2026-08-28T04:14:28.442Z"
+    },
+    {
+      "id": 382,
+      "phone": "5531988887777",
+      "role": "assistant",
+      "content": "Além do desligamento, quais direitos foram desrespeitados?\n\n1️⃣ Horas extras não pagas e trabalho em feriados/folgas\n2️⃣ Salários, férias ou 13º atrasados\n3️⃣ Não depositaram meu FGTS ou multa dos 40%\n4️⃣ Adicional de insalubridade ou periculosidade não pago\n5️⃣ Nenhuma dessas / Somente a demissão",
+      "created_at": "2026-08-28T04:14:28.446Z"
+    },
+    {
+      "id": 383,
+      "phone": "5531988887777",
+      "role": "assistant",
+      "content": "Você possui documentos comprobatórios (holerites, mensagens de WhatsApp, extrato do FGTS, cartão de ponto ou testemunhas)?\n\n1️⃣ Sim, tenho holerites, extratos e mensagens\n2️⃣ Tenho apenas parte dos documentos\n3️⃣ Não possuo documentos no momento, mas tenho testemunhas\n4️⃣ Não tenho documentos nem testemunhas",
+      "created_at": "2026-08-28T04:14:28.451Z"
+    },
+    {
+      "id": 384,
+      "phone": "5531988887777",
+      "role": "assistant",
+      "content": "Você ainda continua trabalhando nessa empresa atualmente?\n\n1️⃣ Sim, continuo trabalhando lá\n2️⃣ Não, já saí ou fui desligado(a)",
+      "created_at": "2026-08-28T04:14:28.439Z"
+    },
+    {
+      "id": 385,
+      "phone": "5531988887777",
+      "role": "user",
+      "content": "1",
+      "created_at": "2026-08-28T04:14:28.448Z"
+    },
+    {
+      "id": 386,
+      "phone": "5531988887777",
+      "role": "user",
+      "content": "1",
+      "created_at": "2026-08-28T04:14:28.444Z"
+    },
+    {
+      "id": 387,
+      "phone": "5531988887777",
+      "role": "user",
+      "content": "Pode ser às 14:00",
+      "created_at": "2026-08-28T04:14:28.463Z"
+    },
+    {
+      "id": 388,
+      "phone": "5531988887777",
+      "role": "user",
+      "content": "1",
+      "created_at": "2026-08-28T04:14:28.452Z"
+    },
+    {
+      "id": 389,
+      "phone": "5531988887777",
+      "role": "assistant",
+      "content": "Excelente, **Carlos Silva**! O atendimento **Online pelo Google Meet** é prático, seguro e sem trânsito. 📹\n\nNosso horário de atendimento é de segunda a sexta, das **09:00 às 18:00**.\n\nPara **Segunda-feira, 31/08/2026**, temos estes horários livres na agenda do Dr. Glaucio:\n\n1️⃣ **09:30**\n2️⃣ **10:30**\n3️⃣ **11:30**\n4️⃣ **13:00**\n5️⃣ **15:00**\n6️⃣ **16:00**\n7️⃣ **17:00**\n\n💡 *Qual desses horários fica melhor para você? Você pode digitar o número da opção (ex: \"5\" para 15:00) ou dizer o horário que prefere!*",
+      "created_at": "2026-08-28T04:14:28.463Z"
+    },
+    {
+      "id": 390,
+      "phone": "5531988887777",
+      "role": "assistant",
+      "content": "Entendido perfeitamente, **Carlos Silva**! Com base em tudo o que você me relatou, sua causa tem fundamentos jurídicos consistentes e prazos importantes a serem observados.\n\nO objetivo agora é esclarecer todas as dúvidas, fazer os cálculos e traçar a melhor estratégia diretamente em uma **reunião com o Dr. Glaucio Dias** ⚖️.\n\nNosso atendimento funciona de segunda a sexta, das **09:00 às 18:00**. Como fica mais confortável para você?\n\n1️⃣ **Online (via Google Meet)** — Prático, seguro e sem trânsito\n2️⃣ **Presencial** — Em nosso escritório na Av. Abílio Machado, 1380 - Alípio de Melo (BH)",
+      "created_at": "2026-08-28T04:14:28.461Z"
+    },
+    {
+      "id": 391,
       "phone": "5531997875764",
       "role": "user",
       "content": "Olá Dr. Glaucio, vi seu anúncio no Instagram",
-      "created_at": "2026-08-28T03:33:59.876Z"
+      "created_at": "2026-08-28T04:15:43.762Z"
     },
     {
-      "id": 258,
+      "id": 392,
       "phone": "5531997875764",
       "role": "assistant",
       "content": "Olá! Seja muito bem-vindo(a) ao escritório Glaucio Dias Advocacia. 👋⚖️\n\nEstou aqui para dar início ao seu atendimento e entender melhor a sua situação para o **Dr. Glaucio Dias**.\n\nPara começarmos: **qual é o seu Nome Completo?**",
-      "created_at": "2026-08-28T03:33:59.877Z"
+      "created_at": "2026-08-28T04:15:43.763Z"
     },
     {
-      "id": 259,
-      "phone": "5531997875764",
-      "role": "user",
-      "content": "Vitor Batista de Oliveira",
-      "created_at": "2026-08-28T03:33:59.878Z"
-    },
-    {
-      "id": 260,
+      "id": 393,
       "phone": "5531997875764",
       "role": "assistant",
       "content": "Muito prazer, **Vitor Batista De Oliveira**! 🤝\n\nPara podermos registrar seu caso e formalizar seu contato com o escritório, por favor: **qual é o seu melhor e-mail (Gmail)?**",
-      "created_at": "2026-08-28T03:33:59.881Z"
-    },
-    {
-      "id": 261,
-      "phone": "5531997875764",
-      "role": "user",
-      "content": "vitor@gmail.com",
-      "created_at": "2026-08-28T03:33:59.882Z"
-    },
-    {
-      "id": 262,
-      "phone": "5531997875764",
-      "role": "assistant",
-      "content": "Perfeito, **Vitor Batista De Oliveira**! Seu e-mail foi registrado com sucesso. 📧\n\nAgora vamos entender os detalhes do seu caso para que o **Dr. Glaucio Dias** já tenha todas as informações em mãos.\n\nOlá! Seja bem-vindo(a) ao escritório Glaucio Dias Advocacia. 👋\n\nPara direcionarmos seu atendimento corretamente, qual área está relacionada à sua situação?\n\n1️⃣ Direito Trabalhista\n2️⃣ Direito Previdenciário / INSS\n3️⃣ Direito de Família\n4️⃣ Direito Bancário & Consumidor\n5️⃣ Outro assunto",
-      "created_at": "2026-08-28T03:33:59.884Z"
-    },
-    {
-      "id": 263,
-      "phone": "5531997875764",
-      "role": "assistant",
-      "content": "Excelente! Vamos tratar da sua questão de **Direito de Família**.\n\nPara entendermos sua situação com clareza, qual caso melhor representa o que você precisa?\n\n1️⃣ Divórcio ou Dissolução de União Estável\n2️⃣ Separação de Corpos / Afastamento do Lar\n3️⃣ Guarda ou Regulamentação de Convivência dos Filhos\n4️⃣ Pensão Alimentícia (Fixação, Revisão ou Cobrança)\n5️⃣ Partilha de Bens ou Inventário / Herança\n6️⃣ Outro assunto de família",
-      "created_at": "2026-08-28T03:33:59.890Z"
+      "created_at": "2026-08-28T04:15:43.768Z"
     }
   ],
   "appointments": []

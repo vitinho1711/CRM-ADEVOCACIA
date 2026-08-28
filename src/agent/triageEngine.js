@@ -38,7 +38,6 @@ function isAdMessage(text) {
     if (triggers.some(trig => norm.includes(normalize(trig)))) {
         return true;
     }
-    // Qualquer nova saudação ou contato de pelo menos 2 caracteres é acolhido
     return true;
 }
 
@@ -103,7 +102,6 @@ function extractName(text) {
     // Se contém saudações ou palavras comuns de anúncio, NÃO é o nome do lead!
     const nonNameWords = ['ola', 'oi', 'bom dia', 'boa tarde', 'boa noite', 'anuncio', 'instagram', 'facebook', 'doutor', 'dr', 'advogado', 'ajuda', 'processo', 'informacao', 'quero', 'gostaria'];
     if (nonNameWords.some(w => norm.includes(w))) {
-        // Apenas se tiver expressamente "meu nome é X"
         const explicitMatch = text.match(/(?:meu nome [eé]|me chamo|sou [oa])\s+([A-Za-zÀ-ÿ\s]{3,})/i);
         if (explicitMatch) {
             let name = explicitMatch[1].trim().replace(/[.,!?;:]/g, '');
@@ -123,36 +121,59 @@ function extractName(text) {
     return null;
 }
 
-function getNextBusinessDayFormatted() {
+function getNextAvailableBusinessDay() {
     const d = new Date();
-    d.setDate(d.getDate() + 1);
-    if (d.getDay() === 6) d.setDate(d.getDate() + 2);
-    if (d.getDay() === 0) d.setDate(d.getDate() + 1);
-
-    const dia = String(d.getDate()).padStart(2, '0');
-    const mes = String(d.getMonth() + 1).padStart(2, '0');
-    const ano = d.getFullYear();
     const diasSemana = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
 
+    for (let i = 1; i <= 14; i++) {
+        const candidate = new Date(d);
+        candidate.setDate(d.getDate() + i);
+        if (candidate.getDay() === 6 || candidate.getDay() === 0) continue;
+
+        const dia = String(candidate.getDate()).padStart(2, '0');
+        const mes = String(candidate.getMonth() + 1).padStart(2, '0');
+        const ano = candidate.getFullYear();
+        const iso = `${ano}-${mes}-${dia}`;
+
+        const available = DatabaseService.getAvailableSlotsForDate(iso);
+        if (available && available.length > 0) {
+            return {
+                iso,
+                display: `${diasSemana[candidate.getDay()]}, ${dia}/${mes}/${ano}`,
+                availableSlots: available
+            };
+        }
+    }
+
+    const def = new Date();
+    def.setDate(def.getDate() + 1);
+    if (def.getDay() === 6) def.setDate(def.getDate() + 2);
+    if (def.getDay() === 0) def.setDate(def.getDate() + 1);
+    const dia = String(def.getDate()).padStart(2, '0');
+    const mes = String(def.getMonth() + 1).padStart(2, '0');
+    const ano = def.getFullYear();
+    const iso = `${ano}-${mes}-${dia}`;
     return {
-        iso: `${ano}-${mes}-${dia}`,
-        display: `${diasSemana[d.getDay()]}, ${dia}/${mes}/${ano}`
+        iso,
+        display: `${diasSemana[def.getDay()]}, ${dia}/${mes}/${ano}`,
+        availableSlots: DatabaseService.getAvailableSlotsForDate(iso)
     };
 }
 
-function extractTimeFromMessage(text) {
+function extractTimeFromMessage(text, availableSlots = []) {
     if (!text) return null;
     const norm = normalize(text);
 
-    // Opções numéricas correspondentes aos botões sugeridos
-    if (['1', 'opcao 1', 'opção 1'].some(k => norm === k)) return '09:30';
-    if (['2', 'opcao 2', 'opção 2'].some(k => norm === k)) return '11:00';
-    if (['3', 'opcao 3', 'opção 3'].some(k => norm === k)) return '13:00';
-    if (['4', 'opcao 4', 'opção 4'].some(k => norm === k)) return '14:30';
-    if (['5', 'opcao 5', 'opção 5'].some(k => norm === k)) return '16:00';
-    if (['6', 'opcao 6', 'opção 6'].some(k => norm === k)) return '17:00';
+    // 1. Se o usuário digitou apenas o número da opção (ex: "5", "opcao 5", "5.")
+    const numMatch = norm.match(/^(?:opcao|opção|numero|número)?\s*(\d{1,2})\.?$/i);
+    if (numMatch) {
+        const idx = parseInt(numMatch[1], 10);
+        if (Array.isArray(availableSlots) && availableSlots.length >= idx && idx >= 1) {
+            return availableSlots[idx - 1];
+        }
+    }
 
-    // Padrão de hora com minutos explícitos (ex: 13:00, 13:30, 09:30, 14h30, 15h)
+    // 2. Se o usuário escreveu horário explícito (ex: 14:00, 14h, 14h00, 13:30, 09:30)
     const matchHm = text.match(/(\d{1,2})\s*[:hH]\s*(\d{2})?/i);
     if (matchHm) {
         let hour = parseInt(matchHm[1], 10);
@@ -165,15 +186,51 @@ function extractTimeFromMessage(text) {
         }
     }
 
-    // Padrão de hora por extenso ou isolada: "às 13", "somente as 13", "as 14 horas", "15 horas", "13"
-    const matchHourOnly = text.match(/(?:as|às|ás|somente|apenas|prefer[oia]|posso|tenho|horario|horário)?\s*(\d{1,2})\s*(?:horas?|h\b)?/i);
+    // 3. Se o usuário escreveu por extenso ou frase: "pode ser as 14", "as 14 horas", "somente as 13", "14"
+    const matchHourOnly = text.match(/(?:as|às|ás|somente|apenas|prefer[oia]|posso|tenho|horario|horário|pode ser|seria)?\s*(\d{1,2})\s*(?:horas?|h\b)?/i);
     if (matchHourOnly) {
         let hour = parseInt(matchHourOnly[1], 10);
-        if (!isNaN(hour) && hour >= 1 && hour <= 23) {
+        if (!isNaN(hour)) {
             if (hour >= 1 && hour <= 6 && (norm.includes('tarde') || norm.includes('pm'))) {
                 hour += 12;
             }
-            // Se for número entre 9 e 18, considera hora
+            if (hour >= 9 && hour <= 18) {
+                return `${String(hour).padStart(2, '0')}:00`;
+            }
+        }
+    }
+
+    return null;
+}
+
+function extractExplicitTime(text) {
+    if (!text) return null;
+    const norm = normalize(text);
+
+    // Se é apenas o número 1 ou 2 (escolha de formato Online/Presencial), NÃO é hora!
+    if (/^(?:1|2|opcao 1|opcao 2|opção 1|opção 2)$/i.test(norm.trim())) return null;
+
+    const matchHm = text.match(/(\d{1,2})\s*[:hH]\s*(\d{2})?/i);
+    if (matchHm) {
+        let hour = parseInt(matchHm[1], 10);
+        let min = matchHm[2] ? parseInt(matchHm[2], 10) : 0;
+        if (!isNaN(hour)) {
+            if (hour >= 1 && hour <= 6 && (norm.includes('tarde') || norm.includes('pm'))) {
+                hour += 12;
+            }
+            if (hour >= 9 && hour <= 18) {
+                return `${String(hour).padStart(2, '0')}:${String(min).padStart(2, '0')}`;
+            }
+        }
+    }
+
+    const matchHourOnly = text.match(/(?:as|às|ás|somente|apenas|prefer[oia]|posso|tenho|horario|horário|pode ser|seria)\s*(\d{1,2})\s*(?:horas?|h\b)?/i);
+    if (matchHourOnly) {
+        let hour = parseInt(matchHourOnly[1], 10);
+        if (!isNaN(hour)) {
+            if (hour >= 1 && hour <= 6 && (norm.includes('tarde') || norm.includes('pm'))) {
+                hour += 12;
+            }
             if (hour >= 9 && hour <= 18) {
                 return `${String(hour).padStart(2, '0')}:00`;
             }
@@ -207,7 +264,6 @@ const TriageEngine = {
             if (remoteJid && !client.remote_jid) {
                 DatabaseService.saveOrUpdateClient(cleanPhone, { remote_jid: remoteJid });
             }
-            // Se foi marcado como NÃO QUALIFICADO automaticamente em teste anterior, reativa para acolher
             if (client.ai_active === 0 && client.status === 'NÃO QUALIFICADO') {
                 DatabaseService.saveOrUpdateClient(cleanPhone, {
                     ai_active: 1,
@@ -223,7 +279,6 @@ const TriageEngine = {
                 return null;
             }
         } else {
-            // Se for pergunta sobre processo judicial antigo em andamento -> bloqueia!
             const isOldProcessInquiry = ['meu processo', 'andamento do processo', 'numero do processo', 'vara do trabalho', 'audiencia marcada'].some(k => normMsg.includes(k));
             if (isOldProcessInquiry) {
                 console.log(`[BLOQUEIO IA] ${cleanPhone} perguntando de processo em andamento. IA em silêncio.`);
@@ -241,7 +296,6 @@ const TriageEngine = {
             console.log(`🎯 [NOVO LEAD / CONTATO DETECTADO] ${cleanPhone}`);
             const initialNiche = detectNicheFromText(messageText);
 
-            // O TELEFONE JÁ É CAPTURADO AUTOMATICAMENTE NA ENTRADA!
             client = DatabaseService.saveOrUpdateClient(cleanPhone, {
                 instance_id: instanceId,
                 remote_jid: remoteJid,
@@ -265,7 +319,7 @@ const TriageEngine = {
         const currentStepId = client.triage_step || 'collect_name';
 
         // ========================================================
-        // ETAPA 0A: BOAS-VINDAS E CAPTURA DO NOME COMPLETO
+        // ETAPA 0A: BOAS-VINDAS E CAPTURA DO NOME COMPLETO (HUMANO)
         // ========================================================
         if (currentStepId === 'collect_name') {
             const detectedName = extractName(messageText);
@@ -382,8 +436,102 @@ const TriageEngine = {
                 chosenFormat = 'Presencial';
             }
 
-            const nextDay = getNextBusinessDayFormatted();
-            const available = DatabaseService.getAvailableSlotsForDate(nextDay.iso);
+            const dayInfo = getNextAvailableBusinessDay();
+            const available = dayInfo.availableSlots;
+
+            // Se o lead já mencionou o horário diretamente nesta mensagem (ex: "Pode ser às 14:00"):
+            const directTime = extractExplicitTime(messageText);
+            if (directTime) {
+                const [hStr, mStr] = directTime.split(':');
+                const h = parseInt(hStr, 10);
+                const m = parseInt(mStr, 10);
+
+                if (h >= 9 && (h < 18 || (h === 18 && m === 0))) {
+                    if (DatabaseService.isTimeSlotAvailable(dayInfo.iso, directTime)) {
+                        const isMeetingOnline = chosenFormat.includes('Online');
+                        const meetLink = isMeetingOnline ? DatabaseService.getOfficeMeetLink() : null;
+                        const displayPhone = formatPhoneDisplay(cleanPhone);
+
+                        const appointment = DatabaseService.createAppointment({
+                            phone: cleanPhone,
+                            name: client.name || 'Cliente',
+                            email: client.email || 'Não informado',
+                            date: dayInfo.iso,
+                            time: directTime,
+                            meeting_type: chosenFormat,
+                            meet_link: meetLink,
+                            law_area: client.law_area || 'Direito Geral',
+                            summary: `Reunião agendada com Dr. Glaucio Dias. Lead: ${client.name || 'Cliente'} (${client.email || ''}). Caso: ${client.law_area || 'Área'}.`
+                        });
+
+                        DatabaseService.saveOrUpdateClient(cleanPhone, {
+                            triage_step: 'completed',
+                            status: 'AGENDADO'
+                        });
+
+                        Logger.log('CRM_SYNC_SUCCESS', {
+                            phone: cleanPhone,
+                            action: 'appointment_created',
+                            appointmentId: appointment.id,
+                            meetLink
+                        });
+
+                        let reply = '';
+                        if (isMeetingOnline) {
+                            reply = `🎉 **Reunião Online Agendada com Sucesso com o Dr. Glaucio Dias!**\n\n` +
+                                    `👤 **Cliente:** ${client.name || 'Cliente'}\n` +
+                                    `📧 **E-mail:** ${client.email || 'Cadastrado'}\n` +
+                                    `📱 **WhatsApp:** ${displayPhone}\n` +
+                                    `📅 **Data:** ${dayInfo.display}\n` +
+                                    `🕒 **Horário:** ${directTime} (Atendimento oficial das 09:00 às 18:00)\n` +
+                                    `📹 **Formato:** Online pelo Google Meet\n` +
+                                    `🔗 **Link Oficial da Sala do Google Meet:**\n${meetLink}\n\n` +
+                                    `⚖️ **Advogado Responsável:** Dr. Glaucio Dias\n\n` +
+                                    `━━━━━━━━━━━━━━━━━━━━\n` +
+                                    `📌 **FOLLOW-UP & ORIENTAÇÕES IMPORTANTES:**\n` +
+                                    `1. O horário das ${directTime} foi reservado exclusivamente para você na agenda do Dr. Glaucio;\n` +
+                                    `2. Deixe separados os documentos ou comprovantes do caso;\n` +
+                                    `3. No dia e horário marcados, basta clicar no link acima do Google Meet para entrar na sala;\n` +
+                                    `4. Enviaremos um lembrete no seu WhatsApp antes do início da reunião.\n\n` +
+                                    `Se tiver qualquer dúvida ou imprevisto, pode nos avisar por aqui a qualquer momento. Até breve!`;
+                        } else {
+                            reply = `🎉 **Reunião Presencial Agendada com Sucesso com o Dr. Glaucio Dias!**\n\n` +
+                                    `👤 **Cliente:** ${client.name || 'Cliente'}\n` +
+                                    `📧 **E-mail:** ${client.email || 'Cadastrado'}\n` +
+                                    `📱 **WhatsApp:** ${displayPhone}\n` +
+                                    `📅 **Data:** ${dayInfo.display}\n` +
+                                    `🕒 **Horário:** ${directTime} (Atendimento oficial das 09:00 às 18:00)\n` +
+                                    `🏢 **Local:** Av. Abílio Machado, 1380 - Alípio de Melo, Belo Horizonte / MG\n` +
+                                    `🗺️ **Rota Google Maps:** https://maps.google.com/?q=Av.+Ab%C3%ADlio+Machado,+1380+-+Al%C3%ADpio+de+Melo\n` +
+                                    `⚖️ **Advogado Responsável:** Dr. Glaucio Dias\n\n` +
+                                    `━━━━━━━━━━━━━━━━━━━━\n` +
+                                    `📌 **FOLLOW-UP & ORIENTAÇÕES IMPORTANTES:**\n` +
+                                    `1. Sua vaga das ${directTime} está garantida na agenda do escritório;\n` +
+                                    `2. Traga seus documentos e anotações para análise conjunta com o Dr. Glaucio;\n` +
+                                    `3. Nosso escritório possui fácil estacionamento e recepção climatizada;\n` +
+                                    `4. Enviaremos uma mensagem de confirmação antes da reunião.\n\n` +
+                                    `Qualquer dúvida antes do atendimento, estamos à disposição por aqui. Te esperamos!`;
+                        }
+
+                        DatabaseService.addMessage(cleanPhone, 'assistant', reply);
+                        return reply;
+                    } else {
+                        const slotsFormatted = available.length > 0
+                            ? available.map((s, idx) => `${idx + 1}️⃣ **${s}**`).join('\n')
+                            : 'Todos os horários principais deste dia já foram preenchidos.';
+
+                        DatabaseService.saveOrUpdateClient(cleanPhone, {
+                            triage_step: 'scheduling_slot',
+                            summary: `Formato escolhido: ${chosenFormat}. Reunião com Dr. Glaucio Dias.`
+                        });
+
+                        const reply = `O horário das **${directTime}** em **${dayInfo.display}** já está reservado na agenda do Dr. Glaucio.\n\nPara que você seja atendido(a) sem atrasos, temos livres neste mesmo dia:\n\n${slotsFormatted}\n\nQual desses horários é melhor para você?`;
+                        DatabaseService.addMessage(cleanPhone, 'assistant', reply);
+                        return reply;
+                    }
+                }
+            }
+
             const slotsFormatted = available.map((s, idx) => `${idx + 1}️⃣ **${s}**`).join('\n');
 
             DatabaseService.saveOrUpdateClient(cleanPhone, {
@@ -395,15 +543,15 @@ const TriageEngine = {
             if (chosenFormat === 'Presencial') {
                 reply = `Perfeito, **${client.name || 'Cliente'}**! Será um prazer te receber pessoalmente em nosso escritório na **Av. Abílio Machado, 1380 - Alípio de Melo (Belo Horizonte / MG)**. 🏢\n\n` +
                         `Nosso horário de atendimento é de segunda a sexta, das **09:00 às 18:00**.\n\n` +
-                        `Para **${nextDay.display}**, temos estes horários livres na agenda do Dr. Glaucio:\n\n` +
+                        `Para **${dayInfo.display}**, temos estes horários livres na agenda do Dr. Glaucio:\n\n` +
                         `${slotsFormatted}\n\n` +
-                        `💡 *Qual desses horários fica melhor para você? Se preferir, pode me dizer o horário exato que tem disponibilidade (ex: "só posso às 13:00" ou "prefiro às 15h")!*`;
+                        `💡 *Qual desses horários fica melhor para você? Você pode digitar o número da opção (ex: "5" para ${available[4] || '14:00'}) ou dizer o horário que prefere!*`;
             } else {
                 reply = `Excelente, **${client.name || 'Cliente'}**! O atendimento **Online pelo Google Meet** é prático, seguro e sem trânsito. 📹\n\n` +
                         `Nosso horário de atendimento é de segunda a sexta, das **09:00 às 18:00**.\n\n` +
-                        `Para **${nextDay.display}**, temos estes horários livres na agenda do Dr. Glaucio:\n\n` +
+                        `Para **${dayInfo.display}**, temos estes horários livres na agenda do Dr. Glaucio:\n\n` +
                         `${slotsFormatted}\n\n` +
-                        `💡 *Qual desses horários fica melhor para você? Se preferir, pode me dizer o horário exato que tem disponibilidade (ex: "só posso às 13:00" ou "prefiro às 15h")!*`;
+                        `💡 *Qual desses horários fica melhor para você? Você pode digitar o número da opção (ex: "5" para ${available[4] || '14:00'}) ou dizer o horário que prefere!*`;
             }
 
             DatabaseService.addMessage(cleanPhone, 'assistant', reply);
@@ -414,14 +562,14 @@ const TriageEngine = {
         // ETAPA DE FECHAMENTO 2: CONFIRMAÇÃO DO HORÁRIO E MEET REAL
         // ========================================================
         if (currentStepId === 'scheduling_slot') {
-            const nextDay = getNextBusinessDayFormatted();
-            const extractedTime = extractTimeFromMessage(messageText);
+            const dayInfo = getNextAvailableBusinessDay();
+            const available = dayInfo.availableSlots;
+            const extractedTime = extractTimeFromMessage(messageText, available);
 
             if (!extractedTime) {
-                const available = DatabaseService.getAvailableSlotsForDate(nextDay.iso);
                 const slotsFormatted = available.map((s, idx) => `${idx + 1}️⃣ **${s}**`).join('\n');
 
-                const reply = `Por favor, **${client.name || 'Cliente'}**, informe qual horário fica melhor para você em **${nextDay.display}**.\n\nTemos disponíveis:\n\n${slotsFormatted}\n\n💡 *Você pode digitar o número da opção ou escrever seu próprio horário entre **09:00 e 18:00** (ex: "só posso às 13:00" ou "prefiro às 15h").*`;
+                const reply = `Por favor, **${client.name || 'Cliente'}**, informe qual horário fica melhor para você em **${dayInfo.display}**.\n\nTemos disponíveis:\n\n${slotsFormatted}\n\n💡 *Você pode digitar o número da opção (ex: "5" para ${available[4] || '14:00'}) ou escrever seu próprio horário entre **09:00 e 18:00**.*`;
                 DatabaseService.addMessage(cleanPhone, 'assistant', reply);
                 return reply;
             }
@@ -432,23 +580,21 @@ const TriageEngine = {
 
             // Validação 1: Expediente do escritório (09:00 às 18:00)
             if (hour < 9 || hour > 18 || (hour === 18 && min > 0)) {
-                const available = DatabaseService.getAvailableSlotsForDate(nextDay.iso);
                 const slotsFormatted = available.map((s, idx) => `${idx + 1}️⃣ **${s}**`).join('\n');
 
-                const reply = `O horário das **${extractedTime}** fica fora do expediente de atendimento do Dr. Glaucio Dias (atendemos de segunda a sexta, das **09:00 às 18:00**).\n\nPara **${nextDay.display}**, temos os seguintes horários disponíveis:\n\n${slotsFormatted}\n\nAlgum desses horários fica bom para você, ou prefere sugerir outro horário entre 09:00 e 18:00?`;
+                const reply = `O horário das **${extractedTime}** fica fora do expediente de atendimento do Dr. Glaucio Dias (atendemos de segunda a sexta, das **09:00 às 18:00**).\n\nPara **${dayInfo.display}**, temos os seguintes horários disponíveis:\n\n${slotsFormatted}\n\nAlgum desses horários fica bom para você, ou prefere sugerir outro horário entre 09:00 e 18:00?`;
                 DatabaseService.addMessage(cleanPhone, 'assistant', reply);
                 return reply;
             }
 
             // Validação 2: Disponibilidade na agenda
-            const isAvailable = DatabaseService.isTimeSlotAvailable(nextDay.iso, extractedTime);
+            const isAvailable = DatabaseService.isTimeSlotAvailable(dayInfo.iso, extractedTime);
             if (!isAvailable) {
-                const available = DatabaseService.getAvailableSlotsForDate(nextDay.iso);
                 const slotsFormatted = available.length > 0
                     ? available.map((s, idx) => `${idx + 1}️⃣ **${s}**`).join('\n')
                     : 'Todos os horários principais deste dia já foram preenchidos.';
 
-                const reply = `O horário das **${extractedTime}** em **${nextDay.display}** já está reservado na agenda do Dr. Glaucio.\n\nPara que você seja atendido(a) sem atrasos, temos livres neste mesmo dia:\n\n${slotsFormatted}\n\nQual desses horários é melhor para você, ou prefere marcar em outro dia?`;
+                const reply = `O horário das **${extractedTime}** em **${dayInfo.display}** já está reservado na agenda do Dr. Glaucio.\n\nPara que você seja atendido(a) sem atrasos, temos livres neste mesmo dia:\n\n${slotsFormatted}\n\nQual desses horários é melhor para você, ou prefere marcar em outro dia?`;
                 DatabaseService.addMessage(cleanPhone, 'assistant', reply);
                 return reply;
             }
@@ -465,7 +611,7 @@ const TriageEngine = {
                 phone: cleanPhone,
                 name: client.name || 'Cliente',
                 email: client.email || 'Não informado',
-                date: nextDay.iso,
+                date: dayInfo.iso,
                 time: chosenTime,
                 meeting_type: meetingType,
                 meet_link: meetLink,
@@ -491,7 +637,7 @@ const TriageEngine = {
                         `👤 **Cliente:** ${client.name || 'Cliente'}\n` +
                         `📧 **E-mail:** ${client.email || 'Cadastrado'}\n` +
                         `📱 **WhatsApp:** ${displayPhone}\n` +
-                        `📅 **Data:** ${nextDay.display}\n` +
+                        `📅 **Data:** ${dayInfo.display}\n` +
                         `🕒 **Horário:** ${chosenTime} (Atendimento oficial das 09:00 às 18:00)\n` +
                         `📹 **Formato:** Online pelo Google Meet\n` +
                         `🔗 **Link Oficial da Sala do Google Meet:**\n${meetLink}\n\n` +
@@ -508,7 +654,7 @@ const TriageEngine = {
                         `👤 **Cliente:** ${client.name || 'Cliente'}\n` +
                         `📧 **E-mail:** ${client.email || 'Cadastrado'}\n` +
                         `📱 **WhatsApp:** ${displayPhone}\n` +
-                        `📅 **Data:** ${nextDay.display}\n` +
+                        `📅 **Data:** ${dayInfo.display}\n` +
                         `🕒 **Horário:** ${chosenTime} (Atendimento oficial das 09:00 às 18:00)\n` +
                         `🏢 **Local:** Av. Abílio Machado, 1380 - Alípio de Melo, Belo Horizonte / MG\n` +
                         `🗺️ **Rota Google Maps:** https://maps.google.com/?q=Av.+Ab%C3%ADlio+Machado,+1380+-+Al%C3%ADpio+de+Melo\n` +
@@ -621,11 +767,11 @@ const TriageEngine = {
                 DatabaseService.saveOrUpdateClient(cleanPhone, {
                     triage_step: 'scheduling_slot'
                 });
-                const nextDay = getNextBusinessDayFormatted();
-                const available = DatabaseService.getAvailableSlotsForDate(nextDay.iso);
+                const dayInfo = getNextAvailableBusinessDay();
+                const available = dayInfo.availableSlots;
                 const slotsFormatted = available.map((s, idx) => `${idx + 1}️⃣ **${s}**`).join('\n');
 
-                const reply = `Com certeza, **${client.name || 'Cliente'}**! Podemos ajustar o seu horário de reunião com o Dr. Glaucio Dias para **${nextDay.display}**.\n\nHorários disponíveis na agenda:\n\n${slotsFormatted}\n\n💡 *Qual desses você prefere, ou gostaria de sugerir outro horário entre **09:00 e 18:00** (ex: "só posso às 13:00")?*`;
+                const reply = `Com certeza, **${client.name || 'Cliente'}**! Podemos ajustar o seu horário de reunião com o Dr. Glaucio Dias para **${dayInfo.display}**.\n\nHorários disponíveis na agenda:\n\n${slotsFormatted}\n\n💡 *Qual desses você prefere, ou gostaria de sugerir outro horário entre **09:00 e 18:00** (ex: "só posso às 13:00")?*`;
                 DatabaseService.addMessage(cleanPhone, 'assistant', reply);
                 return reply;
             }

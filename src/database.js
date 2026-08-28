@@ -17,22 +17,17 @@ function getOfficeMeetLink() {
             const raw = fs.readFileSync(officeConfigFile, 'utf8');
             const data = JSON.parse(raw);
             if (data.meet_link && data.meet_link.startsWith('http')) {
-                // Se for o link antigo com nome inválido que o Meet rejeita, migra para código válido 3-4-3
-                if (data.meet_link.includes('glaucio-advocacia')) {
-                    const validDefault = 'https://meet.google.com/gla-ucio-dia';
-                    setOfficeMeetLink(validDefault);
-                    return validDefault;
-                }
                 return data.meet_link;
             }
         }
     } catch (e) {}
-    return 'https://meet.google.com/gla-ucio-dia';
+    return 'https://meet.google.com/bcj-ozww-txr';
 }
 
 function setOfficeMeetLink(link) {
     try {
-        fs.writeFileSync(officeConfigFile, JSON.stringify({ meet_link: link }, null, 2), 'utf8');
+        const finalLink = link && link.startsWith('http') ? link.trim() : 'https://meet.google.com/bcj-ozww-txr';
+        fs.writeFileSync(officeConfigFile, JSON.stringify({ meet_link: finalLink }, null, 2), 'utf8');
         return true;
     } catch (e) {
         return false;

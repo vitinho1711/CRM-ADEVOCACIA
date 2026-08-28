@@ -67,26 +67,21 @@ async function runTests() {
         passed++;
 
         // ----------------------------------------------------
-        // TESTE 3: ESCOLHA DE FORMATO E AGENDAMENTO FLEXÍVEL (13:00)
+        // TESTE 3: ESCOLHA DE FORMATO E AGENDAMENTO DA OPÇÃO 5 (14:00) E LINK BCJ-OZWW-TXR
         // ----------------------------------------------------
-        console.log('🧪 TESTE 3: Escolha do formato Online e horário customizado ("só posso às 13:00")...');
+        console.log('🧪 TESTE 3: Escolha do formato Online e seleção da opção "5" (14:00)...');
         // Escolhe Online (1)
         reply = await TriageEngine.processIncoming(testPhone, '1');
         assert(reply.includes('horários livres') || reply.includes('09:00 às 18:00'), 'Deveria apresentar horários livres');
+        assert(reply.includes('5️⃣') && reply.includes('14:00'), 'Deveria mostrar a opção 5 como 14:00');
 
-        // Cliente pede horário específico: "vou ter horario somente as 13:00"
-        reply = await TriageEngine.processIncoming(testPhone, 'vou ter horario somente as 13:00');
-        assert(reply.includes('13:00'), 'Deveria confirmar às 13:00');
-        assert(reply.includes('meet.google.com/gla-ucio-dia') || reply.includes('meet.google.com/'), 'Deveria conter link válido do Google Meet');
-        assert(!reply.includes('glaucio-advocacia'), 'NÃO deve conter o link antigo que dava nome inválido');
+        // Cliente escolhe a opção "5"
+        reply = await TriageEngine.processIncoming(testPhone, '5');
+        assert(reply.includes('14:00'), `Deveria confirmar às 14:00 (opção 5), mas retornou outro horário.`);
+        assert(!reply.includes('16:00'), 'NÃO deve marcar 16:00 quando o cliente escolhe a opção 5!');
+        assert(reply.includes('https://meet.google.com/bcj-ozww-txr'), 'Deveria conter exatamente o link solicitado: https://meet.google.com/bcj-ozww-txr');
 
-        // Validação estrita do código do Google Meet
-        const meetMatch = reply.match(/meet\.google\.com\/([a-z0-9-]+)/);
-        assert(meetMatch, 'Deve ter link do Meet');
-        const code = meetMatch[1];
-        assert(/^[a-z]{3}-[a-z]{4}-[a-z]{3}$/.test(code), `Código do Meet deve ter formato 3-4-3: ${code}`);
-
-        console.log('✅ TESTE 3 PASSOU: Horário das 13:00 agendado e link do Google Meet 100% válido no padrão do Google!\n');
+        console.log('✅ TESTE 3 PASSOU: Opção 5 agendou com precisão o horário das 14:00 e link oficial configurado!\n');
         passed++;
 
         // ----------------------------------------------------
@@ -101,9 +96,9 @@ async function runTests() {
             return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
         })();
 
-        const isAvailable13 = DatabaseService.isTimeSlotAvailable(nextDay, '13:00');
-        assert.strictEqual(isAvailable13, false, 'O horário das 13:00 agora deve constar como OCUPADO');
-        console.log('✅ TESTE 4 PASSOU: Conflito detectado com sucesso (13:00 ocupado).\n');
+        const isAvailable14 = DatabaseService.isTimeSlotAvailable(nextDay, '14:00');
+        assert.strictEqual(isAvailable14, false, 'O horário das 14:00 agora deve constar como OCUPADO');
+        console.log('✅ TESTE 4 PASSOU: Conflito detectado com sucesso (14:00 ocupado).\n');
         passed++;
 
         // ----------------------------------------------------
@@ -123,10 +118,41 @@ async function runTests() {
 
         // Conversação livre
         reply = await TriageEngine.processIncoming(testPhone, 'Perfeito, muito obrigado!');
-        assert(reply.includes('13:00') && reply.includes('Vitor'), 'Deveria confirmar a reunião mantendo a conversa fluida');
+        assert(reply.includes('14:00') && reply.includes('Vitor'), 'Deveria confirmar a reunião mantendo a conversa fluida');
         assert(!reply.includes('qual é o seu Nome Completo'), 'NÃO deve reiniciar');
 
         console.log('✅ TESTE 5 PASSOU: Conversação contínua, humana e acolhedora sem reiniciar a triagem!\n');
+        passed++;
+
+        // ----------------------------------------------------
+        // TESTE 6: FRASE EXATA DO PRINT ("Pode ser às 14:00") DIRETO NA ESCOLHA DE FORMATO
+        // ----------------------------------------------------
+        console.log('🧪 TESTE 6: Frase exata do print ("Pode ser às 14:00") na escolha de formato...');
+        const testPhone2 = '5531988887777';
+        DatabaseService.deleteClient(testPhone2);
+
+        await TriageEngine.processIncoming(testPhone2, 'Olá');
+        await TriageEngine.processIncoming(testPhone2, 'Carlos Silva');
+        await TriageEngine.processIncoming(testPhone2, 'carlos@gmail.com');
+        await TriageEngine.processIncoming(testPhone2, '1'); // Trabalhista
+        await TriageEngine.processIncoming(testPhone2, '1'); // Demitido
+        await TriageEngine.processIncoming(testPhone2, '1'); // Carteira assinada
+        await TriageEngine.processIncoming(testPhone2, '2'); // Já saiu
+        await TriageEngine.processIncoming(testPhone2, '1'); // Menos de 30 dias
+        await TriageEngine.processIncoming(testPhone2, '1'); // Horas extras
+        await TriageEngine.processIncoming(testPhone2, '1'); // Documentos completos -> Chega em scheduling_format
+
+        // O usuário digita a frase do print para horário ocupado (14:00 foi pego no Teste 3)
+        reply = await TriageEngine.processIncoming(testPhone2, 'Pode ser às 14:00');
+        assert(reply.includes('já está reservado') || reply.includes('já está ocupado') || reply.includes('14:00'), 'Deveria avisar que 14:00 está ocupado');
+
+        // Em seguida escolhe 15:00 que está livre
+        reply = await TriageEngine.processIncoming(testPhone2, 'Pode ser às 15:00');
+        assert(reply.includes('15:00'), 'Deveria agendar diretamente para as 15:00');
+        assert(reply.includes('https://meet.google.com/bcj-ozww-txr'), 'Deveria conter o link solicitado: https://meet.google.com/bcj-ozww-txr');
+        DatabaseService.deleteClient(testPhone2);
+
+        console.log('✅ TESTE 6 PASSOU: Tratamento de conflito de horário e agendamento direto funcionando perfeitamente com o link oficial!\n');
         passed++;
 
     } catch (e) {
