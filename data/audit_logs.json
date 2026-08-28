@@ -1,1 +1,351 @@
-[]
+[
+  {
+    "id": "1787879378689v0u5z",
+    "event": "LEAD_RECEIVED",
+    "timestamp": "2026-08-28T01:09:38.689Z",
+    "phone": "5531988887777",
+    "message": "Olá Dr. Glaucio, vi seu anúncio no Instagram e preciso de ajuda",
+    "instanceId": "instance_1",
+    "existingLead": false
+  },
+  {
+    "id": "1787879378691tcywx",
+    "event": "LEAD_CREATED",
+    "timestamp": "2026-08-28T01:09:38.691Z",
+    "phone": "5531988887777",
+    "source": "anuncio",
+    "instanceId": "instance_1"
+  },
+  {
+    "id": "1787879378693228lb",
+    "event": "TRIAGE_STARTED",
+    "timestamp": "2026-08-28T01:09:38.693Z",
+    "phone": "5531988887777"
+  },
+  {
+    "id": "1787879378696evb8m",
+    "event": "LEAD_RECEIVED",
+    "timestamp": "2026-08-28T01:09:38.696Z",
+    "phone": "5531977776666",
+    "message": "Olá Dr Glaucio, vi seu anúncio",
+    "instanceId": "instance_1",
+    "existingLead": false
+  },
+  {
+    "id": "1787879378698d2xoz",
+    "event": "LEAD_CREATED",
+    "timestamp": "2026-08-28T01:09:38.698Z",
+    "phone": "5531977776666",
+    "source": "anuncio",
+    "instanceId": "instance_1"
+  },
+  {
+    "id": "1787879378700nnhzv",
+    "event": "TRIAGE_STARTED",
+    "timestamp": "2026-08-28T01:09:38.700Z",
+    "phone": "5531977776666"
+  },
+  {
+    "id": "1787879378702hazyl",
+    "event": "LEAD_RECEIVED",
+    "timestamp": "2026-08-28T01:09:38.702Z",
+    "phone": "5531977776666",
+    "message": "3",
+    "instanceId": "instance_1",
+    "existingLead": true
+  },
+  {
+    "id": "1787879378703s7xno",
+    "event": "TRIAGE_STARTED",
+    "timestamp": "2026-08-28T01:09:38.703Z",
+    "phone": "5531977776666"
+  },
+  {
+    "id": "1787879378705vdl6x",
+    "event": "TRIAGE_ANSWER_SAVED",
+    "timestamp": "2026-08-28T01:09:38.705Z",
+    "phone": "5531977776666",
+    "step": "area_selection",
+    "area": "Direito de Família"
+  },
+  {
+    "id": "1787879378707ixrem",
+    "event": "LEAD_RECEIVED",
+    "timestamp": "2026-08-28T01:09:38.707Z",
+    "phone": "5531977776666",
+    "message": "1",
+    "instanceId": "instance_1",
+    "existingLead": true
+  },
+  {
+    "id": "1787879378710zhjdp",
+    "event": "TRIAGE_ANSWER_SAVED",
+    "timestamp": "2026-08-28T01:09:38.710Z",
+    "phone": "5531977776666",
+    "step": "familia_situacao",
+    "answer": "Divórcio",
+    "points": 25,
+    "currentScore": 25
+  },
+  {
+    "id": "1787879378713y9ukq",
+    "event": "LEAD_RECEIVED",
+    "timestamp": "2026-08-28T01:09:38.713Z",
+    "phone": "5531977776666",
+    "message": "1",
+    "instanceId": "instance_1",
+    "existingLead": true
+  },
+  {
+    "id": "1787879378715vgchm",
+    "event": "TRIAGE_ANSWER_SAVED",
+    "timestamp": "2026-08-28T01:09:38.715Z",
+    "phone": "5531977776666",
+    "step": "familia_processo",
+    "answer": "Sim, já existe processo",
+    "points": 20,
+    "currentScore": 45
+  },
+  {
+    "id": "17878793787186zhgv",
+    "event": "LEAD_RECEIVED",
+    "timestamp": "2026-08-28T01:09:38.718Z",
+    "phone": "5531966665555",
+    "message": "Olá Dr Glaucio, vi o anúncio no Facebook",
+    "instanceId": "instance_1",
+    "existingLead": false
+  },
+  {
+    "id": "1787879378720dnq4k",
+    "event": "LEAD_CREATED",
+    "timestamp": "2026-08-28T01:09:38.720Z",
+    "phone": "5531966665555",
+    "source": "anuncio",
+    "instanceId": "instance_1"
+  },
+  {
+    "id": "1787879378722i8rcw",
+    "event": "TRIAGE_STARTED",
+    "timestamp": "2026-08-28T01:09:38.722Z",
+    "phone": "5531966665555"
+  },
+  {
+    "id": "178787937872651gjd",
+    "event": "LEAD_RECEIVED",
+    "timestamp": "2026-08-28T01:09:38.726Z",
+    "phone": "5531966665555",
+    "message": "1",
+    "instanceId": "instance_1",
+    "existingLead": true
+  },
+  {
+    "id": "178787937872833wjn",
+    "event": "TRIAGE_STARTED",
+    "timestamp": "2026-08-28T01:09:38.728Z",
+    "phone": "5531966665555"
+  },
+  {
+    "id": "17878793787301ateq",
+    "event": "TRIAGE_ANSWER_SAVED",
+    "timestamp": "2026-08-28T01:09:38.730Z",
+    "phone": "5531966665555",
+    "step": "area_selection",
+    "area": "Direito Trabalhista"
+  },
+  {
+    "id": "1787879378732zv4h1",
+    "event": "LEAD_RECEIVED",
+    "timestamp": "2026-08-28T01:09:38.732Z",
+    "phone": "5531966665555",
+    "message": "1",
+    "instanceId": "instance_1",
+    "existingLead": true
+  },
+  {
+    "id": "1787879378734gczw4",
+    "event": "TRIAGE_ANSWER_SAVED",
+    "timestamp": "2026-08-28T01:09:38.734Z",
+    "phone": "5531966665555",
+    "step": "trabalhista_situacao",
+    "answer": "Fui demitido",
+    "points": 25,
+    "currentScore": 25
+  },
+  {
+    "id": "1787879378737sytev",
+    "event": "LEAD_RECEIVED",
+    "timestamp": "2026-08-28T01:09:38.737Z",
+    "phone": "5531966665555",
+    "message": "2",
+    "instanceId": "instance_1",
+    "existingLead": true
+  },
+  {
+    "id": "1787879378739sq1i4",
+    "event": "TRIAGE_ANSWER_SAVED",
+    "timestamp": "2026-08-28T01:09:38.739Z",
+    "phone": "5531966665555",
+    "step": "trabalhista_vinculo",
+    "answer": "Não, já saí",
+    "points": 25,
+    "currentScore": 50
+  },
+  {
+    "id": "1787879378742nxtjb",
+    "event": "LEAD_RECEIVED",
+    "timestamp": "2026-08-28T01:09:38.742Z",
+    "phone": "5531966665555",
+    "message": "1",
+    "instanceId": "instance_1",
+    "existingLead": true
+  },
+  {
+    "id": "178787937874484vsl",
+    "event": "TRIAGE_ANSWER_SAVED",
+    "timestamp": "2026-08-28T01:09:38.744Z",
+    "phone": "5531966665555",
+    "step": "trabalhista_tempo",
+    "answer": "Menos de 30 dias",
+    "points": 25,
+    "currentScore": 75
+  },
+  {
+    "id": "17878793787475cyk5",
+    "event": "LEAD_RECEIVED",
+    "timestamp": "2026-08-28T01:09:38.747Z",
+    "phone": "5531966665555",
+    "message": "1",
+    "instanceId": "instance_1",
+    "existingLead": true
+  },
+  {
+    "id": "178787937874988s91",
+    "event": "TRIAGE_ANSWER_SAVED",
+    "timestamp": "2026-08-28T01:09:38.749Z",
+    "phone": "5531966665555",
+    "step": "trabalhista_documentos",
+    "answer": "Sim, possui documentos",
+    "points": 20,
+    "currentScore": 95
+  },
+  {
+    "id": "1787879378751echeo",
+    "event": "LEAD_RECEIVED",
+    "timestamp": "2026-08-28T01:09:38.751Z",
+    "phone": "5531966665555",
+    "message": "1",
+    "instanceId": "instance_1",
+    "existingLead": true
+  },
+  {
+    "id": "1787879378754eo09s",
+    "event": "TRIAGE_ANSWER_SAVED",
+    "timestamp": "2026-08-28T01:09:38.754Z",
+    "phone": "5531966665555",
+    "step": "trabalhista_orientacao",
+    "answer": "Sim, desejo agendamento",
+    "points": 20,
+    "currentScore": 100
+  },
+  {
+    "id": "1787879378755fjxag",
+    "event": "TRIAGE_COMPLETED",
+    "timestamp": "2026-08-28T01:09:38.755Z",
+    "phone": "5531966665555",
+    "score": 100,
+    "status": "ALTA PRIORIDADE"
+  },
+  {
+    "id": "17878793787565bsks",
+    "event": "LEAD_QUALIFIED",
+    "timestamp": "2026-08-28T01:09:38.756Z",
+    "phone": "5531966665555",
+    "score": 100,
+    "qualificationStatus": "ALTA PRIORIDADE"
+  },
+  {
+    "id": "1787879378759vjonj",
+    "event": "LEAD_RECEIVED",
+    "timestamp": "2026-08-28T01:09:38.759Z",
+    "phone": "5531966665555",
+    "message": "1",
+    "instanceId": "instance_1",
+    "existingLead": true
+  },
+  {
+    "id": "17878793787632k48o",
+    "event": "LEAD_RECEIVED",
+    "timestamp": "2026-08-28T01:09:38.763Z",
+    "phone": "5531966665555",
+    "message": "2",
+    "instanceId": "instance_1",
+    "existingLead": true
+  },
+  {
+    "id": "1787879378768pa0co",
+    "event": "CRM_SYNC_SUCCESS",
+    "timestamp": "2026-08-28T01:09:38.768Z",
+    "phone": "5531966665555",
+    "action": "appointment_created",
+    "appointmentId": 1787879378766
+  },
+  {
+    "id": "178787937877399f4h",
+    "event": "LEAD_RECEIVED",
+    "timestamp": "2026-08-28T01:09:38.773Z",
+    "phone": "5531955554444",
+    "message": "Dr Glaucio anúncio 1",
+    "instanceId": "instance_1",
+    "existingLead": false
+  },
+  {
+    "id": "178787937877599htk",
+    "event": "LEAD_CREATED",
+    "timestamp": "2026-08-28T01:09:38.775Z",
+    "phone": "5531955554444",
+    "source": "anuncio",
+    "instanceId": "instance_1"
+  },
+  {
+    "id": "1787879378777awne4",
+    "event": "TRIAGE_STARTED",
+    "timestamp": "2026-08-28T01:09:38.777Z",
+    "phone": "5531955554444"
+  },
+  {
+    "id": "1787879378779o5cmu",
+    "event": "TRIAGE_ANSWER_SAVED",
+    "timestamp": "2026-08-28T01:09:38.779Z",
+    "phone": "5531955554444",
+    "step": "area_selection",
+    "area": "Direito Trabalhista"
+  },
+  {
+    "id": "1787879378781ebzxw",
+    "event": "LEAD_RECEIVED",
+    "timestamp": "2026-08-28T01:09:38.781Z",
+    "phone": "5531955554444",
+    "message": "Dr Glaucio anúncio 2",
+    "instanceId": "instance_1",
+    "existingLead": true
+  },
+  {
+    "id": "1787879378784r0fjj",
+    "event": "TRIAGE_ANSWER_SAVED",
+    "timestamp": "2026-08-28T01:09:38.784Z",
+    "phone": "5531955554444",
+    "step": "trabalhista_situacao",
+    "answer": "Não recebi rescisão correta",
+    "points": 25,
+    "currentScore": 25
+  },
+  {
+    "id": "1787879378788xcr56",
+    "event": "LEAD_RECEIVED",
+    "timestamp": "2026-08-28T01:09:38.788Z",
+    "phone": "5531944443333",
+    "message": "Doutor, boa tarde! Como está o processo?",
+    "instanceId": "instance_1",
+    "existingLead": false
+  }
+]
