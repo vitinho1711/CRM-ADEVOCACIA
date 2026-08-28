@@ -275,6 +275,20 @@ app.get('/api/database/download', (req, res) => {
     }
 });
 
+// Link oficial da Sala do Google Meet
+app.get('/api/office/meet-link', (req, res) => {
+    res.json({ meet_link: DatabaseService.getOfficeMeetLink() });
+});
+
+app.post('/api/office/meet-link', (req, res) => {
+    const { meet_link } = req.body;
+    if (!meet_link || !meet_link.startsWith('http')) {
+        return res.status(400).json({ error: 'Link do Google Meet inválido' });
+    }
+    const success = DatabaseService.setOfficeMeetLink(meet_link.trim());
+    res.json({ success, meet_link: DatabaseService.getOfficeMeetLink() });
+});
+
 app.get('/api/chat/:phone', (req, res) => {
     const messages = DatabaseService.getRecentMessages(req.params.phone, 50);
     res.json(messages);

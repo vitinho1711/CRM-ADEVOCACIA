@@ -6,9 +6,32 @@ const dataDir = path.join(__dirname, '..', 'data');
 const backupsDir = path.join(dataDir, 'backups');
 const sqliteFile = path.join(dataDir, 'crm_advocacia.sqlite');
 const jsonBackupFile = path.join(dataDir, 'database.json');
+const officeConfigFile = path.join(dataDir, 'office_config.json');
 
 if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
 if (!fs.existsSync(backupsDir)) fs.mkdirSync(backupsDir, { recursive: true });
+
+function getOfficeMeetLink() {
+    try {
+        if (fs.existsSync(officeConfigFile)) {
+            const raw = fs.readFileSync(officeConfigFile, 'utf8');
+            const data = JSON.parse(raw);
+            if (data.meet_link && data.meet_link.startsWith('http')) {
+                return data.meet_link;
+            }
+        }
+    } catch (e) {}
+    return 'https://meet.google.com/glaucio-advocacia';
+}
+
+function setOfficeMeetLink(link) {
+    try {
+        fs.writeFileSync(officeConfigFile, JSON.stringify({ meet_link: link }, null, 2), 'utf8');
+        return true;
+    } catch (e) {
+        return false;
+    }
+}
 
 // Normalizador seguro de números de telefone brasileiros
 function normalizePhone(rawPhone) {
@@ -38,12 +61,6 @@ function normalizePhone(rawPhone) {
     return digits;
 }
 
-function generateGoogleMeetLink() {
-    const chars = 'abcdefghijklmnopqrstuvwxyz';
-    const rand = (len) => Array.from({ length: len }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
-    return `https://meet.google.com/${rand(3)}-${rand(4)}-${rand(3)}`;
-}
-
 // Inicia conexão SQLite com modo WAL (Write-Ahead Logging)
 const sqlDb = new sqlite3.Database(sqliteFile, (err) => {
     if (err) {
@@ -53,7 +70,6 @@ const sqlDb = new sqlite3.Database(sqliteFile, (err) => {
     }
 });
 
-// Inicialização síncrona das tabelas e índices
 sqlDb.serialize(() => {
     sqlDb.run("PRAGMA journal_mode = WAL;");
     sqlDb.run("PRAGMA synchronous = NORMAL;");
@@ -63,6 +79,8 @@ sqlDb.serialize(() => {
             id INTEGER PRIMARY KEY,
             phone TEXT UNIQUE NOT NULL,
             phone_raw TEXT,
+            phone_contact TEXT,
+            remote_jid TEXT,
             whatsapp TEXT,
             instance_id TEXT DEFAULT 'instance_1',
             name TEXT,
@@ -133,9 +151,12 @@ sqlDb.serialize(() => {
     sqlDb.run(`CREATE INDEX IF NOT EXISTS idx_messages_phone ON messages(phone);`);
     sqlDb.run(`CREATE INDEX IF NOT EXISTS idx_appointments_phone ON appointments(client_phone);`);
     sqlDb.run(`CREATE INDEX IF NOT EXISTS idx_appointments_date ON appointments(date);`);
+
+    // Migração segura para colunas adicionais
+    sqlDb.run("ALTER TABLE clients ADD COLUMN phone_contact TEXT;", () => {});
+    sqlDb.run("ALTER TABLE clients ADD COLUMN remote_jid TEXT;", () => {});
 });
 
-// Cache em memória para alta performance sincronizado com SQLite
 let memoryCache = {
     clients: [],
     messages: [],
@@ -152,21 +173,15 @@ function loadInitialState() {
                 }));
                 console.log(`[SQLITE] ${rows.length} leads carregados do banco de dados SQLite.`);
             } else if (fs.existsSync(jsonBackupFile)) {
-                // Se o SQLite estiver vazio mas o JSON de backup existir, migra automaticamente
                 try {
                     const raw = fs.readFileSync(jsonBackupFile, 'utf8');
                     const json = JSON.parse(raw);
                     if (json.clients && json.clients.length > 0) {
-                        console.log(`[SQLITE] Importando ${json.clients.length} leads do arquivo JSON para o SQLite...`);
-                        json.clients.forEach(c => {
-                            persistClientToSqlite(c);
-                        });
+                        json.clients.forEach(c => persistClientToSqlite(c));
                         memoryCache.clients = json.clients;
                     }
                     if (json.appointments && json.appointments.length > 0) {
-                        json.appointments.forEach(a => {
-                            persistAppointmentToSqlite(a);
-                        });
+                        json.appointments.forEach(a => persistAppointmentToSqlite(a));
                         memoryCache.appointments = json.appointments;
                     }
                     if (json.messages && json.messages.length > 0) {
@@ -199,13 +214,13 @@ loadInitialState();
 function persistClientToSqlite(client) {
     const query = `
         INSERT OR REPLACE INTO clients (
-            id, phone, phone_raw, whatsapp, instance_id, name, email, city, law_area,
+            id, phone, phone_raw, phone_contact, remote_jid, whatsapp, instance_id, name, email, city, law_area,
             source, campaign, adset, ad, creative, utm_source, utm_campaign, utm_medium, utm_content,
             status, triage_step, triage_answers, qualification_score, qualification_status,
             summary, urgency, documents, client_goal, notes, assigned_to, from_ad, ai_active,
             created_at, updated_at
         ) VALUES (
-            ?, ?, ?, ?, ?, ?, ?, ?, ?,
+            ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
             ?, ?, ?, ?, ?, ?, ?, ?, ?,
             ?, ?, ?, ?, ?,
             ?, ?, ?, ?, ?, ?, ?, ?,
@@ -219,6 +234,8 @@ function persistClientToSqlite(client) {
         client.id || Date.now(),
         client.phone,
         client.phone_raw || client.phone,
+        client.phone_contact || null,
+        client.remote_jid || null,
         client.whatsapp || `https://wa.me/${client.phone}`,
         client.instance_id || 'instance_1',
         client.name || null,
@@ -253,7 +270,6 @@ function persistClientToSqlite(client) {
         if (err) console.error('[SQLITE CLIENT INSERT ERROR]', err);
     });
 
-    // Salva cópia de espelho em JSON para redundância
     mirrorToJson();
 }
 
@@ -321,10 +337,10 @@ function mirrorToJson() {
 
 const DatabaseService = {
     normalizePhone,
-    generateGoogleMeetLink,
+    getOfficeMeetLink,
+    setOfficeMeetLink,
     sqliteFile,
 
-    // Cria cópia física de backup do banco de dados
     createDatabaseBackup() {
         try {
             const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
@@ -340,20 +356,22 @@ const DatabaseService = {
     getClientByPhone(phone) {
         const cleanPhone = normalizePhone(phone);
         if (!cleanPhone) return null;
-        return memoryCache.clients.find(c => normalizePhone(c.phone) === cleanPhone) || null;
+        return memoryCache.clients.find(c => normalizePhone(c.phone) === cleanPhone || (c.phone_contact && normalizePhone(c.phone_contact) === cleanPhone)) || null;
     },
 
     saveOrUpdateClient(phone, data = {}) {
         const cleanPhone = normalizePhone(phone);
         if (!cleanPhone) return null;
 
-        let client = memoryCache.clients.find(c => normalizePhone(c.phone) === cleanPhone);
+        let client = memoryCache.clients.find(c => normalizePhone(c.phone) === cleanPhone || (c.phone_contact && normalizePhone(c.phone_contact) === cleanPhone));
 
         if (!client) {
             client = {
                 id: Date.now(),
                 phone: cleanPhone,
                 phone_raw: String(phone),
+                phone_contact: data.phone_contact || null,
+                remote_jid: data.remote_jid || null,
                 whatsapp: `https://wa.me/${cleanPhone}`,
                 instance_id: data.instance_id || 'instance_1',
                 name: data.name || null,
@@ -388,7 +406,7 @@ const DatabaseService = {
             memoryCache.clients.push(client);
         } else {
             const updatableKeys = [
-                'name', 'email', 'city', 'law_area', 'source', 'campaign', 'adset', 'ad', 'creative',
+                'name', 'email', 'phone_contact', 'remote_jid', 'city', 'law_area', 'source', 'campaign', 'adset', 'ad', 'creative',
                 'utm_source', 'utm_campaign', 'utm_medium', 'utm_content', 'status',
                 'triage_step', 'triage_answers', 'qualification_score', 'qualification_status',
                 'summary', 'urgency', 'documents', 'client_goal', 'notes', 'assigned_to',
@@ -417,7 +435,7 @@ const DatabaseService = {
 
     saveTriageAnswer(phone, step, question, answer, points = 0, nextStep = null) {
         const cleanPhone = normalizePhone(phone);
-        const client = memoryCache.clients.find(c => normalizePhone(c.phone) === cleanPhone);
+        const client = memoryCache.clients.find(c => normalizePhone(c.phone) === cleanPhone || (c.phone_contact && normalizePhone(c.phone_contact) === cleanPhone));
         if (!client) return null;
 
         if (!Array.isArray(client.triage_answers)) {
@@ -502,7 +520,7 @@ const DatabaseService = {
 
     createAppointment({ phone, name, email, date, time, law_area, notes, summary, city, meeting_type, meet_link }) {
         const cleanPhone = normalizePhone(phone) || (memoryCache.clients[0]?.phone || 'WhatsApp');
-        const client = memoryCache.clients.find(c => normalizePhone(c.phone) === cleanPhone);
+        const client = memoryCache.clients.find(c => normalizePhone(c.phone) === cleanPhone || (c.phone_contact && normalizePhone(c.phone_contact) === cleanPhone));
 
         let finalMeetingType = 'Presencial';
         const checkText = `${meeting_type || ''} ${summary || ''} ${notes || ''}`.toLowerCase();
@@ -511,11 +529,11 @@ const DatabaseService = {
         }
 
         const isOnline = finalMeetingType.includes('Online');
-        const finalMeetLink = isOnline ? (meet_link || generateGoogleMeetLink()) : null;
+        const finalMeetLink = isOnline ? (meet_link || getOfficeMeetLink()) : null;
 
         const appointment = {
             id: Date.now(),
-            client_phone: cleanPhone,
+            client_phone: client?.phone_contact || cleanPhone,
             client_name: name || client?.name || 'Cliente',
             client_email: email || client?.email || 'Não informado',
             date: date,
@@ -562,19 +580,19 @@ const DatabaseService = {
     getAllAppointments() {
         return memoryCache.appointments.map(a => {
             const cleanPhone = normalizePhone(a.client_phone);
-            const client = memoryCache.clients.find(c => normalizePhone(c.phone) === cleanPhone) || memoryCache.clients[0];
+            const client = memoryCache.clients.find(c => normalizePhone(c.phone) === cleanPhone || (c.phone_contact && normalizePhone(c.phone_contact) === cleanPhone)) || memoryCache.clients[0];
             const checkText = `${a.meeting_type || ''} ${a.summary || ''} ${a.notes || ''}`.toLowerCase();
             const isOnline = checkText.includes('online') || checkText.includes('meet') || checkText.includes('video');
             const meetingType = isOnline ? 'Online (Google Meet)' : 'Presencial';
 
             return {
                 ...a,
-                client_phone: cleanPhone || client?.phone || 'WhatsApp',
+                client_phone: client?.phone_contact || cleanPhone || client?.phone || 'WhatsApp',
                 client_name: a.client_name || client?.name || 'Cliente',
                 client_email: a.client_email || client?.email || 'Não informado',
                 city: a.city || client?.city || 'Belo Horizonte / MG',
                 meeting_type: meetingType,
-                meet_link: a.meet_link || (isOnline ? 'https://meet.google.com/glaucio-advocacia' : null),
+                meet_link: a.meet_link || (isOnline ? getOfficeMeetLink() : null),
                 maps_link: !isOnline ? 'https://maps.google.com/?q=Av.+Ab%C3%ADlio+Machado,+1380+-+Al%C3%ADpio+de+Melo' : null,
                 summary: a.summary || client?.summary || a.notes || 'Pauta da reunião com o advogado',
                 documents: a.documents || client?.documents || 'Nenhum'
@@ -594,11 +612,11 @@ const DatabaseService = {
 
     deleteClient(phone) {
         const cleanPhone = normalizePhone(phone);
-        memoryCache.clients = memoryCache.clients.filter(c => normalizePhone(c.phone) !== cleanPhone);
+        memoryCache.clients = memoryCache.clients.filter(c => normalizePhone(c.phone) !== cleanPhone && (!c.phone_contact || normalizePhone(c.phone_contact) !== cleanPhone));
         memoryCache.messages = memoryCache.messages.filter(m => normalizePhone(m.phone) !== cleanPhone);
         memoryCache.appointments = memoryCache.appointments.filter(a => normalizePhone(a.client_phone) !== cleanPhone);
 
-        sqlDb.run("DELETE FROM clients WHERE phone = ?", [cleanPhone]);
+        sqlDb.run("DELETE FROM clients WHERE phone = ? OR phone_contact = ?", [cleanPhone, cleanPhone]);
         sqlDb.run("DELETE FROM messages WHERE phone = ?", [cleanPhone]);
         sqlDb.run("DELETE FROM appointments WHERE client_phone = ?", [cleanPhone]);
 

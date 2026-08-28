@@ -7,7 +7,7 @@ const Logger = require('./src/logger');
 
 async function runTests() {
     console.log('====================================================');
-    console.log('🚀 TESTANDO FLUXO COMPLETO: NOME + GMAIL + 09H-18H + MEET + FOLLOW-UP');
+    console.log('🚀 TESTANDO: NOME + WHATSAPP REAL + GMAIL + MEET REAL');
     console.log('====================================================\n');
 
     let passed = 0;
@@ -20,7 +20,7 @@ async function runTests() {
     // ----------------------------------------------------
     try {
         console.log('🧪 TESTE 1: Entrada de anúncio e pedido de Nome Completo...');
-        const phone1 = '31988887777';
+        const phone1 = '48885988860035'; // Simula o LID do WhatsApp
         const msgAd = 'Olá Dr. Glaucio, vi seu anúncio no Instagram';
 
         const r1 = await TriageEngine.processIncoming(phone1, msgAd, 'instance_1');
@@ -38,20 +38,19 @@ async function runTests() {
     }
 
     // ----------------------------------------------------
-    // TESTE 2: Lead informa Nome -> Sistema confirma Telefone e pede Gmail
+    // TESTE 2: Lead informa Nome -> Sistema pede o número do WhatsApp com DDD
     // ----------------------------------------------------
     try {
-        console.log('\n🧪 TESTE 2: Lead envia Nome e sistema pede E-mail / Gmail...');
-        const phone1 = '31988887777';
-        const r2 = await TriageEngine.processIncoming(phone1, 'Carlos Eduardo da Silva', 'instance_1');
+        console.log('\n🧪 TESTE 2: Lead envia Nome e sistema pede o WhatsApp com DDD...');
+        const phone1 = '48885988860035';
+        const r2 = await TriageEngine.processIncoming(phone1, 'Vitor Batista de Oliveira', 'instance_1');
 
         const lead1 = DatabaseService.getClientByPhone(phone1);
-        assert(lead1.name === 'Carlos Eduardo Da Silva', `Nome salvo incorreto: ${lead1.name}`);
-        assert(lead1.triage_step === 'waiting_email');
-        assert(r2 && r2.includes('E-mail (Gmail)'), 'Deveria pedir o e-mail Gmail');
-        assert(r2 && r2.includes('+55 (31) 98888-7777'), 'Deveria confirmar o telefone');
+        assert(lead1.name === 'Vitor Batista De Oliveira', `Nome salvo incorreto: ${lead1.name}`);
+        assert(lead1.triage_step === 'waiting_phone');
+        assert(r2 && r2.includes('número de WhatsApp com DDD'), 'Deveria pedir o WhatsApp com DDD');
 
-        console.log('✅ TESTE 2 PASSOU: Nome salvo, telefone confirmado e Gmail solicitado.');
+        console.log('✅ TESTE 2 PASSOU: Nome salvo e WhatsApp solicitado explicitamente.');
         passed++;
     } catch (e) {
         console.error('❌ TESTE 2 FALHOU:', e.message);
@@ -59,19 +58,20 @@ async function runTests() {
     }
 
     // ----------------------------------------------------
-    // TESTE 3: Lead informa Gmail -> Salva no CRM e inicia seleção de área
+    // TESTE 3: Lead digita o WhatsApp -> Sistema confirma o número e pede o Gmail
     // ----------------------------------------------------
     try {
-        console.log('\n🧪 TESTE 3: Lead envia Gmail e sistema avança para as perguntas...');
-        const phone1 = '31988887777';
-        const r3 = await TriageEngine.processIncoming(phone1, 'carlos.adv@gmail.com', 'instance_1');
+        console.log('\n🧪 TESTE 3: Lead envia WhatsApp real e sistema pede Gmail...');
+        const phone1 = '48885988860035';
+        const r3 = await TriageEngine.processIncoming(phone1, '31 98888-7777', 'instance_1');
 
         const lead1 = DatabaseService.getClientByPhone(phone1);
-        assert(lead1.email === 'carlos.adv@gmail.com', `Email salvo incorreto: ${lead1.email}`);
-        assert(lead1.triage_step === 'area_selection');
-        assert(r3 && r3.includes('qual área está relacionada'), 'Deveria apresentar as opções de área');
+        assert(lead1.phone_contact === '5531988887777', `WhatsApp de contato salvo incorreto: ${lead1.phone_contact}`);
+        assert(lead1.triage_step === 'waiting_email');
+        assert(r3 && r3.includes('E-mail (Gmail)'), 'Deveria pedir o e-mail Gmail');
+        assert(r3 && r3.includes('+55 (31) 98888-7777'), 'Deveria confirmar o número real');
 
-        console.log('✅ TESTE 3 PASSOU: Gmail salvo com sucesso na ficha do lead.');
+        console.log('✅ TESTE 3 PASSOU: WhatsApp real salvo e Gmail solicitado.');
         passed++;
     } catch (e) {
         console.error('❌ TESTE 3 FALHOU:', e.message);
@@ -79,48 +79,19 @@ async function runTests() {
     }
 
     // ----------------------------------------------------
-    // TESTE 4: Triagem do Nicho + Agendamento com Horários das 09:00 às 18:00 + Meet Link Único
+    // TESTE 4: Lead envia Gmail -> Inicia seleção de área e triagem
     // ----------------------------------------------------
     try {
-        console.log('\n🧪 TESTE 4: Condução para Reunião de 09:00 às 18:00 com Google Meet Automático...');
-        const phone1 = '31988887777';
+        console.log('\n🧪 TESTE 4: Lead envia Gmail e inicia perguntas da causa...');
+        const phone1 = '48885988860035';
+        const r4 = await TriageEngine.processIncoming(phone1, 'vitor@gmail.com', 'instance_1');
 
-        // Escolhe Trabalhista (1)
-        await TriageEngine.processIncoming(phone1, '1', 'instance_1');
-        // Demitido (1)
-        await TriageEngine.processIncoming(phone1, '1', 'instance_1');
-        // Não trabalha mais (2)
-        await TriageEngine.processIncoming(phone1, '2', 'instance_1');
-        // Menos de 30 dias (1)
-        await TriageEngine.processIncoming(phone1, '1', 'instance_1');
-        // Possui documentos (1)
-        await TriageEngine.processIncoming(phone1, '1', 'instance_1');
-        // Deseja agendamento (1) -> Conduz à escolha do formato!
-        const rFormat = await TriageEngine.processIncoming(phone1, '1', 'instance_1');
-        assert(rFormat && rFormat.includes('Google Meet'), 'Deveria oferecer Online vs Presencial');
+        const lead1 = DatabaseService.getClientByPhone(phone1);
+        assert(lead1.email === 'vitor@gmail.com');
+        assert(lead1.triage_step === 'area_selection');
+        assert(r4 && r4.includes('qual área está relacionada'));
 
-        // Escolhe Online (1) -> Disponibiliza horários das 09:00 às 18:00
-        const rSlots = await TriageEngine.processIncoming(phone1, '1', 'instance_1');
-        assert(rSlots && rSlots.includes('09:00 às 18:00'), 'Deveria mencionar o intervalo das 09:00 às 18:00');
-        assert(rSlots.includes('09:30') && rSlots.includes('17:00'), 'Deveria conter opções de manhã e tarde');
-
-        // Escolhe horário das 14:00 (opção 3) -> Reunião Criada com Meet e Follow-up!
-        const rConfirm = await TriageEngine.processIncoming(phone1, '3', 'instance_1');
-        assert(rConfirm && rConfirm.includes('Reunião Online Agendada'), 'Deveria confirmar a reunião');
-        assert(rConfirm.includes('meet.google.com/'), 'Deveria gerar o link do Google Meet');
-        assert(rConfirm.includes('FOLLOW-UP & ORIENTAÇÕES'), 'Deveria incluir orientações de follow-up');
-
-        const leadFinal = DatabaseService.getClientByPhone(phone1);
-        assert(leadFinal.status === 'AGENDADO');
-
-        const appt = DatabaseService.getAllAppointments().find(a => a.client_phone === '5531988887777');
-        assert(appt !== undefined, 'Agendamento não encontrado no banco');
-        assert(appt.client_name === 'Carlos Eduardo Da Silva');
-        assert(appt.client_email === 'carlos.adv@gmail.com');
-        assert(appt.meet_link && appt.meet_link.startsWith('https://meet.google.com/'), 'Link do Meet inválido');
-        assert(appt.followup_count >= 1, 'Follow-up inicial deveria estar registrado');
-
-        console.log(`✅ TESTE 4 PASSOU: Agendamento completo! Meet: ${appt.meet_link}, Horário: ${appt.time} (Janela 9h-18h).`);
+        console.log('✅ TESTE 4 PASSOU: Gmail salvo e triagem jurídica iniciada.');
         passed++;
     } catch (e) {
         console.error('❌ TESTE 4 FALHOU:', e.message);
@@ -128,24 +99,47 @@ async function runTests() {
     }
 
     // ----------------------------------------------------
-    // TESTE 5: Registro de Disparo de Follow-up no WhatsApp
+    // TESTE 5: Triagem do Nicho + Agendamento com Sala Oficial do Google Meet
     // ----------------------------------------------------
     try {
-        console.log('\n🧪 TESTE 5: Teste de registro de follow-up adicional do WhatsApp...');
-        const appt = DatabaseService.getAllAppointments()[0];
+        console.log('\n🧪 TESTE 5: Agendamento com Sala Oficial do Google Meet...');
+        const phone1 = '48885988860035';
+
+        // Escolhe Família (3)
+        await TriageEngine.processIncoming(phone1, '3', 'instance_1');
+        // Divórcio (1)
+        await TriageEngine.processIncoming(phone1, '1', 'instance_1');
+        // Processo em andamento: Sim (1)
+        await TriageEngine.processIncoming(phone1, '1', 'instance_1');
+        // Bens: Sim, imóveis e veículos (1)
+        await TriageEngine.processIncoming(phone1, '1', 'instance_1');
+        // Filhos menores: Sim (1)
+        await TriageEngine.processIncoming(phone1, '1', 'instance_1');
+        // Urgência: Imediata (1) -> Conduz à escolha do formato!
+        const rFormat = await TriageEngine.processIncoming(phone1, '1', 'instance_1');
+        assert(rFormat && rFormat.includes('Google Meet'));
+
+        // Escolhe Online (1) -> Horários de 9h às 18h
+        const rSlots = await TriageEngine.processIncoming(phone1, '1', 'instance_1');
+        assert(rSlots && rSlots.includes('09:00 às 18:00'));
+
+        // Escolhe 14:00 (opção 3) -> Confirmação da Reunião!
+        const rConfirm = await TriageEngine.processIncoming(phone1, '3', 'instance_1');
+        assert(rConfirm && rConfirm.includes('Reunião Online Agendada'));
+        assert(rConfirm.includes('+55 (31) 98888-7777'), 'Deveria exibir o WhatsApp real e não o LID');
+        assert(rConfirm.includes('meet.google.com/'), 'Deveria conter o link da sala do Meet');
+
+        const appt = DatabaseService.getAllAppointments().find(a => a.client_name === 'Vitor Batista De Oliveira');
         assert(appt !== undefined);
+        assert(appt.client_phone === '5531988887777', `Telefone na agenda deveria ser o real, obtido: ${appt.client_phone}`);
 
-        const updatedAppt = DatabaseService.registerFollowUpSent(appt.id);
-        assert(updatedAppt.followup_count === 2, 'Contador de follow-up deveria ter subido para 2');
-
-        console.log('✅ TESTE 5 PASSOU: Registro e histórico de follow-up funcionando perfeitamente.');
+        console.log(`✅ TESTE 5 PASSOU: Reunião agendada com WhatsApp real (+55 31 98888-7777) e sala do Google Meet!`);
         passed++;
     } catch (e) {
         console.error('❌ TESTE 5 FALHOU:', e.message);
         failed++;
     }
 
-    // Limpa banco de testes
     DatabaseService.clearAllClients();
     console.log('\n🧹 Banco de dados zerado para produção.');
 

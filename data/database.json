@@ -2,46 +2,18 @@
   "clients": [],
   "messages": [
     {
-      "id": 23,
-      "phone": "5531988887777",
+      "id": 69,
+      "phone": "48885988860035",
       "role": "user",
       "content": "Olá Dr. Glaucio, vi seu anúncio no Instagram",
-      "created_at": "2026-08-28T01:46:22.141Z"
+      "created_at": "2026-08-28T01:58:23.517Z"
     },
     {
-      "id": 24,
-      "phone": "5531988887777",
-      "role": "assistant",
-      "content": "Olá! Seja muito bem-vindo(a) ao escritório Glaucio Dias Advocacia. 👋⚖️\n\nSou a assistente virtual e estou aqui para agilizar seu atendimento direto com o **Dr. Glaucio Dias**.\n\nPara iniciarmos seu atendimento exclusivo com o advogado, por favor: **qual é o seu Nome Completo?**",
-      "created_at": "2026-08-28T01:46:22.142Z"
-    },
-    {
-      "id": 25,
-      "phone": "5531988887777",
+      "id": 70,
+      "phone": "48885988860035",
       "role": "user",
-      "content": "Carlos Eduardo da Silva",
-      "created_at": "2026-08-28T01:46:22.144Z"
-    },
-    {
-      "id": 26,
-      "phone": "5531988887777",
-      "role": "user",
-      "content": "carlos.adv@gmail.com",
-      "created_at": "2026-08-28T01:46:22.147Z"
-    },
-    {
-      "id": 27,
-      "phone": "5531988887777",
-      "role": "assistant",
-      "content": "Perfeito, **Carlos Eduardo Da Silva**! Cadastro inicial realizado com sucesso. ✅\n\nAgora, para direcionarmos sua situação para o advogado especialista:\n\nOlá! Seja bem-vindo(a) ao escritório Glaucio Dias Advocacia. 👋\n\nPara direcionarmos seu atendimento corretamente, qual área está relacionada à sua situação?\n\n1️⃣ Direito Trabalhista\n2️⃣ Direito Previdenciário / INSS\n3️⃣ Direito de Família\n4️⃣ Direito Bancário & Consumidor\n5️⃣ Outro assunto",
-      "created_at": "2026-08-28T01:46:22.149Z"
-    },
-    {
-      "id": 28,
-      "phone": "5531988887777",
-      "role": "assistant",
-      "content": "Excelente! O Dr. Glaucio Dias e nossa equipe têm grande experiência em **Direito Trabalhista**. ⚖️\n\nPara esclarecer seus direitos e preparar sua reunião:\n\nQual situação melhor descreve o que está acontecendo ou aconteceu no seu trabalho?\n\n1️⃣ Fui demitido(a)\n2️⃣ Não recebi corretamente minhas verbas rescisórias\n3️⃣ Tenho dúvidas sobre valores da minha rescisão\n4️⃣ Faço horas extras sem receber ou desvio de função\n5️⃣ Empresa não deposita FGTS ou atrasa salários\n6️⃣ Sofro assédio moral ou problemas graves no ambiente de trabalho\n7️⃣ Outra situação",
-      "created_at": "2026-08-28T01:46:22.153Z"
+      "content": "Vitor Batista de Oliveira",
+      "created_at": "2026-08-28T01:58:23.520Z"
     }
   ],
   "appointments": []
