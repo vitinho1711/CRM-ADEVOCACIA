@@ -104,6 +104,7 @@ async function handleBufferedMessages(instanceId, cleanPhone, remoteJid) {
         const sent = await instance.sock.sendMessage(remoteJid, { text: reply });
         if (sent?.key?.id) {
             sentByBotMessageIds.add(sent.key.id);
+            addToProcessedCache(sent.key.id);
             if (sentByBotMessageIds.size > 1000) {
                 const first = sentByBotMessageIds.values().next().value;
                 sentByBotMessageIds.delete(first);
@@ -187,14 +188,13 @@ async function startInstance(instanceId, instanceName) {
         });
 
         sock.ev.on('messages.upsert', async ({ messages, type }) => {
-            if (type !== 'notify') return;
-
             for (const msg of messages) {
-                const msgId = msg.key.id;
-                if (!msgId || processedMessageIds.has(msgId) || sentByBotMessageIds.has(msgId)) continue;
+                const msgId = msg.key?.id;
+                if (!msgId) continue;
+                if (processedMessageIds.has(msgId) || sentByBotMessageIds.has(msgId)) continue;
                 addToProcessedCache(msgId);
 
-                const remoteJid = msg.key.remoteJid || '';
+                const remoteJid = msg.key?.remoteJid || '';
 
                 // FILTRA GRUPOS, CANAIS (NEWSLETTER), TRANSMISSÕES E STATUS
                 if (!remoteJid || 
@@ -210,12 +210,15 @@ async function startInstance(instanceId, instanceName) {
                 const rawPhone = resolveRealPhone(authDir, remoteJid);
                 const cleanPhone = DatabaseService.normalizePhone(rawPhone);
 
-                // Detecta se é o próprio robô falando em outro chat
-                const botPhone = instanceObj.user ? instanceObj.user.split('@')[0].split(':')[0] : '';
-                const isSelfChat = cleanPhone && botPhone && cleanPhone === botPhone;
+                // Detecta se é mensagem enviada pelo próprio número conectado (auto-chat de teste)
+                const rawBot = instanceObj.user ? instanceObj.user.split('@')[0].split(':')[0] : '';
+                const botPhone = DatabaseService.normalizePhone(rawBot);
+                const isSelfMessage = (cleanPhone && botPhone && cleanPhone === botPhone);
 
-                // Se fromMe for true e NÃO for chat consigo mesmo (teste do próprio usuário), ignora
-                if (msg.key.fromMe && !isSelfChat) continue;
+                // Se fromMe for true e NÃO for teste no próprio número, ignora
+                if (msg.key.fromMe && !isSelfMessage) {
+                    continue;
+                }
 
                 let messageText = msg.message?.conversation || 
                                   msg.message?.extendedTextMessage?.text || 
@@ -226,6 +229,15 @@ async function startInstance(instanceId, instanceName) {
                                   msg.message?.templateButtonReplyMessage?.selectedId || '';
 
                 if (!messageText.trim()) continue;
+
+                // Registra evento de mensagem recebida para auditoria em tempo real
+                Logger.log('WHATSAPP_MESSAGE_DETECTED', {
+                    instanceId,
+                    phone: cleanPhone,
+                    text: messageText.substring(0, 60),
+                    fromMe: msg.key.fromMe,
+                    isSelfMessage
+                });
 
                 // Garante que o remote_jid fica salvo para este cliente
                 DatabaseService.saveOrUpdateClient(cleanPhone, {

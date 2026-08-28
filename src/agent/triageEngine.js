@@ -160,8 +160,19 @@ const TriageEngine = {
             if (remoteJid && !client.remote_jid) {
                 DatabaseService.saveOrUpdateClient(cleanPhone, { remote_jid: remoteJid });
             }
+            // Se foi marcado como NÃO QUALIFICADO automaticamente em teste anterior, reativa para acolher
+            if (client.ai_active === 0 && client.status === 'NÃO QUALIFICADO' && client.source === 'organico_ou_pessoal') {
+                DatabaseService.saveOrUpdateClient(cleanPhone, {
+                    ai_active: 1,
+                    from_ad: 1,
+                    status: 'NOVO LEAD'
+                });
+                client.ai_active = 1;
+                client.from_ad = 1;
+            }
+
             if (client.from_ad === 0 || client.ai_active === 0) {
-                console.log(`[BLOQUEIO IA] ${cleanPhone} é contato antigo ou humano. IA em silêncio.`);
+                console.log(`[BLOQUEIO IA] ${cleanPhone} é contato antigo ou pausado manualmente. IA em silêncio.`);
                 return null;
             }
         } else {
@@ -180,21 +191,7 @@ const TriageEngine = {
                 return null;
             }
 
-            const isFromAd = isAdMessage(messageText);
-            if (!isFromAd) {
-                console.log(`[BLOQUEIO IA] Mensagem de ${cleanPhone} NÃO é de anúncio. IA não responde.`);
-                DatabaseService.saveOrUpdateClient(cleanPhone, {
-                    instance_id: instanceId,
-                    remote_jid: remoteJid,
-                    from_ad: 0,
-                    ai_active: 0,
-                    status: 'NÃO QUALIFICADO',
-                    source: 'organico_ou_pessoal'
-                });
-                return null;
-            }
-
-            console.log(`🎯 [NOVO LEAD DE ANÚNCIO DETECTADO] ${cleanPhone}`);
+            console.log(`🎯 [NOVO LEAD / CONTATO DETECTADO] ${cleanPhone}`);
             const initialNiche = detectNicheFromText(messageText);
 
             // O TELEFONE JÁ É CAPTURADO AUTOMATICAMENTE NA ENTRADA!
