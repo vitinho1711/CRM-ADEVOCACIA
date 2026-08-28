@@ -2,88 +2,48 @@ const { default: makeWASocket, useMultiFileAuthState, DisconnectReason, fetchLat
 const pino = require('pino');
 const path = require('path');
 const fs = require('fs');
-const QRCode = require('qrcode');
+const qrcode = require('qrcode');
 const { processIncomingMessage } = require('../agent/orchestrator');
 const DatabaseService = require('../database');
 const Logger = require('../logger');
 
 const MAX_INSTANCES = 5;
-const instances = new Map(); // id -> { id, name, sock, status, qrCode, authDir, user }
-const processedMessageIds = new Set();
-const messageBuffers = new Map(); // `${instanceId}:${phone}` -> { timer, messages: [], remoteJid }
-
 const baseAuthDir = path.join(__dirname, '..', '..', 'data', 'baileys_auth');
+const metaFile = path.join(baseAuthDir, 'instances_meta.json');
+
 if (!fs.existsSync(baseAuthDir)) {
     fs.mkdirSync(baseAuthDir, { recursive: true });
 }
 
-// Migração automática de sessão raiz antiga para instance_1
-function migrateLegacyAuth() {
-    try {
-        const legacyCreds = path.join(baseAuthDir, 'creds.json');
-        const inst1Dir = path.join(baseAuthDir, 'instance_1');
-        if (!fs.existsSync(inst1Dir)) {
-            fs.mkdirSync(inst1Dir, { recursive: true });
-        }
-        const inst1Creds = path.join(inst1Dir, 'creds.json');
-
-        if (fs.existsSync(legacyCreds) && !fs.existsSync(inst1Creds)) {
-            console.log('[WHATSAPP AUTH] Migrando credenciais legadas para instance_1...');
-            const files = fs.readdirSync(baseAuthDir);
-            for (const file of files) {
-                const fullPath = path.join(baseAuthDir, file);
-                if (fs.statSync(fullPath).isFile()) {
-                    fs.copyFileSync(fullPath, path.join(inst1Dir, file));
-                }
-            }
-            console.log('[WHATSAPP AUTH] Migração para instance_1 concluída!');
-        }
-    } catch (e) {
-        console.error('[AUTH MIGRATION ERROR]', e);
-    }
-}
-
-migrateLegacyAuth();
-
-const defaultInstanceNames = [
-    'WhatsApp 1 (Dr. Glaucio - Principal)',
-    'WhatsApp 2 (Atendimento 2)',
-    'WhatsApp 3 (Atendimento 3)',
-    'WhatsApp 4 (Atendimento 4)',
-    'WhatsApp 5 (Atendimento 5)'
-];
-
-function getInstancesMetadataFile() {
-    return path.join(baseAuthDir, 'instances_meta.json');
-}
-
 function loadInstancesMeta() {
     try {
-        const file = getInstancesMetadataFile();
-        if (fs.existsSync(file)) {
-            return JSON.parse(fs.readFileSync(file, 'utf8'));
+        if (fs.existsSync(metaFile)) {
+            return JSON.parse(fs.readFileSync(metaFile, 'utf8'));
         }
-    } catch (e) {}
-    
-    const meta = {};
-    for (let i = 1; i <= MAX_INSTANCES; i++) {
-        meta[`instance_${i}`] = {
-            id: `instance_${i}`,
-            name: defaultInstanceNames[i - 1] || `WhatsApp ${i}`,
-            enabled: true
-        };
+    } catch (e) {
+        console.error('[META LOAD ERROR]', e);
     }
-    saveInstancesMeta(meta);
-    return meta;
+    return {
+        instance_1: { name: 'Linha Principal 1' },
+        instance_2: { name: 'Linha 2' },
+        instance_3: { name: 'Linha 3' },
+        instance_4: { name: 'Linha 4' },
+        instance_5: { name: 'Linha 5' }
+    };
 }
 
 function saveInstancesMeta(meta) {
     try {
-        fs.writeFileSync(getInstancesMetadataFile(), JSON.stringify(meta, null, 2), 'utf8');
+        fs.writeFileSync(metaFile, JSON.stringify(meta, null, 2), 'utf8');
     } catch (e) {
-        console.error('[INSTANCES META SAVE ERROR]', e);
+        console.error('[META SAVE ERROR]', e);
     }
 }
+
+const instances = new Map();
+const messageBuffers = new Map();
+const processedMessageIds = new Set();
+const sentByBotMessageIds = new Set();
 
 function addToProcessedCache(id) {
     if (!id) return;
@@ -117,7 +77,14 @@ async function handleBufferedMessages(instanceId, cleanPhone, remoteJid) {
     const reply = await processIncomingMessage(cleanPhone, combinedText, instanceId);
 
     if (reply && instance.sock && instance.status === 'CONNECTED') {
-        await instance.sock.sendMessage(remoteJid, { text: reply });
+        const sent = await instance.sock.sendMessage(remoteJid, { text: reply });
+        if (sent?.key?.id) {
+            sentByBotMessageIds.add(sent.key.id);
+            if (sentByBotMessageIds.size > 1000) {
+                const first = sentByBotMessageIds.values().next().value;
+                sentByBotMessageIds.delete(first);
+            }
+        }
         console.log(`🤖 [${instance.name} RESPOSTA ENVIADA para ${cleanPhone}]: "${reply.substring(0, 70)}..."`);
     }
 }
@@ -165,38 +132,33 @@ async function startInstance(instanceId, instanceName) {
             const { connection, lastDisconnect, qr } = update;
 
             if (qr) {
-                console.log(`\n📱 [NOVO QR CODE GERADO PARA ${instanceName}]`);
-                instanceObj.qrCode = await QRCode.toDataURL(qr);
-                instanceObj.status = 'CONNECTING';
-            }
-
-            if (connection === 'connecting') {
-                instanceObj.status = 'CONNECTING';
+                try {
+                    instanceObj.qrCode = await qrcode.toDataURL(qr);
+                    instanceObj.status = 'DISCONNECTED';
+                } catch (e) {
+                    console.error(`[${instanceName} QR GENERATION ERROR]`, e);
+                }
             }
 
             if (connection === 'close') {
-                const statusCode = (lastDisconnect?.error)?.output?.statusCode;
+                const statusCode = lastDisconnect?.error?.output?.statusCode;
                 const shouldReconnect = statusCode !== DisconnectReason.loggedOut;
-                console.log(`[${instanceName}] Conexão encerrada (Status: ${statusCode}). Reconectando: ${shouldReconnect}`);
-                
-                instanceObj.qrCode = null;
-                instanceObj.user = null;
 
-                if (statusCode === DisconnectReason.loggedOut) {
-                    instanceObj.status = 'DISCONNECTED';
-                    Logger.log('WHATSAPP_CONNECTION_ERROR', { instanceId, reason: 'loggedOut' });
-                } else {
+                instanceObj.qrCode = null;
+
+                if (shouldReconnect) {
                     instanceObj.status = 'RECONNECTING';
-                    if (shouldReconnect) {
-                        setTimeout(() => startInstance(instanceId, instanceName), 5000);
-                    }
+                    setTimeout(() => startInstance(instanceId, instanceName), 5000);
+                } else {
+                    instanceObj.status = 'DISCONNECTED';
+                    instanceObj.user = null;
                 }
             } else if (connection === 'open') {
-                console.log(`\n✅ [${instanceName} CONECTADO COM SUCESSO!]: Ativo 24h.`);
                 instanceObj.status = 'CONNECTED';
                 instanceObj.qrCode = null;
-                instanceObj.user = sock.user || { id: 'WhatsApp Conectado' };
-                Logger.log('CRM_SYNC_SUCCESS', { instanceId, user: sock.user?.id });
+                instanceObj.user = sock.user?.id || null;
+                console.log(`\n✅ [${instanceName} CONECTADO COM SUCESSO NO WHATSAPP!] User: ${instanceObj.user}`);
+                Logger.log('CRM_SYNC_SUCCESS', { instanceId, user: instanceObj.user });
             }
         });
 
@@ -205,25 +167,41 @@ async function startInstance(instanceId, instanceName) {
 
             for (const msg of messages) {
                 const msgId = msg.key.id;
-                if (processedMessageIds.has(msgId)) continue;
+                if (!msgId || processedMessageIds.has(msgId) || sentByBotMessageIds.has(msgId)) continue;
                 addToProcessedCache(msgId);
 
                 const remoteJid = msg.key.remoteJid || '';
-                if (remoteJid.includes('@g.us')) continue; // Ignora grupos
-                if (msg.key.fromMe) continue;
 
-                let messageText = '';
-                if (msg.message?.conversation) {
-                    messageText = msg.message.conversation;
-                } else if (msg.message?.extendedTextMessage?.text) {
-                    messageText = msg.message.extendedTextMessage.text;
+                // FILTRA GRUPOS, CANAIS (NEWSLETTER), TRANSMISSÕES E STATUS
+                if (!remoteJid || 
+                    remoteJid.includes('@g.us') || 
+                    remoteJid.includes('@newsletter') || 
+                    remoteJid.includes('@broadcast') || 
+                    remoteJid.includes('status@broadcast') ||
+                    remoteJid.includes('@call')) {
+                    continue;
                 }
 
-                if (!messageText.trim()) continue;
-
-                // Normaliza o número
-                const rawPhone = remoteJid.replace('@s.whatsapp.net', '');
+                // Normaliza e limpa o número (remove sufixos de aparelho :1, :59, etc.)
+                const rawPhone = remoteJid.split('@')[0].split(':')[0];
                 const cleanPhone = DatabaseService.normalizePhone(rawPhone);
+
+                // Detecta se é o próprio robô falando em outro chat
+                const botPhone = instanceObj.user ? instanceObj.user.split('@')[0].split(':')[0] : '';
+                const isSelfChat = cleanPhone && botPhone && cleanPhone === botPhone;
+
+                // Se fromMe for true e NÃO for chat consigo mesmo (teste do próprio usuário), ignora
+                if (msg.key.fromMe && !isSelfChat) continue;
+
+                let messageText = msg.message?.conversation || 
+                                  msg.message?.extendedTextMessage?.text || 
+                                  msg.message?.imageMessage?.caption || 
+                                  msg.message?.videoMessage?.caption || 
+                                  msg.message?.buttonsResponseMessage?.selectedButtonId || 
+                                  msg.message?.listResponseMessage?.singleSelectReply?.selectedRowId || 
+                                  msg.message?.templateButtonReplyMessage?.selectedId || '';
+
+                if (!messageText.trim()) continue;
 
                 const bufferKey = `${instanceId}:${cleanPhone}`;
 
@@ -258,94 +236,110 @@ async function startWhatsAppBot() {
 }
 
 function getAllWhatsAppStatus() {
-    const meta = loadInstancesMeta();
     const list = [];
+    const meta = loadInstancesMeta();
+
     for (let i = 1; i <= MAX_INSTANCES; i++) {
         const id = `instance_${i}`;
         const inst = instances.get(id);
         const name = meta[id]?.name || `WhatsApp ${i}`;
-        
-        let realStatus = inst ? inst.status : 'DISCONNECTED';
-        
-        list.push({
-            id: id,
-            name: name,
-            status: realStatus,
-            qrCode: inst ? inst.qrCode : null,
-            user: inst?.user ? (inst.user.name || inst.user.id?.split(':')[0] || 'Conectado') : null
-        });
+
+        if (inst) {
+            list.push({
+                id: inst.id,
+                name: inst.name,
+                status: inst.status,
+                qrCode: inst.qrCode,
+                user: inst.user
+            });
+        } else {
+            const authDir = path.join(baseAuthDir, id);
+            const hasCreds = fs.existsSync(path.join(authDir, 'creds.json'));
+            list.push({
+                id,
+                name,
+                status: hasCreds ? 'CONNECTING' : 'DISCONNECTED',
+                qrCode: null,
+                user: null
+            });
+        }
     }
     return list;
 }
 
 function getWhatsAppStatus(instanceId = 'instance_1') {
     const inst = instances.get(instanceId);
+    if (!inst) {
+        return { id: instanceId, status: 'DISCONNECTED', qrCode: null, user: null };
+    }
     return {
-        status: inst ? inst.status : 'DISCONNECTED',
-        qrCode: inst ? inst.qrCode : null,
-        user: inst?.user ? (inst.user.name || inst.user.id?.split(':')[0]) : null
+        id: inst.id,
+        name: inst.name,
+        status: inst.status,
+        qrCode: inst.qrCode,
+        user: inst.user
     };
 }
 
 async function resetWhatsAppSession(instanceId = 'instance_1') {
-    const inst = instances.get(instanceId);
-    if (inst) {
-        console.log(`[WHATSAPP] Reiniciando sessão ${inst.name}...`);
-        try {
-            if (inst.sock) {
+    try {
+        const inst = instances.get(instanceId);
+        if (inst && inst.sock) {
+            try {
+                await inst.sock.logout();
+            } catch (e) {}
+            try {
                 inst.sock.end();
-                inst.sock = null;
-            }
-            if (fs.existsSync(inst.authDir)) {
-                fs.rmSync(inst.authDir, { recursive: true, force: true });
-                fs.mkdirSync(inst.authDir, { recursive: true });
-            }
-            inst.status = 'DISCONNECTED';
-            inst.qrCode = null;
-            inst.user = null;
-            setTimeout(() => startInstance(instanceId, inst.name), 1500);
-            return true;
-        } catch (e) {
-            console.error('[RESET SESSION ERROR]', e);
-            return false;
+            } catch (e) {}
         }
+
+        const authDir = path.join(baseAuthDir, instanceId);
+        if (fs.existsSync(authDir)) {
+            fs.rmSync(authDir, { recursive: true, force: true });
+        }
+
+        const meta = loadInstancesMeta();
+        const name = meta[instanceId]?.name || `WhatsApp ${instanceId.replace('instance_', '')}`;
+        await startInstance(instanceId, name);
+
+        return true;
+    } catch (e) {
+        console.error(`[RESET SESSION ERROR ${instanceId}]`, e);
+        return false;
     }
-    return false;
 }
 
 function renameInstance(instanceId, newName) {
     const meta = loadInstancesMeta();
-    if (meta[instanceId]) {
-        meta[instanceId].name = newName;
-        saveInstancesMeta(meta);
-        const inst = instances.get(instanceId);
-        if (inst) inst.name = newName;
-        return true;
+    meta[instanceId] = { name: newName };
+    saveInstancesMeta(meta);
+
+    const inst = instances.get(instanceId);
+    if (inst) {
+        inst.name = newName;
     }
-    return false;
+    return true;
 }
 
-async function sendDirectMessage(phone, text, instanceId = null) {
-    let targetInstance = null;
-    if (instanceId && instances.has(instanceId)) {
-        targetInstance = instances.get(instanceId);
-    } else {
-        for (const inst of instances.values()) {
-            if (inst.status === 'CONNECTED') {
-                targetInstance = inst;
-                break;
-            }
-        }
-    }
-
-    if (!targetInstance || !targetInstance.sock || targetInstance.status !== 'CONNECTED') {
+async function sendDirectMessage(phone, messageText, instanceId = 'instance_1') {
+    const instance = instances.get(instanceId) || instances.get('instance_1');
+    if (!instance || !instance.sock || instance.status !== 'CONNECTED') {
         return false;
     }
 
-    const cleanPhone = DatabaseService.normalizePhone(phone);
-    const remoteJid = `${cleanPhone}@s.whatsapp.net`;
-    await targetInstance.sock.sendMessage(remoteJid, { text });
-    return true;
+    const clean = DatabaseService.normalizePhone(phone);
+    const jid = `${clean}@s.whatsapp.net`;
+
+    try {
+        const sent = await instance.sock.sendMessage(jid, { text: messageText });
+        if (sent?.key?.id) {
+            sentByBotMessageIds.add(sent.key.id);
+        }
+        return true;
+    } catch (e) {
+        console.error(`[DIRECT SEND ERROR to ${phone}]`, e.message);
+        return false;
+    }
 }
 
 module.exports = {

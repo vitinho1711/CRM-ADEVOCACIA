@@ -983,5 +983,217 @@
     "action": "appointment_created",
     "appointmentId": 1787880449798,
     "meetLink": "https://meet.google.com/jqe-qafp-gef"
+  },
+  {
+    "id": "1787881582135retxz",
+    "event": "LEAD_RECEIVED",
+    "timestamp": "2026-08-28T01:46:22.135Z",
+    "phone": "5531988887777",
+    "message": "Olá Dr. Glaucio, vi seu anúncio no Instagram",
+    "instanceId": "instance_1",
+    "existingLead": false
+  },
+  {
+    "id": "1787881582138uih0j",
+    "event": "LEAD_CREATED",
+    "timestamp": "2026-08-28T01:46:22.138Z",
+    "phone": "5531988887777",
+    "source": "anuncio",
+    "instanceId": "instance_1"
+  },
+  {
+    "id": "1787881582143filiu",
+    "event": "LEAD_RECEIVED",
+    "timestamp": "2026-08-28T01:46:22.143Z",
+    "phone": "5531988887777",
+    "message": "Carlos Eduardo da Silva",
+    "instanceId": "instance_1",
+    "existingLead": true
+  },
+  {
+    "id": "17878815821440ik2i",
+    "event": "TRIAGE_ANSWER_SAVED",
+    "timestamp": "2026-08-28T01:46:22.144Z",
+    "phone": "5531988887777",
+    "step": "collect_name",
+    "name": "Carlos Eduardo Da Silva"
+  },
+  {
+    "id": "1787881582146luv6r",
+    "event": "LEAD_RECEIVED",
+    "timestamp": "2026-08-28T01:46:22.146Z",
+    "phone": "5531988887777",
+    "message": "carlos.adv@gmail.com",
+    "instanceId": "instance_1",
+    "existingLead": true
+  },
+  {
+    "id": "17878815821487mylx",
+    "event": "TRIAGE_ANSWER_SAVED",
+    "timestamp": "2026-08-28T01:46:22.148Z",
+    "phone": "5531988887777",
+    "step": "collect_email",
+    "email": "carlos.adv@gmail.com"
+  },
+  {
+    "id": "1787881582149uvnfx",
+    "event": "LEAD_RECEIVED",
+    "timestamp": "2026-08-28T01:46:22.149Z",
+    "phone": "5531988887777",
+    "message": "1",
+    "instanceId": "instance_1",
+    "existingLead": true
+  },
+  {
+    "id": "1787881582150r8y0s",
+    "event": "TRIAGE_STARTED",
+    "timestamp": "2026-08-28T01:46:22.150Z",
+    "phone": "5531988887777"
+  },
+  {
+    "id": "1787881582152tjrpg",
+    "event": "TRIAGE_ANSWER_SAVED",
+    "timestamp": "2026-08-28T01:46:22.152Z",
+    "phone": "5531988887777",
+    "step": "area_selection",
+    "area": "Direito Trabalhista"
+  },
+  {
+    "id": "1787881582153ogcpp",
+    "event": "LEAD_RECEIVED",
+    "timestamp": "2026-08-28T01:46:22.153Z",
+    "phone": "5531988887777",
+    "message": "1",
+    "instanceId": "instance_1",
+    "existingLead": true
+  },
+  {
+    "id": "1787881582155wjqso",
+    "event": "TRIAGE_ANSWER_SAVED",
+    "timestamp": "2026-08-28T01:46:22.155Z",
+    "phone": "5531988887777",
+    "step": "trabalhista_situacao",
+    "answer": "Fui demitido",
+    "points": 25,
+    "currentScore": 25
+  },
+  {
+    "id": "1787881582156fswid",
+    "event": "LEAD_RECEIVED",
+    "timestamp": "2026-08-28T01:46:22.156Z",
+    "phone": "5531988887777",
+    "message": "2",
+    "instanceId": "instance_1",
+    "existingLead": true
+  },
+  {
+    "id": "17878815821589x3y4",
+    "event": "TRIAGE_ANSWER_SAVED",
+    "timestamp": "2026-08-28T01:46:22.158Z",
+    "phone": "5531988887777",
+    "step": "trabalhista_vinculo",
+    "answer": "Não, já saí",
+    "points": 25,
+    "currentScore": 50
+  },
+  {
+    "id": "17878815821597w88y",
+    "event": "LEAD_RECEIVED",
+    "timestamp": "2026-08-28T01:46:22.159Z",
+    "phone": "5531988887777",
+    "message": "1",
+    "instanceId": "instance_1",
+    "existingLead": true
+  },
+  {
+    "id": "1787881582160t4jld",
+    "event": "TRIAGE_ANSWER_SAVED",
+    "timestamp": "2026-08-28T01:46:22.160Z",
+    "phone": "5531988887777",
+    "step": "trabalhista_tempo",
+    "answer": "Menos de 30 dias",
+    "points": 25,
+    "currentScore": 75
+  },
+  {
+    "id": "1787881582162i8i9r",
+    "event": "LEAD_RECEIVED",
+    "timestamp": "2026-08-28T01:46:22.162Z",
+    "phone": "5531988887777",
+    "message": "1",
+    "instanceId": "instance_1",
+    "existingLead": true
+  },
+  {
+    "id": "1787881582163mgq01",
+    "event": "TRIAGE_ANSWER_SAVED",
+    "timestamp": "2026-08-28T01:46:22.163Z",
+    "phone": "5531988887777",
+    "step": "trabalhista_documentos",
+    "answer": "Sim, possui documentos",
+    "points": 20,
+    "currentScore": 95
+  },
+  {
+    "id": "1787881582164xhddw",
+    "event": "LEAD_RECEIVED",
+    "timestamp": "2026-08-28T01:46:22.164Z",
+    "phone": "5531988887777",
+    "message": "1",
+    "instanceId": "instance_1",
+    "existingLead": true
+  },
+  {
+    "id": "1787881582165otqhn",
+    "event": "TRIAGE_ANSWER_SAVED",
+    "timestamp": "2026-08-28T01:46:22.165Z",
+    "phone": "5531988887777",
+    "step": "trabalhista_orientacao",
+    "answer": "Sim, desejo agendamento",
+    "points": 20,
+    "currentScore": 100
+  },
+  {
+    "id": "1787881582166x0mux",
+    "event": "TRIAGE_COMPLETED",
+    "timestamp": "2026-08-28T01:46:22.166Z",
+    "phone": "5531988887777",
+    "score": 100,
+    "status": "ALTA PRIORIDADE"
+  },
+  {
+    "id": "1787881582167rcvvr",
+    "event": "LEAD_QUALIFIED",
+    "timestamp": "2026-08-28T01:46:22.167Z",
+    "phone": "5531988887777",
+    "score": 100,
+    "qualificationStatus": "ALTA PRIORIDADE"
+  },
+  {
+    "id": "1787881582169ncaxo",
+    "event": "LEAD_RECEIVED",
+    "timestamp": "2026-08-28T01:46:22.169Z",
+    "phone": "5531988887777",
+    "message": "1",
+    "instanceId": "instance_1",
+    "existingLead": true
+  },
+  {
+    "id": "1787881582171267cv",
+    "event": "LEAD_RECEIVED",
+    "timestamp": "2026-08-28T01:46:22.171Z",
+    "phone": "5531988887777",
+    "message": "3",
+    "instanceId": "instance_1",
+    "existingLead": true
+  },
+  {
+    "id": "1787881582173xcbck",
+    "event": "CRM_SYNC_SUCCESS",
+    "timestamp": "2026-08-28T01:46:22.173Z",
+    "phone": "5531988887777",
+    "action": "appointment_created",
+    "appointmentId": 1787881582172,
+    "meetLink": "https://meet.google.com/lnk-zxgo-qdx"
   }
 ]
