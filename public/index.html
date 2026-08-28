@@ -1,157 +1,112 @@
 <!DOCTYPE html>
-<html lang="pt-BR" class="h-full bg-slate-950">
+<html lang="pt-BR" class="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Painel CRM & Agenda de Reuniões | Glaucio Dias Advocacia</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>CRM & Triagem Jurídica — Glaucio Dias Advocacia</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
-        body { 
-            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-            -webkit-tap-highlight-color: transparent;
-        }
-        ::-webkit-scrollbar { width: 5px; height: 5px; }
-        ::-webkit-scrollbar-track { background: #090d16; }
-        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #334155; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
     </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-full flex flex-col antialiased selection:bg-amber-500 selection:text-slate-950">
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col antialiased selection:bg-amber-500 selection:text-slate-950">
 
-    <!-- Topbar Responsiva -->
-    <header class="bg-slate-900/95 border-b border-slate-800/80 backdrop-blur-md sticky top-0 z-40 px-4 sm:px-6 py-3 transition-all">
-        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-stretch md:items-center gap-3">
+    <!-- Top Navbar -->
+    <header class="bg-slate-900/90 backdrop-blur-md border-b border-slate-800 sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-3 sm:px-6 py-2.5 sm:py-3 flex justify-between items-center">
             
-            <!-- Logo e Nome do Escritório -->
-            <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-2.5">
-                    <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-amber-600 to-amber-400 flex items-center justify-center shadow-lg shadow-amber-500/20 text-slate-950 font-black text-lg">
-                        ⚖️
-                    </div>
-                    <div>
-                        <h1 class="text-base sm:text-lg font-extrabold text-white tracking-tight leading-tight">Glaucio Dias Advocacia</h1>
-                        <span class="text-[11px] text-amber-400 font-semibold block">Painel CRM & 5 WhatsApps IA</span>
-                    </div>
+            <!-- Logo & Brand -->
+            <div class="flex items-center space-x-2 sm:space-x-3">
+                <div class="w-9 h-9 sm:w-10 sm:h-10 bg-gradient-to-tr from-amber-600 to-amber-400 text-slate-950 rounded-xl flex items-center justify-center font-extrabold text-lg sm:text-xl shadow-lg shadow-amber-500/20 shrink-0">
+                    ⚖️
                 </div>
-
-                <!-- Botão de Ações no Mobile -->
-                <div class="flex items-center gap-1.5 md:hidden">
-                    <button onclick="loadData()" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition text-sm" title="Recarregar">
-                        🔄
-                    </button>
-                    <!-- Ícone Destacado Conectar Celular no Mobile -->
-                    <button onclick="openQrModal()" id="btnQrMobile" class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-slate-950 font-extrabold text-xs flex items-center gap-1.5 shadow-md shadow-emerald-500/20 active:scale-95">
-                        <span>📱➕</span> <span id="waMobileCount">Conectar</span>
-                    </button>
+                <div>
+                    <h1 class="font-extrabold text-sm sm:text-lg leading-tight tracking-tight text-white flex items-center gap-1.5">
+                        Glaucio Dias <span class="text-amber-400 font-semibold text-xs sm:text-sm">Advocacia</span>
+                    </h1>
+                    <p class="text-[10px] sm:text-xs text-slate-400 font-medium">CRM Inteligente & Triagem Multi-Nicho</p>
                 </div>
             </div>
 
-            <!-- Navegação de Abas (Pills) -->
-            <div class="flex items-center bg-slate-950/80 border border-slate-800 p-1 rounded-xl w-full md:w-auto">
-                <button onclick="switchTab('leads')" id="tabBtnLeads" class="flex-1 md:flex-none px-3.5 sm:px-4 py-2 sm:py-1.5 rounded-lg text-xs font-bold transition flex items-center justify-center gap-2 bg-amber-500 text-slate-950 shadow">
-                    👥 Leads & Telefones
-                    <span id="badge-leads-count" class="px-2 py-0.5 bg-slate-950 text-amber-400 rounded-full text-[11px] font-black">0</span>
-                </button>
-                <button onclick="switchTab('calendar')" id="tabBtnCalendar" class="flex-1 md:flex-none px-3.5 sm:px-4 py-2 sm:py-1.5 rounded-lg text-xs font-bold transition flex items-center justify-center gap-2 text-slate-400 hover:text-white">
-                    📅 Agenda / Reuniões
-                    <span id="badge-appt-count" class="px-2 py-0.5 bg-slate-800 text-slate-300 rounded-full text-[11px] font-black">0</span>
+            <!-- Navegação de Abas -->
+            <div class="flex items-center gap-1.5 sm:gap-2">
+                <div class="bg-slate-950 p-1 rounded-xl border border-slate-800 flex space-x-1">
+                    <button id="tabBtnLeads" onclick="switchTab('leads')" class="px-3 sm:px-4 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 bg-amber-500 text-slate-950 shadow">
+                        <span>👥 Leads & Triagem</span>
+                        <span id="badge-leads-count" class="px-2 py-0.5 bg-slate-950 text-amber-400 rounded-full text-[11px] font-black">0</span>
+                    </button>
+                    <button id="tabBtnCalendar" onclick="switchTab('calendar')" class="px-3 sm:px-4 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 text-slate-400 hover:text-white">
+                        <span>📅 Agenda / Reuniões</span>
+                        <span id="badge-appt-count" class="px-2 py-0.5 bg-slate-800 text-slate-300 rounded-full text-[11px] font-black">0</span>
+                    </button>
+                </div>
+
+                <!-- Botão Modal Conectar WhatsApps -->
+                <button onclick="openQrModal()" class="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 border border-emerald-500/30 rounded-xl text-xs font-bold transition shadow-sm active:scale-95">
+                    <span>📱</span>
+                    <span id="waStatusText" class="hidden sm:inline">Conectar Celulares</span>
+                    <span id="waMobileCount" class="sm:hidden font-mono">5 WA</span>
                 </button>
             </div>
-
-            <!-- Ações Extras (Desktop) -->
-            <div class="hidden md:flex items-center space-x-2">
-                <a href="/api/export-leads" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition" title="Baixar lista em Excel/CSV">
-                    📊 <span>Exportar</span>
-                </a>
-                <a href="/api/manual-pdf" download class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/20 transition" title="Baixar Manual PDF">
-                    📄 <span>Manual PDF</span>
-                </a>
-                
-                <!-- Ícone Destacado Conectar + Celulares no Desktop -->
-                <button onclick="openQrModal()" id="btnQrConnect" class="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-extrabold bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-slate-950 shadow-lg shadow-emerald-500/25 transition active:scale-95 group">
-                    <span class="text-sm group-hover:rotate-12 transition transform">📱➕</span>
-                    <span id="waStatusText">Conectar + Celulares</span>
-                    <span class="w-2 h-2 rounded-full bg-slate-950 animate-pulse"></span>
-                </button>
-                
-                <button onclick="loadData()" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition" title="Recarregar">
-                    🔄
-                </button>
-            </div>
-        </div>
-
-        <!-- Barra de Ações Rápidas no Mobile -->
-        <div class="flex md:hidden items-center justify-between gap-2 mt-2 pt-2 border-t border-slate-800/60 text-xs">
-            <a href="/api/export-leads" class="flex-1 text-center py-1.5 rounded-lg bg-slate-800/80 text-slate-300 border border-slate-700 font-medium">
-                📊 Exportar Excel
-            </a>
-            <a href="/api/manual-pdf" download class="flex-1 text-center py-1.5 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20 font-medium">
-                📄 Manual PDF
-            </a>
-            <button onclick="openQrModal()" class="flex-1 text-center py-1.5 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-bold flex items-center justify-center gap-1">
-                <span>📱➕</span> 5 Celulares
-            </button>
         </div>
     </header>
 
     <!-- Modal Novo Agendamento Manual -->
     <div id="newApptModal" class="hidden fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-5 sm:p-6 max-w-md w-full shadow-2xl relative my-auto">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-5 sm:p-6 max-w-lg w-full shadow-2xl relative my-auto">
             <button onclick="closeNewApptModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white p-2 text-lg">✕</button>
-            
             <div class="flex items-center space-x-3 mb-4">
-                <div class="w-10 h-10 bg-emerald-500/10 text-emerald-400 rounded-2xl flex items-center justify-center text-xl shrink-0 font-bold">
-                    📅
-                </div>
+                <div class="w-10 h-10 bg-emerald-500/20 text-emerald-400 rounded-2xl flex items-center justify-center text-xl font-bold shrink-0">➕</div>
                 <div>
-                    <h3 class="text-base sm:text-lg font-bold text-white leading-tight">Novo Agendamento na Agenda</h3>
-                    <p class="text-xs text-slate-400">Marque uma reunião presencial ou online com o Dr. Glaucio</p>
+                    <h3 class="text-base sm:text-lg font-bold text-white leading-tight">Novo Agendamento de Reunião</h3>
+                    <p class="text-xs text-slate-400">Cadastre uma reunião presencial ou online para a equipe de advogados.</p>
                 </div>
             </div>
 
-            <form onsubmit="handleCreateAppt(event)" class="space-y-3 text-xs">
+            <form onsubmit="handleCreateAppt(event)" class="space-y-3.5 text-xs">
                 <div>
-                    <label class="text-slate-400 block mb-1 font-semibold">Nome do Cliente:</label>
-                    <input type="text" id="apptName" required placeholder="Ex: Maria dos Santos" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white placeholder-slate-500 focus:outline-none focus:border-amber-500">
+                    <label class="block text-slate-300 font-semibold mb-1">Nome do Cliente *</label>
+                    <input type="text" id="apptName" required placeholder="Ex: Dr. Roberto Carlos" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-emerald-500">
                 </div>
                 <div>
-                    <label class="text-slate-400 block mb-1 font-semibold">Telefone WhatsApp:</label>
-                    <input type="text" id="apptPhone" required placeholder="Ex: 31988776655" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white placeholder-slate-500 focus:outline-none focus:border-amber-500">
+                    <label class="block text-slate-300 font-semibold mb-1">Telefone WhatsApp *</label>
+                    <input type="text" id="apptPhone" required placeholder="Ex: 31988776655" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-emerald-500">
                 </div>
-                <div class="grid grid-cols-2 gap-2">
+                <div class="grid grid-cols-2 gap-2.5">
                     <div>
-                        <label class="text-slate-400 block mb-1 font-semibold">Data:</label>
-                        <input type="date" id="apptDate" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-amber-500">
+                        <label class="block text-slate-300 font-semibold mb-1">Data *</label>
+                        <input type="date" id="apptDate" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-emerald-500">
                     </div>
                     <div>
-                        <label class="text-slate-400 block mb-1 font-semibold">Horário:</label>
-                        <input type="time" id="apptTime" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-amber-500">
+                        <label class="block text-slate-300 font-semibold mb-1">Horário *</label>
+                        <input type="time" id="apptTime" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-emerald-500">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2.5">
+                    <div>
+                        <label class="block text-slate-300 font-semibold mb-1">Formato *</label>
+                        <select id="apptType" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-emerald-500">
+                            <option value="Presencial">🏢 Presencial (Av. Abílio Machado)</option>
+                            <option value="Online">📹 Online (Google Meet)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-slate-300 font-semibold mb-1">Área Jurídica</label>
+                        <input type="text" id="apptArea" placeholder="Ex: Trabalhista, Família..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-emerald-500">
                     </div>
                 </div>
                 <div>
-                    <label class="text-slate-400 block mb-1 font-semibold">Formato da Reunião:</label>
-                    <select id="apptType" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-amber-500">
-                        <option value="Presencial">🏢 Presencial (Av. Abílio Machado, 1380)</option>
-                        <option value="Online (Google Meet)">📹 Online (Google Meet)</option>
-                    </select>
+                    <label class="block text-slate-300 font-semibold mb-1">Pauta / Resumo da Causa</label>
+                    <textarea id="apptSummary" rows="2" placeholder="Resumo dos fatos e documentos a analisar..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-emerald-500"></textarea>
                 </div>
-                <div>
-                    <label class="text-slate-400 block mb-1 font-semibold">Área do Direito:</label>
-                    <input type="text" id="apptArea" placeholder="Ex: Trabalhista, Família, Cível, Previdenciário" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white placeholder-slate-500 focus:outline-none focus:border-amber-500">
-                </div>
-                <div>
-                    <label class="text-slate-400 block mb-1 font-semibold">Pauta / Resumo da Causa:</label>
-                    <textarea id="apptSummary" rows="2" placeholder="Resumo do que será tratado na reunião..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"></textarea>
-                </div>
-
-                <div class="pt-2 flex gap-2">
-                    <button type="button" onclick="closeNewApptModal()" class="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold transition">
-                        Cancelar
-                    </button>
-                    <button type="submit" class="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition shadow-lg shadow-emerald-500/20">
-                        ✅ Salvar na Agenda
-                    </button>
+                <div class="flex gap-2.5 pt-2">
+                    <button type="button" onclick="closeNewApptModal()" class="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold transition">Cancelar</button>
+                    <button type="submit" class="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition shadow-lg shadow-emerald-500/20">✅ Salvar na Agenda</button>
                 </div>
             </form>
         </div>
@@ -160,117 +115,80 @@
     <!-- Modal Gerenciador de 5 Conexões WhatsApp -->
     <div id="qrModal" class="hidden fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
         <div class="bg-slate-900 border border-slate-800 rounded-3xl p-5 sm:p-6 max-w-lg w-full shadow-2xl relative my-auto">
-            <button onclick="closeQrModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white p-2 text-lg">
-                ✕
-            </button>
-            
+            <button onclick="closeQrModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white p-2 text-lg">✕</button>
             <div class="flex items-center space-x-3 mb-4">
-                <div class="w-11 h-11 bg-gradient-to-tr from-emerald-600 to-emerald-400 text-slate-950 rounded-2xl flex items-center justify-center text-2xl font-black shrink-0 shadow-lg shadow-emerald-500/20">
-                    📱
-                </div>
+                <div class="w-10 h-10 bg-gradient-to-tr from-emerald-600 to-emerald-400 text-slate-950 rounded-2xl flex items-center justify-center text-2xl font-black shrink-0 shadow-lg shadow-emerald-500/20">📱</div>
                 <div>
-                    <h3 class="text-base sm:text-lg font-extrabold text-white leading-tight">Conectar Celulares (Até 5 WhatsApps)</h3>
-                    <p class="text-xs text-slate-400">Conecte os aparelhos dos advogados. Todas as mensagens caem no mesmo CRM!</p>
+                    <h3 class="text-base sm:text-lg font-extrabold text-white leading-tight">Conexões WhatsApp (Até 5 Números)</h3>
+                    <p class="text-xs text-slate-400">Atendimento 24h unificado no CRM.</p>
                 </div>
             </div>
 
-            <!-- Seletor de Linha / Instância -->
-            <div class="grid grid-cols-5 gap-1.5 bg-slate-950 p-1.5 rounded-2xl mb-4 border border-slate-800" id="instanceSelectorTabs">
-                <!-- Preenchido via JS (WA 1, WA 2, WA 3, WA 4, WA 5) -->
-            </div>
+            <div class="grid grid-cols-5 gap-1.5 bg-slate-950 p-1.5 rounded-2xl mb-4 border border-slate-800" id="instanceSelectorTabs"></div>
 
-            <!-- Card da Instância Selecionada -->
             <div class="bg-slate-950/70 border border-slate-800/80 rounded-2xl p-4 text-center">
                 <div class="flex items-center justify-between mb-3">
-                    <span id="selectedInstanceBadge" class="text-xs font-bold px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300">
-                        Carregando...
-                    </span>
-                    <button onclick="renameCurrentInstance()" class="text-[11px] text-amber-400 hover:underline font-medium">
-                        ✏️ Renomear Linha
-                    </button>
+                    <span id="selectedInstanceBadge" class="text-xs font-bold px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300">Carregando...</span>
+                    <button onclick="renameCurrentInstance()" class="text-[11px] text-amber-400 hover:underline font-medium">✏️ Renomear Linha</button>
                 </div>
 
                 <div id="qrContainer" class="bg-white p-3 rounded-2xl inline-block mx-auto shadow-inner mb-3 min-w-[200px] min-h-[200px] flex items-center justify-center">
-                    <div class="text-slate-500 text-xs flex flex-col items-center">
-                        Carregando QR Code...
-                    </div>
+                    <div class="text-slate-500 text-xs flex flex-col items-center">Aguardando sessão...</div>
                 </div>
 
-                <p id="qrHelpText" class="text-xs text-slate-400 mb-4">Abra o WhatsApp do aparelho > Aparelhos Conectados > Conectar Aparelho.</p>
+                <p id="qrHelpText" class="text-xs text-slate-400 mb-4">Abra o WhatsApp > Aparelhos Conectados > Conectar Aparelho.</p>
 
                 <div class="flex gap-2">
-                    <button onclick="resetCurrentWhatsApp()" class="flex-1 text-xs text-rose-400 hover:text-rose-300 font-semibold bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 py-2.5 rounded-xl transition">
-                        🔄 Desconectar & Novo QR
-                    </button>
-                    <button onclick="checkWhatsAppInstances()" class="px-4 text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 py-2.5 rounded-xl font-semibold transition">
-                        🔄 Atualizar
-                    </button>
+                    <button onclick="resetCurrentWhatsApp()" class="flex-1 text-xs text-rose-400 hover:text-rose-300 font-semibold bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 py-2.5 rounded-xl transition">🔄 Desconectar & Novo QR</button>
+                    <button onclick="checkWhatsAppInstances()" class="px-4 text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 py-2.5 rounded-xl font-semibold transition">🔄 Atualizar</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Main Container Responsivo -->
+    <!-- Main Container -->
     <main class="max-w-7xl mx-auto w-full px-3 sm:px-6 py-4 sm:py-6 flex-1 flex flex-col">
         
-        <!-- BARRA VISUAL DE CONEXÃO DOS 5 CELULARES -->
+        <!-- Barra de Conexão dos 5 Celulares -->
         <div class="bg-gradient-to-r from-slate-900 via-slate-900/90 to-slate-900 border border-slate-800/80 p-3 sm:p-4 rounded-2xl mb-4 sm:mb-6 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 shadow-lg">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 text-lg shrink-0">
-                    📱
-                </div>
+                <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 text-lg shrink-0">📱</div>
                 <div>
                     <h3 class="text-xs sm:text-sm font-bold text-white flex items-center gap-2">
                         Linhas de WhatsApp Conectadas
-                        <span id="quickStatusBadge" class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-extrabold">0/5 Ativos</span>
+                        <span id="quickStatusBadge" class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-extrabold">0/5 Conectados</span>
                     </h3>
-                    <p class="text-[11px] text-slate-400">Clique em qualquer linha abaixo para conectar ou escanear o QR Code.</p>
+                    <p class="text-[11px] text-slate-400">Conecte os números dos advogados e recepcionistas.</p>
                 </div>
             </div>
-
-            <!-- 5 Slots de Aparelhos Rápidos -->
-            <div class="grid grid-cols-5 gap-1.5 sm:gap-2 shrink-0" id="quickSlotsContainer">
-                <!-- Preenchido dinamicamente via JS -->
-            </div>
+            <div class="grid grid-cols-5 gap-1.5 sm:gap-2 shrink-0" id="quickSlotsContainer"></div>
         </div>
 
-        <!-- KPI Cards -->
-        <div id="kpiContainer" class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 mb-4 sm:mb-6">
-            <div class="bg-slate-900 border border-slate-800/80 p-3.5 sm:p-4 rounded-2xl shadow-sm">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <p class="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-400">Contatos Salvos</p>
-                        <h3 id="stat-total-leads" class="text-xl sm:text-3xl font-extrabold text-white mt-0.5">0</h3>
-                    </div>
-                    <div class="p-2 sm:p-2.5 bg-blue-500/10 rounded-xl text-blue-400 text-sm sm:text-base">👥</div>
-                </div>
+        <!-- KPI Cards de Qualificação -->
+        <div id="kpiContainer" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3.5 mb-4 sm:mb-6">
+            <div class="bg-slate-900 border border-slate-800 p-3 sm:p-3.5 rounded-2xl shadow-sm">
+                <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Total Leads</p>
+                <h3 id="stat-total-leads" class="text-lg sm:text-2xl font-extrabold text-white mt-0.5">0</h3>
             </div>
-            <div class="bg-slate-900 border border-slate-800/80 p-3.5 sm:p-4 rounded-2xl shadow-sm cursor-pointer hover:border-emerald-500/50 transition active:scale-95" onclick="switchTab('calendar')">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <p class="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-400">Reuniões Marcadas</p>
-                        <h3 id="stat-appointments" class="text-xl sm:text-3xl font-extrabold text-emerald-400 mt-0.5">0</h3>
-                    </div>
-                    <div class="p-2 sm:p-2.5 bg-emerald-500/10 rounded-xl text-emerald-400 text-sm sm:text-base">📅</div>
-                </div>
+            <div class="bg-slate-900 border border-slate-800 p-3 sm:p-3.5 rounded-2xl shadow-sm">
+                <p class="text-[10px] font-bold uppercase tracking-wider text-amber-400">Em Triagem</p>
+                <h3 id="stat-triagem" class="text-lg sm:text-2xl font-extrabold text-amber-400 mt-0.5">0</h3>
             </div>
-            <div class="bg-slate-900 border border-slate-800/80 p-3.5 sm:p-4 rounded-2xl shadow-sm cursor-pointer active:scale-95" onclick="switchTab('leads')">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <p class="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-400">Em Triagem IA</p>
-                        <h3 id="stat-triagem" class="text-xl sm:text-3xl font-extrabold text-amber-400 mt-0.5">0</h3>
-                    </div>
-                    <div class="p-2 sm:p-2.5 bg-amber-500/10 rounded-xl text-amber-400 text-sm sm:text-base">🤖</div>
-                </div>
+            <div class="bg-slate-900 border border-slate-800 p-3 sm:p-3.5 rounded-2xl shadow-sm">
+                <p class="text-[10px] font-bold uppercase tracking-wider text-emerald-400">Qualificados</p>
+                <h3 id="stat-qualificados" class="text-lg sm:text-2xl font-extrabold text-emerald-400 mt-0.5">0</h3>
             </div>
-            <div class="bg-slate-900 border border-slate-800/80 p-3.5 sm:p-4 rounded-2xl shadow-sm cursor-pointer active:scale-95" onclick="switchTab('leads')">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <p class="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-400">Atendimento Humano</p>
-                        <h3 id="stat-human" class="text-xl sm:text-3xl font-extrabold text-rose-400 mt-0.5">0</h3>
-                    </div>
-                    <div class="p-2 sm:p-2.5 bg-rose-500/10 rounded-xl text-rose-400 text-sm sm:text-base">👤</div>
-                </div>
+            <div class="bg-slate-900 border border-slate-800 p-3 sm:p-3.5 rounded-2xl shadow-sm">
+                <p class="text-[10px] font-bold uppercase tracking-wider text-purple-400">Alta Prioridade</p>
+                <h3 id="stat-alta-prioridade" class="text-lg sm:text-2xl font-extrabold text-purple-400 mt-0.5">0</h3>
+            </div>
+            <div class="bg-slate-900 border border-slate-800 p-3 sm:p-3.5 rounded-2xl shadow-sm">
+                <p class="text-[10px] font-bold uppercase tracking-wider text-blue-400">Taxa Qualif.</p>
+                <h3 id="stat-taxa-qualificacao" class="text-lg sm:text-2xl font-extrabold text-blue-400 mt-0.5">0%</h3>
+            </div>
+            <div class="bg-slate-900 border border-slate-800 p-3 sm:p-3.5 rounded-2xl shadow-sm cursor-pointer hover:border-emerald-500/50 transition active:scale-95" onclick="switchTab('calendar')">
+                <p class="text-[10px] font-bold uppercase tracking-wider text-emerald-400">Reuniões</p>
+                <h3 id="stat-appointments" class="text-lg sm:text-2xl font-extrabold text-emerald-400 mt-0.5">0</h3>
             </div>
         </div>
 
@@ -279,65 +197,97 @@
         <!-- ========================================== -->
         <div id="tabContentLeads" class="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 flex-1">
             
-            <!-- Coluna 1: Lista de Leads -->
-            <div id="leadsColumn" class="lg:col-span-7 flex flex-col space-y-3">
-                <div class="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-2">
-                    <h2 class="text-base sm:text-lg font-bold text-white flex items-center gap-2">
-                        📋 Leads & Clientes (Unificado)
-                    </h2>
-                    <div class="flex items-center gap-2">
-                        <input type="text" id="searchInput" oninput="filterLeads()" placeholder="Buscar nome, telefone, linha..." class="flex-1 sm:w-48 bg-slate-900 border border-slate-800 text-xs px-3 py-2 rounded-xl text-slate-200 placeholder-slate-500 focus:outline-none focus:border-amber-500">
-                        <button onclick="clearAllLeads()" class="px-2.5 py-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 rounded-xl text-[11px] font-semibold transition whitespace-nowrap" title="Limpar todos os contatos">
-                            🗑️ Limpar
-                        </button>
+            <!-- Coluna 1: Lista de Leads com Filtros -->
+            <div id="leadsColumn" class="lg:col-span-6 flex flex-col space-y-3">
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-3 space-y-2.5 shadow">
+                    <div class="flex items-center justify-between gap-2">
+                        <input type="text" id="searchInput" oninput="filterLeads()" placeholder="🔍 Buscar nome, telefone, área, campanha..." class="flex-1 bg-slate-950 border border-slate-800 text-xs px-3 py-2 rounded-xl text-slate-200 placeholder-slate-500 focus:outline-none focus:border-amber-500">
+                        <a href="/api/export-leads" target="_blank" class="px-2.5 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 rounded-xl text-[11px] font-semibold transition" title="Exportar CSV">📊 CSV</a>
+                        <button onclick="clearAllLeads()" class="px-2.5 py-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 rounded-xl text-[11px] font-semibold transition" title="Limpar contatos">🗑️</button>
+                    </div>
+
+                    <!-- Linha de Filtros por Nicho, Status e Score -->
+                    <div class="grid grid-cols-3 gap-2">
+                        <select id="filterArea" onchange="filterLeads()" class="bg-slate-950 border border-slate-800 text-[11px] text-slate-300 rounded-xl px-2 py-1.5 focus:outline-none focus:border-amber-500">
+                            <option value="">Todas as Áreas</option>
+                            <option value="Trabalhista">Trabalhista</option>
+                            <option value="Previdenciário">Previdenciário / INSS</option>
+                            <option value="Família">Família & Sucessões</option>
+                            <option value="Bancário">Bancário & Consumidor</option>
+                            <option value="Outro">Outros Assuntos</option>
+                        </select>
+                        <select id="filterStatus" onchange="filterLeads()" class="bg-slate-950 border border-slate-800 text-[11px] text-slate-300 rounded-xl px-2 py-1.5 focus:outline-none focus:border-amber-500">
+                            <option value="">Todos os Status</option>
+                            <option value="NOVO LEAD">Novo Lead</option>
+                            <option value="EM TRIAGEM">Em Triagem</option>
+                            <option value="QUALIFICADO">Qualificado</option>
+                            <option value="ALTA PRIORIDADE">Alta Prioridade</option>
+                            <option value="AGENDADO">Agendado</option>
+                            <option value="NÃO QUALIFICADO">Não Qualificado</option>
+                        </select>
+                        <select id="filterScore" onchange="filterLeads()" class="bg-slate-950 border border-slate-800 text-[11px] text-slate-300 rounded-xl px-2 py-1.5 focus:outline-none focus:border-amber-500">
+                            <option value="">Todos os Scores</option>
+                            <option value="81-100">Alta Prioridade (81-100)</option>
+                            <option value="61-80">Qualificado (61-80)</option>
+                            <option value="31-60">Em Análise (31-60)</option>
+                            <option value="0-30">Baixa (0-30)</option>
+                        </select>
                     </div>
                 </div>
 
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl flex-1 max-h-[600px] overflow-y-auto">
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl flex-1 max-h-[620px] overflow-y-auto">
                     <div class="divide-y divide-slate-800/60" id="leadsList">
-                        <div class="p-8 text-center text-slate-500 text-xs sm:text-sm">Carregando contatos salvos...</div>
+                        <div class="p-8 text-center text-slate-500 text-xs sm:text-sm">Carregando leads qualificados...</div>
                     </div>
                 </div>
             </div>
 
-            <!-- Coluna 2: Chat & Histórico (Master-Detail no Mobile) -->
-            <div id="chatColumn" class="hidden lg:flex lg:col-span-5 bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 flex-col h-[550px] sm:h-[620px] shadow-xl">
+            <!-- Coluna 2: Detalhes do Lead (Chat & Ficha de Qualificação) -->
+            <div id="chatColumn" class="hidden lg:flex lg:col-span-6 bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 flex-col h-[650px] shadow-xl">
                 
-                <!-- Chat Header -->
-                <div id="chatHeader" class="border-b border-slate-800 pb-3 mb-3 flex justify-between items-center gap-2">
+                <!-- Header com Seletor de Visão (Chat vs Ficha da Triagem) -->
+                <div class="border-b border-slate-800 pb-3 mb-3 flex justify-between items-center gap-2">
                     <div class="flex items-center gap-2.5 min-w-0">
-                        <button onclick="closeMobileChat()" class="lg:hidden p-2 rounded-xl bg-slate-800 text-slate-300 hover:text-white text-xs font-bold flex items-center gap-1">
-                            ← Voltar
-                        </button>
+                        <button onclick="closeMobileChat()" class="lg:hidden p-2 rounded-xl bg-slate-800 text-slate-300 hover:text-white text-xs font-bold">← Voltar</button>
                         <div class="min-w-0">
-                            <h3 id="chatClientName" class="font-bold text-white text-sm sm:text-base truncate">Selecione um cliente</h3>
-                            <p id="chatClientPhone" class="text-[11px] text-slate-400 truncate">Nenhum contato selecionado</p>
+                            <h3 id="chatClientName" class="font-bold text-white text-sm sm:text-base truncate">Selecione um lead</h3>
+                            <p id="chatClientPhone" class="text-[11px] text-slate-400 truncate">Clique em um lead da lista</p>
                         </div>
+                    </div>
+
+                    <!-- Tabs Chat vs Ficha -->
+                    <div class="flex items-center space-x-1 bg-slate-950 p-1 rounded-xl border border-slate-800" id="leadViewTabs">
+                        <button id="btnViewChat" onclick="switchLeadView('chat')" class="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-amber-500 text-slate-950">💬 Chat</button>
+                        <button id="btnViewFicha" onclick="switchLeadView('ficha')" class="px-2.5 py-1 text-[11px] font-bold rounded-lg text-slate-400 hover:text-white">📋 Ficha da Triagem</button>
                     </div>
 
                     <div id="chatControls" class="hidden flex items-center space-x-1.5 shrink-0">
                         <button id="btnToggleAi" onclick="toggleAi()" class="text-[11px] px-2.5 py-1.5 rounded-lg font-semibold transition whitespace-nowrap"></button>
-                        <button onclick="deleteLead(null, selectedPhone)" class="text-xs p-1.5 rounded-lg font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/20 hover:bg-rose-500/20 transition" title="Excluir este contato">
-                            🗑️
-                        </button>
+                        <button onclick="deleteLead(null, selectedPhone)" class="text-xs p-1.5 rounded-lg font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/20 hover:bg-rose-500/20 transition" title="Excluir lead">🗑️</button>
                     </div>
                 </div>
 
-                <!-- Mensagens -->
-                <div id="chatMessages" class="flex-1 overflow-y-auto space-y-2.5 pr-1 scrollbar-thin scrollbar-thumb-slate-700 text-xs sm:text-sm">
-                    <div class="h-full flex flex-col items-center justify-center text-slate-500 text-xs sm:text-sm text-center p-6">
-                        <p class="text-3xl mb-2">💬</p>
-                        Clique em qualquer cliente à esquerda para ver a conversa completa em tempo real.
+                <!-- Visão 1: Mensagens do Chat -->
+                <div id="leadChatView" class="flex-1 flex flex-col min-h-0">
+                    <div id="chatMessages" class="flex-1 overflow-y-auto space-y-2.5 pr-1 text-xs sm:text-sm">
+                        <div class="h-full flex flex-col items-center justify-center text-slate-500 text-xs sm:text-sm text-center p-6">
+                            <p class="text-3xl mb-2">💬</p>
+                            Selecione um lead para ver o histórico do WhatsApp.
+                        </div>
+                    </div>
+                    <form id="chatForm" onsubmit="sendManualMessage(event)" class="mt-3 pt-2.5 border-t border-slate-800 flex gap-2">
+                        <input type="text" id="manualMsgInput" placeholder="Digitar resposta manual..." class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 sm:px-4 py-2 text-xs sm:text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-amber-500" disabled>
+                        <button type="submit" id="btnSendManual" class="bg-amber-500 hover:bg-amber-400 text-slate-950 px-3.5 py-2 rounded-xl font-bold transition disabled:opacity-40 text-sm" disabled>➤</button>
+                    </form>
+                </div>
+
+                <!-- Visão 2: Ficha Completa de Qualificação & Respostas -->
+                <div id="leadFichaView" class="hidden flex-1 overflow-y-auto space-y-4 pr-1 text-xs">
+                    <div id="fichaContent" class="space-y-3.5">
+                        <!-- Preenchido via JavaScript -->
                     </div>
                 </div>
 
-                <!-- Input para resposta manual -->
-                <form id="chatForm" onsubmit="sendManualMessage(event)" class="mt-3 pt-2.5 border-t border-slate-800 flex gap-2">
-                    <input type="text" id="manualMsgInput" placeholder="Digitar resposta manual..." class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-amber-500" disabled>
-                    <button type="submit" id="btnSendManual" class="bg-amber-500 hover:bg-amber-400 text-slate-950 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl font-bold transition disabled:opacity-40 text-sm" disabled>
-                        ➤
-                    </button>
-                </form>
             </div>
         </div>
 
@@ -347,26 +297,12 @@
         <div id="tabContentCalendar" class="hidden space-y-4 sm:space-y-6">
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-slate-900 border border-slate-800 p-4 sm:p-5 rounded-2xl gap-3">
                 <div>
-                    <h2 class="text-base sm:text-lg font-bold text-white flex items-center gap-2">
-                        📅 Agenda de Reuniões com o Dr. Glaucio Dias
-                    </h2>
-                    <p class="text-[11px] sm:text-xs text-slate-400 mt-0.5">Endereço Presencial: <span class="text-amber-400 font-medium">Av. Abílio Machado, 1380 - Alípio de Melo</span> | Ou Online via Google Meet.</p>
+                    <h2 class="text-base sm:text-lg font-bold text-white flex items-center gap-2">📅 Agenda de Reuniões — Glaucio Dias Advocacia</h2>
+                    <p class="text-[11px] sm:text-xs text-slate-400 mt-0.5">Presencial: <span class="text-amber-400 font-medium">Av. Abílio Machado, 1380 - Alípio de Melo</span> | Ou Online via Google Meet.</p>
                 </div>
-                
-                <div class="flex items-center gap-2 self-stretch sm:self-auto justify-between sm:justify-end">
-                    <button onclick="openNewApptModal()" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-lg shadow-emerald-500/20 transition active:scale-95">
-                        ➕ Agendar Reunião
-                    </button>
-                    <span class="text-[11px] font-semibold px-2.5 py-2 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                        ● Sincronizado IA
-                    </span>
-                </div>
+                <button onclick="openNewApptModal()" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-lg shadow-emerald-500/20 transition active:scale-95">➕ Agendar Reunião</button>
             </div>
-
-            <!-- Grid de Cards da Agenda -->
-            <div id="calendarList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                <!-- Preenchido via JavaScript -->
-            </div>
+            <div id="calendarList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"></div>
         </div>
     </main>
 
@@ -378,6 +314,7 @@
         let selectedPhone = null;
         let selectedClient = null;
         let currentTab = 'leads';
+        let currentLeadView = 'chat';
         let isMobileChatView = false;
 
         function switchTab(tab) {
@@ -393,29 +330,110 @@
             if (tab === 'leads') {
                 tabLeads.classList.remove('hidden');
                 tabCalendar.classList.add('hidden');
-                btnLeads.className = 'flex-1 md:flex-none px-3.5 sm:px-4 py-2 sm:py-1.5 rounded-lg text-xs font-bold transition flex items-center justify-center gap-2 bg-amber-500 text-slate-950 shadow';
-                btnCalendar.className = 'flex-1 md:flex-none px-3.5 sm:px-4 py-2 sm:py-1.5 rounded-lg text-xs font-bold transition flex items-center justify-center gap-2 text-slate-400 hover:text-white';
-                
+                btnLeads.className = 'px-3 sm:px-4 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 bg-amber-500 text-slate-950 shadow';
+                btnCalendar.className = 'px-3 sm:px-4 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 text-slate-400 hover:text-white';
                 if (badgeLeads) badgeLeads.className = 'px-2 py-0.5 bg-slate-950 text-amber-400 rounded-full text-[11px] font-black';
                 if (badgeAppt) badgeAppt.className = 'px-2 py-0.5 bg-slate-800 text-slate-300 rounded-full text-[11px] font-black';
-
-                if (isMobileChatView) {
-                    showMobileChat();
-                } else {
-                    closeMobileChat();
-                }
+                if (isMobileChatView) showMobileChat(); else closeMobileChat();
             } else {
                 tabLeads.classList.add('hidden');
                 tabCalendar.classList.remove('hidden');
-                btnCalendar.className = 'flex-1 md:flex-none px-3.5 sm:px-4 py-2 sm:py-1.5 rounded-lg text-xs font-bold transition flex items-center justify-center gap-2 bg-emerald-500 text-slate-950 shadow';
-                btnLeads.className = 'flex-1 md:flex-none px-3.5 sm:px-4 py-2 sm:py-1.5 rounded-lg text-xs font-bold transition flex items-center justify-center gap-2 text-slate-400 hover:text-white';
-                
+                btnCalendar.className = 'px-3 sm:px-4 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 bg-emerald-500 text-slate-950 shadow';
+                btnLeads.className = 'px-3 sm:px-4 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 text-slate-400 hover:text-white';
                 if (badgeAppt) badgeAppt.className = 'px-2 py-0.5 bg-slate-950 text-emerald-400 rounded-full text-[11px] font-black shadow-inner';
                 if (badgeLeads) badgeLeads.className = 'px-2 py-0.5 bg-slate-800 text-slate-300 rounded-full text-[11px] font-black';
-
                 if (kpiContainer) kpiContainer.classList.remove('hidden');
                 renderCalendar();
             }
+        }
+
+        function switchLeadView(view) {
+            currentLeadView = view;
+            const chatView = document.getElementById('leadChatView');
+            const fichaView = document.getElementById('leadFichaView');
+            const btnChat = document.getElementById('btnViewChat');
+            const btnFicha = document.getElementById('btnViewFicha');
+
+            if (view === 'chat') {
+                chatView.classList.remove('hidden');
+                fichaView.classList.add('hidden');
+                btnChat.className = 'px-2.5 py-1 text-[11px] font-bold rounded-lg bg-amber-500 text-slate-950';
+                btnFicha.className = 'px-2.5 py-1 text-[11px] font-bold rounded-lg text-slate-400 hover:text-white';
+            } else {
+                chatView.classList.add('hidden');
+                fichaView.classList.remove('hidden');
+                btnFicha.className = 'px-2.5 py-1 text-[11px] font-bold rounded-lg bg-amber-500 text-slate-950';
+                btnChat.className = 'px-2.5 py-1 text-[11px] font-bold rounded-lg text-slate-400 hover:text-white';
+                renderFicha();
+            }
+        }
+
+        function renderFicha() {
+            const container = document.getElementById('fichaContent');
+            if (!selectedClient) {
+                container.innerHTML = '<p class="text-slate-500 text-center py-6">Nenhum lead selecionado.</p>';
+                return;
+            }
+
+            const c = selectedClient;
+            const score = c.qualification_score || 0;
+            const answers = Array.isArray(c.triage_answers) ? c.triage_answers : [];
+
+            let scoreColor = 'bg-rose-500';
+            if (score >= 81) scoreColor = 'bg-purple-500';
+            else if (score >= 61) scoreColor = 'bg-emerald-500';
+            else if (score >= 31) scoreColor = 'bg-amber-500';
+
+            container.innerHTML = `
+                <!-- Bloco de Qualificação & Score -->
+                <div class="bg-slate-950 border border-slate-800 p-4 rounded-2xl">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-slate-400 text-[10px] font-bold uppercase">Qualificação do Caso</span>
+                        <span class="px-2 py-0.5 rounded text-[10px] font-bold ${score >= 61 ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'}">${c.qualification_status || 'EM ANÁLISE'}</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="text-2xl font-black text-white font-mono">${score}<span class="text-xs text-slate-500">/100</span></div>
+                        <div class="flex-1 bg-slate-800 rounded-full h-2.5 overflow-hidden">
+                            <div class="${scoreColor} h-full transition-all duration-500" style="width: ${score}%"></div>
+                        </div>
+                    </div>
+                    <p class="text-[11px] text-slate-400 mt-2">Etapa Atual: <span class="text-amber-400 font-semibold">${c.triage_step || 'Início'}</span> • Status: <span class="text-white font-semibold">${c.status}</span></p>
+                </div>
+
+                <!-- Dados do Contato & Origem -->
+                <div class="bg-slate-950 border border-slate-800 p-4 rounded-2xl space-y-2">
+                    <h4 class="text-[11px] font-bold text-slate-300 uppercase tracking-wider">Origem & Atribuição</h4>
+                    <div class="grid grid-cols-2 gap-2 text-[11px]">
+                        <div><span class="text-slate-500">Área Jurídica:</span> <span class="text-white font-medium">${c.law_area || 'Não informada'}</span></div>
+                        <div><span class="text-slate-500">Origem:</span> <span class="text-emerald-400 font-semibold">${c.source || 'Anúncio'}</span></div>
+                        <div><span class="text-slate-500">Campanha:</span> <span class="text-slate-300">${c.campaign || 'Geral'}</span></div>
+                        <div><span class="text-slate-500">Criativo:</span> <span class="text-slate-300">${c.creative || 'Padrão'}</span></div>
+                        <div><span class="text-slate-500">Entrada:</span> <span class="text-slate-300">${new Date(c.created_at).toLocaleDateString('pt-BR')}</span></div>
+                        <div><span class="text-slate-500">Advogado:</span> <span class="text-amber-400 font-medium">${c.assigned_to || 'Dr. Glaucio Dias'}</span></div>
+                    </div>
+                </div>
+
+                <!-- Respostas Coletadas na Triagem -->
+                <div class="bg-slate-950 border border-slate-800 p-4 rounded-2xl space-y-3">
+                    <h4 class="text-[11px] font-bold text-slate-300 uppercase tracking-wider flex items-center justify-between">
+                        <span>Respostas da Triagem Automática</span>
+                        <span class="text-amber-400 font-mono text-[10px]">${answers.length} respostas</span>
+                    </h4>
+                    ${answers.length === 0 ? '<p class="text-slate-500 text-[11px]">Nenhuma pergunta respondida ainda.</p>' : `
+                        <div class="space-y-2.5">
+                            ${answers.map((a, i) => `
+                                <div class="bg-slate-900 border border-slate-800/80 p-2.5 rounded-xl">
+                                    <p class="text-[10px] text-slate-400 font-semibold mb-0.5">${i + 1}. ${a.question || a.step}</p>
+                                    <div class="flex justify-between items-center">
+                                        <p class="text-xs text-emerald-400 font-bold">${a.answer}</p>
+                                        <span class="text-[9px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">+${a.points || 0} pts</span>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `}
+                </div>
+            `;
         }
 
         function openNewApptModal() {
@@ -423,6 +441,11 @@
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('apptDate').value = today;
             document.getElementById('apptTime').value = '14:00';
+            if (selectedClient) {
+                document.getElementById('apptName').value = selectedClient.name || '';
+                document.getElementById('apptPhone').value = selectedClient.phone || '';
+                document.getElementById('apptArea').value = selectedClient.law_area || '';
+            }
         }
 
         function closeNewApptModal() {
@@ -465,15 +488,11 @@
 
         function closeMobileChat() {
             isMobileChatView = false;
+            document.getElementById('leadsColumn').classList.remove('hidden');
             if (window.innerWidth < 1024) {
-                document.getElementById('leadsColumn').classList.remove('hidden');
                 document.getElementById('chatColumn').classList.add('hidden');
-                document.getElementById('kpiContainer').classList.remove('hidden');
-            } else {
-                document.getElementById('leadsColumn').classList.remove('hidden');
-                document.getElementById('chatColumn').classList.remove('hidden');
-                document.getElementById('kpiContainer').classList.remove('hidden');
             }
+            document.getElementById('kpiContainer').classList.remove('hidden');
         }
 
         window.addEventListener('resize', () => {
@@ -482,18 +501,12 @@
                 document.getElementById('chatColumn').classList.remove('hidden');
                 document.getElementById('kpiContainer').classList.remove('hidden');
             } else {
-                if (isMobileChatView && currentTab === 'leads') {
-                    showMobileChat();
-                } else {
-                    closeMobileChat();
-                }
+                if (isMobileChatView && currentTab === 'leads') showMobileChat(); else closeMobileChat();
             }
         });
 
         function openQrModal(targetInstance = null) {
-            if (targetInstance) {
-                currentInstanceId = targetInstance;
-            }
+            if (targetInstance) currentInstanceId = targetInstance;
             document.getElementById('qrModal').classList.remove('hidden');
             checkWhatsAppInstances();
         }
@@ -512,12 +525,12 @@
                 const res = await fetch('/api/whatsapp/instances');
                 instances = await res.json();
                 
-                const connectedCount = instances.filter(i => i.status === 'connected').length;
+                const connectedCount = instances.filter(i => i.status === 'CONNECTED').length;
                 const btnText = document.getElementById('waStatusText');
                 const btnMobileCount = document.getElementById('waMobileCount');
                 const quickBadge = document.getElementById('quickStatusBadge');
 
-                if (btnText) btnText.innerText = `Conectar + Celulares (${connectedCount}/5)`;
+                if (btnText) btnText.innerText = `Conectar Celulares (${connectedCount}/5)`;
                 if (btnMobileCount) btnMobileCount.innerText = `${connectedCount}/5 WA`;
                 if (quickBadge) quickBadge.innerText = `${connectedCount}/5 Conectados`;
 
@@ -533,13 +546,11 @@
             if (!container || !instances || instances.length === 0) return;
 
             container.innerHTML = instances.map((inst, index) => {
-                const isConnected = inst.status === 'connected';
+                const isConnected = inst.status === 'CONNECTED';
                 return `
                     <button onclick="openQrModal('${inst.id}')" class="py-2 px-1.5 sm:px-2.5 rounded-xl border transition flex flex-col items-center justify-center gap-1 active:scale-95 ${isConnected ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20' : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-amber-500/50 hover:text-amber-400'}">
                         <span class="text-[9px] sm:text-[10px] font-bold uppercase tracking-tight">Linha ${index + 1}</span>
-                        <span class="text-xs sm:text-sm font-extrabold flex items-center gap-1">
-                            ${isConnected ? '🟢' : '➕'}
-                        </span>
+                        <span class="text-xs sm:text-sm font-extrabold flex items-center gap-1">${isConnected ? '🟢' : '➕'}</span>
                     </button>
                 `;
             }).join('');
@@ -551,7 +562,7 @@
 
             tabsContainer.innerHTML = instances.map((inst, index) => {
                 const isSelected = inst.id === currentInstanceId;
-                const isConnected = inst.status === 'connected';
+                const isConnected = inst.status === 'CONNECTED';
                 return `
                     <button onclick="selectInstanceTab('${inst.id}')" class="py-2 px-1 rounded-xl text-center transition flex flex-col items-center justify-center gap-1 ${isSelected ? 'bg-amber-500 text-slate-950 font-bold shadow' : 'bg-slate-900 text-slate-400 hover:text-white'}">
                         <span class="text-[10px] leading-none uppercase tracking-tight">Linha ${index + 1}</span>
@@ -565,21 +576,21 @@
             const qrContainer = document.getElementById('qrContainer');
             const qrHelp = document.getElementById('qrHelpText');
 
-            if (curr.status === 'connected') {
+            if (curr.status === 'CONNECTED') {
                 badge.innerText = `🟢 ${curr.name} • CONECTADO`;
                 badge.className = 'text-xs font-bold px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
-                qrContainer.innerHTML = '<div class="text-emerald-600 font-bold text-sm p-6">✅ Número Conectado e Ativo 24h!</div>';
-                qrHelp.innerText = 'Esta linha de WhatsApp está conectada e pronta para responder.';
+                qrContainer.innerHTML = `<div class="text-emerald-600 font-bold text-sm p-6">✅ Conectado e Ativo 24h!<br><span class="text-xs text-slate-500 font-mono">${curr.user || ''}</span></div>`;
+                qrHelp.innerText = 'Esta linha está pronta para responder novos leads de anúncios.';
             } else if (curr.qrCode) {
                 badge.innerText = `📱 ${curr.name} • ESCANEAR QR`;
                 badge.className = 'text-xs font-bold px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-400 border border-amber-500/30';
                 qrContainer.innerHTML = `<img src="${curr.qrCode}" class="w-52 h-52 sm:w-56 sm:h-56 rounded-lg" alt="QR Code" />`;
                 qrHelp.innerText = `Aponte o WhatsApp do aparelho ${curr.name} para o QR Code acima.`;
             } else {
-                badge.innerText = `⏳ ${curr.name} • GERANDO QR...`;
+                badge.innerText = `⏳ ${curr.name} • AGUARDANDO QR...`;
                 badge.className = 'text-xs font-bold px-2.5 py-1 rounded-lg bg-slate-800 text-slate-400';
                 qrContainer.innerHTML = '<div class="text-slate-500 text-xs p-6 flex flex-col items-center">Gerando QR Code...</div>';
-                qrHelp.innerText = 'Aguarde alguns segundos enquanto a sessão é preparada.';
+                qrHelp.innerText = 'Aguarde alguns segundos enquanto a conexão é preparada.';
             }
         }
 
@@ -612,9 +623,16 @@
                 const resAppt = await fetch('/api/appointments');
                 appointments = await resAppt.json();
 
+                const resMetrics = await fetch('/api/metrics');
+                const metrics = await resMetrics.json();
+
                 const activeApptsCount = appointments.filter(a => a.status !== 'CANCELADO').length;
 
-                document.getElementById('stat-total-leads').innerText = leads.length;
+                document.getElementById('stat-total-leads').innerText = metrics.totalLeads || leads.length;
+                document.getElementById('stat-triagem').innerText = metrics.emTriagem || 0;
+                document.getElementById('stat-qualificados').innerText = metrics.qualificados || 0;
+                document.getElementById('stat-alta-prioridade').innerText = metrics.altaPrioridade || 0;
+                document.getElementById('stat-taxa-qualificacao').innerText = `${metrics.taxaQualificacao || 0}%`;
                 document.getElementById('stat-appointments').innerText = activeApptsCount;
                 
                 const badgeAppt = document.getElementById('badge-appt-count');
@@ -623,33 +641,67 @@
                 const badgeLeads = document.getElementById('badge-leads-count');
                 if (badgeLeads) badgeLeads.innerText = leads.length;
 
-                document.getElementById('stat-triagem').innerText = leads.filter(l => l.status === 'TRIAGEM').length;
-                document.getElementById('stat-human').innerText = leads.filter(l => l.status === 'AGUARDANDO_HUMANO').length;
-
-                renderLeads(leads);
+                filterLeads();
                 if (currentTab === 'calendar') renderCalendar();
-                if (selectedPhone) loadChat(selectedPhone);
+                if (selectedPhone) {
+                    selectedClient = leads.find(l => l.phone === selectedPhone);
+                    if (currentLeadView === 'ficha') renderFicha();
+                }
                 checkWhatsAppInstances();
             } catch (err) {
                 console.error(err);
             }
         }
 
+        function filterLeads() {
+            const query = (document.getElementById('searchInput')?.value || '').toLowerCase();
+            const areaFilter = document.getElementById('filterArea')?.value || '';
+            const statusFilter = document.getElementById('filterStatus')?.value || '';
+            const scoreFilter = document.getElementById('filterScore')?.value || '';
+
+            const filtered = leads.filter(l => {
+                const matchesQuery = !query || 
+                    (l.name && l.name.toLowerCase().includes(query)) ||
+                    (l.phone && l.phone.includes(query)) ||
+                    (l.law_area && l.law_area.toLowerCase().includes(query)) ||
+                    (l.source && l.source.toLowerCase().includes(query)) ||
+                    (l.campaign && l.campaign.toLowerCase().includes(query));
+
+                const matchesArea = !areaFilter || (l.law_area && l.law_area.toLowerCase().includes(areaFilter.toLowerCase()));
+                const matchesStatus = !statusFilter || l.status === statusFilter;
+                
+                let matchesScore = true;
+                const score = l.qualification_score || 0;
+                if (scoreFilter === '81-100') matchesScore = score >= 81;
+                else if (scoreFilter === '61-80') matchesScore = score >= 61 && score <= 80;
+                else if (scoreFilter === '31-60') matchesScore = score >= 31 && score <= 60;
+                else if (scoreFilter === '0-30') matchesScore = score <= 30;
+
+                return matchesQuery && matchesArea && matchesStatus && matchesScore;
+            });
+
+            renderLeads(filtered);
+        }
+
         function renderLeads(list) {
             const container = document.getElementById('leadsList');
             if (list.length === 0) {
-                container.innerHTML = '<div class="p-8 text-center text-slate-500 text-xs sm:text-sm">Nenhum atendimento registrado ainda. Envie uma mensagem no WhatsApp para testar!</div>';
+                container.innerHTML = '<div class="p-8 text-center text-slate-500 text-xs sm:text-sm">Nenhum lead encontrado com os filtros aplicados.</div>';
                 return;
             }
 
             container.innerHTML = list.map(l => {
                 const isSelected = l.phone === selectedPhone;
-                const statusBadges = {
-                    'TRIAGEM': '<span class="px-2 py-0.5 rounded-md text-[10px] sm:text-xs font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">Triagem</span>',
-                    'AGENDADO': '<span class="px-2 py-0.5 rounded-md text-[10px] sm:text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Agendado</span>',
-                    'AGUARDANDO_HUMANO': '<span class="px-2 py-0.5 rounded-md text-[10px] sm:text-xs font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/20">Humano</span>',
-                    'CONCLUIDO': '<span class="px-2 py-0.5 rounded-md text-[10px] sm:text-xs font-semibold bg-slate-500/10 text-slate-400 border border-slate-500/20">Concluído</span>'
-                };
+                const score = l.qualification_score || 0;
+
+                let scoreBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-400">0 pts</span>';
+                if (score >= 81) {
+                    scoreBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-500/20 text-purple-400 border border-purple-500/30">⭐ ${score} pts • Alta</span>`;
+                } else if (score >= 61) {
+                    scoreBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">✅ ${score} pts • Qualificado</span>`;
+                } else if (score >= 31) {
+                    scoreBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">⏳ ${score} pts • Triagem</span>`;
+                }
 
                 const lineLabel = l.instance_id ? l.instance_id.replace('instance_', 'Linha ') : 'Linha 1';
 
@@ -657,28 +709,27 @@
                     <div onclick="selectClient('${l.phone}')" class="p-3 sm:p-4 hover:bg-slate-800/50 cursor-pointer transition flex items-center justify-between group active:bg-slate-800/80 ${isSelected ? 'bg-slate-800/80 border-l-4 border-amber-500' : ''}">
                         <div class="flex items-center space-x-2.5 sm:space-x-3 min-w-0 pr-2">
                             <div class="w-9 h-9 sm:w-10 sm:h-10 shrink-0 rounded-full bg-slate-800 flex items-center justify-center font-bold text-amber-400 border border-slate-700 text-xs sm:text-sm">
-                                ${(l.name ? l.name[0] : (l.phone || 'C').slice(-2)).toUpperCase()}
+                                ${(l.name ? l.name[0] : (l.phone || 'L').slice(-2)).toUpperCase()}
                             </div>
                             <div class="min-w-0">
-                                <div class="flex items-center gap-1.5">
-                                    <h4 class="font-bold text-white text-xs sm:text-sm truncate">${l.name || 'Cliente Novo'}</h4>
+                                <div class="flex items-center gap-1.5 flex-wrap">
+                                    <h4 class="font-bold text-white text-xs sm:text-sm truncate">${l.name || 'Lead Anúncio'}</h4>
                                     <span class="text-[9px] px-1.5 py-0.2 rounded bg-slate-800 text-slate-400 border border-slate-700 font-mono">${lineLabel}</span>
+                                    <span class="text-[9px] px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold">${l.source === 'anuncio' ? '🎯 Anúncio' : 'Orgânico'}</span>
                                 </div>
                                 <p class="text-[11px] text-emerald-400 font-mono flex items-center gap-1 font-semibold truncate">
                                     📱 ${l.phone}
-                                    <span class="text-slate-500 truncate">• ${l.city || 'Local não inf.'}</span>
+                                    <span class="text-slate-500 truncate">• ${l.law_area || 'Área em triagem'}</span>
                                 </p>
                                 ${l.summary ? `<p class="text-[11px] text-slate-300 line-clamp-1 mt-0.5 font-medium">${l.summary}</p>` : ''}
                             </div>
                         </div>
                         <div class="flex items-center gap-2 shrink-0">
                             <div class="text-right flex flex-col items-end space-y-1">
-                                ${statusBadges[l.status] || statusBadges['TRIAGEM']}
-                                <span class="text-[9px] sm:text-[10px] text-slate-500">${l.law_area || 'Geral'}</span>
+                                ${scoreBadge}
+                                <span class="text-[9px] text-slate-500 font-mono">${l.status}</span>
                             </div>
-                            <button onclick="deleteLead(event, '${l.phone}')" class="p-1.5 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 transition" title="Excluir este lead">
-                                🗑️
-                            </button>
+                            <button onclick="deleteLead(event, '${l.phone}')" class="p-1.5 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 transition" title="Excluir este lead">🗑️</button>
                         </div>
                     </div>
                 `;
@@ -694,10 +745,8 @@
                     <div class="col-span-full bg-slate-900 border border-slate-800 rounded-3xl p-8 sm:p-12 text-center text-slate-400">
                         <p class="text-4xl sm:text-5xl mb-3">📅</p>
                         <h3 class="text-base font-bold text-white">Nenhuma reunião agendada no momento</h3>
-                        <p class="text-xs mt-1 text-slate-500">Assim que um lead concluir o agendamento pelo WhatsApp ou você clicar em "+ Agendar Reunião", o card aparecerá aqui.</p>
-                        <button onclick="openNewApptModal()" class="mt-4 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs inline-flex items-center gap-1.5 shadow-lg shadow-emerald-500/20 transition">
-                            ➕ Agendar Nova Reunião
-                        </button>
+                        <p class="text-xs mt-1 text-slate-500">Agende manualmente ou aguarde o lead finalizar pelo WhatsApp.</p>
+                        <button onclick="openNewApptModal()" class="mt-4 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs inline-flex items-center gap-1.5 shadow-lg shadow-emerald-500/20 transition">➕ Agendar Nova Reunião</button>
                     </div>
                 `;
                 return;
@@ -715,84 +764,47 @@
                 return `
                     <div class="bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-3xl p-4 sm:p-6 shadow-xl flex flex-col justify-between transition group">
                         <div>
-                            <!-- Header do Card: Data, Horário e Tipo -->
                             <div class="flex justify-between items-start mb-3 sm:mb-4">
-                                <div class="bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-2xl flex items-center gap-1.5">
+                                <div class="bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-2xl flex items-center gap-1.5">
                                     <span class="text-xs font-bold text-emerald-400 font-mono">🕒 ${appt.date} • ${appt.time}</span>
                                 </div>
-                                <span class="text-[10px] sm:text-[11px] font-bold px-2.5 py-1 rounded-xl flex items-center gap-1 ${!isOnline ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' : 'bg-blue-500/10 text-blue-400 border border-blue-500/20'}">
+                                <span class="text-[10px] font-bold px-2.5 py-1 rounded-xl flex items-center gap-1 ${!isOnline ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' : 'bg-blue-500/10 text-blue-400 border border-blue-500/20'}">
                                     ${!isOnline ? '🏢 Presencial' : '📹 Online (Meet)'}
                                 </span>
                             </div>
 
-                            <!-- Nome, Telefone Salvo e Endereço -->
                             <div class="mb-3 sm:mb-4">
                                 <h3 class="text-sm sm:text-base font-extrabold text-white group-hover:text-amber-400 transition">${appt.client_name}</h3>
-                                <p class="text-xs text-emerald-400 font-mono font-semibold flex items-center gap-1 mt-0.5">
-                                    📱 ${appt.client_phone}
-                                </p>
+                                <p class="text-xs text-emerald-400 font-mono font-semibold mt-0.5">📱 ${appt.client_phone}</p>
                                 <div class="mt-2 text-xs">
                                     ${!isOnline ? `
-                                        <p class="text-slate-300 flex items-start gap-1.5">
-                                            📍 <span class="font-medium text-amber-300">Av. Abílio Machado, 1380 - Alípio de Melo</span>
-                                        </p>
+                                        <p class="text-slate-300">📍 <span class="font-medium text-amber-300">Av. Abílio Machado, 1380 - Alípio de Melo</span></p>
                                     ` : `
-                                        <p class="text-slate-300 flex items-center gap-1.5">
-                                            🔗 <span class="font-medium text-blue-400">Google Meet:</span>
-                                            <a href="${meetUrl}" target="_blank" class="text-blue-400 underline hover:text-blue-300 truncate">meet.google.com/glaucio-advocacia</a>
-                                        </p>
+                                        <p class="text-slate-300">🔗 <a href="${meetUrl}" target="_blank" class="text-blue-400 underline hover:text-blue-300">Google Meet</a></p>
                                     `}
                                 </div>
                             </div>
 
-                            <!-- Pauta / Assunto a tratar com o advogado -->
-                            <div class="bg-slate-950/70 border border-slate-800/80 rounded-2xl p-3 sm:p-4 mb-3 sm:mb-4">
-                                <div class="flex justify-between items-center mb-1">
-                                    <span class="text-[10px] font-bold uppercase tracking-wider text-amber-400/90">
-                                        ⚖️ Pauta com o Advogado:
-                                    </span>
-                                    <span class="text-[9px] text-slate-400 px-2 py-0.5 bg-slate-900 rounded-md border border-slate-800">
-                                        ${appt.law_area || 'Geral'}
-                                    </span>
-                                </div>
-                                <p class="text-xs text-slate-200 leading-relaxed font-medium">
-                                    ${appt.summary}
-                                </p>
+                            <div class="bg-slate-950/70 border border-slate-800/80 rounded-2xl p-3 mb-3">
+                                <span class="text-[10px] font-bold uppercase tracking-wider text-amber-400/90">⚖️ Pauta:</span>
+                                <p class="text-xs text-slate-200 leading-relaxed font-medium mt-0.5">${appt.summary}</p>
                             </div>
                         </div>
 
-                        <!-- Ações do Card -->
                         <div class="flex flex-col gap-2 pt-2.5 border-t border-slate-800/60">
                             ${isOnline ? `
-                                <a href="${meetUrl}" target="_blank" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-1.5 shadow-lg shadow-blue-500/20 active:scale-95">
-                                    📹 Entrar no Google Meet
-                                </a>
+                                <a href="${meetUrl}" target="_blank" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-1.5 shadow-lg shadow-blue-500/20">📹 Entrar no Google Meet</a>
                             ` : `
-                                <a href="${mapsUrl}" target="_blank" class="w-full bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-1.5 shadow-lg shadow-amber-500/20 active:scale-95">
-                                    🗺️ Abrir Rota no Google Maps
-                                </a>
+                                <a href="${mapsUrl}" target="_blank" class="w-full bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-1.5 shadow-lg shadow-amber-500/20">🗺️ Abrir Rota Google Maps</a>
                             `}
-
                             <div class="flex items-center gap-2">
-                                <a href="https://wa.me/${cleanPhone}" target="_blank" class="flex-1 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/30 py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 active:scale-95">
-                                    💬 Chamar WhatsApp
-                                </a>
-                                <button onclick="openChatFromAppt('${appt.client_phone}')" class="px-3.5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold transition" title="Ver conversa">
-                                    💬
-                                </button>
-                                <button onclick="cancelAppt(${appt.id})" class="px-3 py-2.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 rounded-xl text-xs transition" title="Cancelar Reunião">
-                                    🗑️
-                                </button>
+                                <a href="https://wa.me/${cleanPhone}" target="_blank" class="flex-1 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/30 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1">💬 WhatsApp</a>
+                                <button onclick="cancelAppt(${appt.id})" class="px-3 py-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 rounded-xl text-xs transition" title="Cancelar">🗑️</button>
                             </div>
                         </div>
                     </div>
                 `;
             }).join('');
-        }
-
-        function openChatFromAppt(phone) {
-            switchTab('leads');
-            selectClient(phone);
         }
 
         async function cancelAppt(id) {
@@ -803,7 +815,7 @@
 
         async function deleteLead(e, phone) {
             if (e) e.stopPropagation();
-            if (!confirm(`Deseja realmente excluir este contato (${phone}) e todo o histórico?`)) return;
+            if (!confirm(`Deseja realmente excluir este lead (${phone}) e todo o histórico?`)) return;
             await fetch(`/api/leads/${encodeURIComponent(phone)}/delete`, { method: 'POST' });
             if (selectedPhone === phone) {
                 selectedPhone = null;
@@ -814,7 +826,7 @@
         }
 
         async function clearAllLeads() {
-            if (!confirm('ATENÇÃO: Deseja realmente APAGAR TODOS os leads, contatos e histórico de mensagens do banco de dados? Esta ação não pode ser desfeita.')) return;
+            if (!confirm('ATENÇÃO: Deseja realmente APAGAR TODOS os leads do banco de dados? Esta ação é irreversível.')) return;
             await fetch('/api/leads/clear-all', { method: 'POST' });
             selectedPhone = null;
             selectedClient = null;
@@ -822,22 +834,12 @@
             loadData();
         }
 
-        function filterLeads() {
-            const query = document.getElementById('searchInput').value.toLowerCase();
-            const filtered = leads.filter(l => 
-                (l.name && l.name.toLowerCase().includes(query)) ||
-                (l.phone && l.phone.includes(query)) ||
-                (l.law_area && l.law_area.toLowerCase().includes(query)) ||
-                (l.instance_id && l.instance_id.toLowerCase().includes(query))
-            );
-            renderLeads(filtered);
-        }
-
         function selectClient(phone) {
             selectedPhone = phone;
             selectedClient = leads.find(l => l.phone === phone);
             renderLeads(leads);
             loadChat(phone);
+            if (currentLeadView === 'ficha') renderFicha();
             showMobileChat();
         }
 
@@ -846,17 +848,17 @@
             const msgs = await res.json();
 
             const lineName = selectedClient?.instance_id ? selectedClient.instance_id.replace('instance_', 'Linha ') : 'Linha 1';
-            document.getElementById('chatClientName').innerText = selectedClient?.name || 'Cliente';
-            document.getElementById('chatClientPhone').innerText = `WhatsApp: ${phone} • ${selectedClient?.law_area || 'Geral'} • [${lineName}]`;
+            document.getElementById('chatClientName').innerText = selectedClient?.name || 'Lead Anúncio';
+            document.getElementById('chatClientPhone').innerText = `📱 ${phone} • ${selectedClient?.law_area || 'Em Triagem'} • [${lineName}]`;
             
             const btnToggle = document.getElementById('btnToggleAi');
             document.getElementById('chatControls').classList.remove('hidden');
             if (selectedClient?.ai_active) {
                 btnToggle.innerText = '🤖 IA Ativa (Pausar)';
-                btnToggle.className = 'text-[10px] sm:text-xs px-2 sm:px-3 py-1.5 rounded-lg font-semibold bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30';
+                btnToggle.className = 'text-[10px] sm:text-xs px-2.5 py-1.5 rounded-lg font-semibold bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30';
             } else {
                 btnToggle.innerText = '👤 Humano (Ativar IA)';
-                btnToggle.className = 'text-[10px] sm:text-xs px-2 sm:px-3 py-1.5 rounded-lg font-semibold bg-rose-500/20 text-rose-400 hover:bg-rose-500/30';
+                btnToggle.className = 'text-[10px] sm:text-xs px-2.5 py-1.5 rounded-lg font-semibold bg-rose-500/20 text-rose-400 hover:bg-rose-500/30';
             }
 
             document.getElementById('manualMsgInput').disabled = false;
@@ -867,9 +869,9 @@
                 const isUser = m.role === 'user';
                 return `
                     <div class="flex ${isUser ? 'justify-start' : 'justify-end'}">
-                        <div class="max-w-[88%] sm:max-w-[85%] rounded-2xl px-3.5 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm ${isUser ? 'bg-slate-800 text-slate-100 rounded-tl-sm' : 'bg-amber-600/90 text-white rounded-tr-sm shadow-md'}">
+                        <div class="max-w-[88%] rounded-2xl px-3.5 py-2 text-xs sm:text-sm ${isUser ? 'bg-slate-800 text-slate-100 rounded-tl-sm' : 'bg-amber-600/90 text-white rounded-tr-sm shadow-md'}">
                             <p class="whitespace-pre-wrap leading-relaxed">${m.content}</p>
-                            <span class="text-[9px] sm:text-[10px] ${isUser ? 'text-slate-400' : 'text-amber-200'} block text-right mt-1">${new Date(m.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                            <span class="text-[9px] ${isUser ? 'text-slate-400' : 'text-amber-200'} block text-right mt-1">${new Date(m.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
                         </div>
                     </div>
                 `;

@@ -4,9 +4,11 @@ const path = require('path');
 const fs = require('fs');
 const QRCode = require('qrcode');
 const { processIncomingMessage } = require('../agent/orchestrator');
+const DatabaseService = require('../database');
+const Logger = require('../logger');
 
 const MAX_INSTANCES = 5;
-const instances = new Map(); // id -> { id, name, sock, status, qrCode, authDir }
+const instances = new Map(); // id -> { id, name, sock, status, qrCode, authDir, user }
 const processedMessageIds = new Set();
 const messageBuffers = new Map(); // `${instanceId}:${phone}` -> { timer, messages: [], remoteJid }
 
@@ -15,7 +17,34 @@ if (!fs.existsSync(baseAuthDir)) {
     fs.mkdirSync(baseAuthDir, { recursive: true });
 }
 
-// Configuração inicial das 5 instâncias
+// Migração automática de sessão raiz antiga para instance_1
+function migrateLegacyAuth() {
+    try {
+        const legacyCreds = path.join(baseAuthDir, 'creds.json');
+        const inst1Dir = path.join(baseAuthDir, 'instance_1');
+        if (!fs.existsSync(inst1Dir)) {
+            fs.mkdirSync(inst1Dir, { recursive: true });
+        }
+        const inst1Creds = path.join(inst1Dir, 'creds.json');
+
+        if (fs.existsSync(legacyCreds) && !fs.existsSync(inst1Creds)) {
+            console.log('[WHATSAPP AUTH] Migrando credenciais legadas para instance_1...');
+            const files = fs.readdirSync(baseAuthDir);
+            for (const file of files) {
+                const fullPath = path.join(baseAuthDir, file);
+                if (fs.statSync(fullPath).isFile()) {
+                    fs.copyFileSync(fullPath, path.join(inst1Dir, file));
+                }
+            }
+            console.log('[WHATSAPP AUTH] Migração para instance_1 concluída!');
+        }
+    } catch (e) {
+        console.error('[AUTH MIGRATION ERROR]', e);
+    }
+}
+
+migrateLegacyAuth();
+
 const defaultInstanceNames = [
     'WhatsApp 1 (Dr. Glaucio - Principal)',
     'WhatsApp 2 (Atendimento 2)',
@@ -59,14 +88,14 @@ function saveInstancesMeta(meta) {
 function addToProcessedCache(id) {
     if (!id) return;
     processedMessageIds.add(id);
-    if (processedMessageIds.size > 2000) {
+    if (processedMessageIds.size > 3000) {
         const first = processedMessageIds.values().next().value;
         processedMessageIds.delete(first);
     }
 }
 
-async function handleBufferedMessages(instanceId, phone, remoteJid) {
-    const key = `${instanceId}:${phone}`;
+async function handleBufferedMessages(instanceId, cleanPhone, remoteJid) {
+    const key = `${instanceId}:${cleanPhone}`;
     const buffer = messageBuffers.get(key);
     if (!buffer || buffer.messages.length === 0) return;
 
@@ -76,20 +105,20 @@ async function handleBufferedMessages(instanceId, phone, remoteJid) {
     if (!combinedText) return;
 
     const instance = instances.get(instanceId);
-    if (!instance || !instance.sock || instance.status !== 'connected') return;
+    if (!instance || !instance.sock || instance.status !== 'CONNECTED') return;
 
-    console.log(`\n📩 [${instance.name} RECEBIDO de ${phone}]: "${combinedText}"`);
+    console.log(`\n📩 [${instance.name} RECEBIDO de ${cleanPhone}]: "${combinedText}"`);
 
     try {
         await instance.sock.sendPresenceUpdate('composing', remoteJid);
     } catch (e) {}
 
-    // Processa com a IA identificando a instância
-    const reply = await processIncomingMessage(phone, combinedText, instanceId);
+    // Processa com o motor de triagem inteligente
+    const reply = await processIncomingMessage(cleanPhone, combinedText, instanceId);
 
-    if (reply && instance.sock && instance.status === 'connected') {
+    if (reply && instance.sock && instance.status === 'CONNECTED') {
         await instance.sock.sendMessage(remoteJid, { text: reply });
-        console.log(`🤖 [${instance.name} RESPOSTA ENVIADA para ${phone}]: "${reply.substring(0, 70)}..."`);
+        console.log(`🤖 [${instance.name} RESPOSTA ENVIADA para ${cleanPhone}]: "${reply.substring(0, 70)}..."`);
     }
 }
 
@@ -99,13 +128,16 @@ async function startInstance(instanceId, instanceName) {
         fs.mkdirSync(authDir, { recursive: true });
     }
 
+    const hasStoredCreds = fs.existsSync(path.join(authDir, 'creds.json'));
+
     const instanceObj = {
         id: instanceId,
         name: instanceName,
         sock: null,
-        status: 'disconnected',
+        status: hasStoredCreds ? 'CONNECTING' : 'DISCONNECTED',
         qrCode: null,
-        authDir: authDir
+        authDir: authDir,
+        user: null
     };
     instances.set(instanceId, instanceObj);
 
@@ -118,8 +150,11 @@ async function startInstance(instanceId, instanceName) {
             logger: pino({ level: 'silent' }),
             auth: state,
             printQRInTerminal: false,
-            browser: ['Glaucio Dias Advocacia', 'Chrome', '1.0.0'],
-            syncFullHistory: false
+            browser: ['Glaucio Dias Advocacia CRM', 'Chrome', '2.0.0'],
+            syncFullHistory: false,
+            connectTimeoutMs: 60000,
+            defaultQueryTimeoutMs: 60000,
+            keepAliveIntervalMs: 25000
         });
 
         instanceObj.sock = sock;
@@ -130,24 +165,38 @@ async function startInstance(instanceId, instanceName) {
             const { connection, lastDisconnect, qr } = update;
 
             if (qr) {
-                console.log(`\n📱 [NOVO QR CODE PARA ${instanceName} GERADO]`);
+                console.log(`\n📱 [NOVO QR CODE GERADO PARA ${instanceName}]`);
                 instanceObj.qrCode = await QRCode.toDataURL(qr);
-                instanceObj.status = 'connecting';
+                instanceObj.status = 'CONNECTING';
+            }
+
+            if (connection === 'connecting') {
+                instanceObj.status = 'CONNECTING';
             }
 
             if (connection === 'close') {
                 const statusCode = (lastDisconnect?.error)?.output?.statusCode;
                 const shouldReconnect = statusCode !== DisconnectReason.loggedOut;
                 console.log(`[${instanceName}] Conexão encerrada (Status: ${statusCode}). Reconectando: ${shouldReconnect}`);
-                instanceObj.status = 'disconnected';
+                
                 instanceObj.qrCode = null;
-                if (shouldReconnect) {
-                    setTimeout(() => startInstance(instanceId, instanceName), 4000);
+                instanceObj.user = null;
+
+                if (statusCode === DisconnectReason.loggedOut) {
+                    instanceObj.status = 'DISCONNECTED';
+                    Logger.log('WHATSAPP_CONNECTION_ERROR', { instanceId, reason: 'loggedOut' });
+                } else {
+                    instanceObj.status = 'RECONNECTING';
+                    if (shouldReconnect) {
+                        setTimeout(() => startInstance(instanceId, instanceName), 5000);
+                    }
                 }
             } else if (connection === 'open') {
                 console.log(`\n✅ [${instanceName} CONECTADO COM SUCESSO!]: Ativo 24h.`);
-                instanceObj.status = 'connected';
+                instanceObj.status = 'CONNECTED';
                 instanceObj.qrCode = null;
+                instanceObj.user = sock.user || { id: 'WhatsApp Conectado' };
+                Logger.log('CRM_SYNC_SUCCESS', { instanceId, user: sock.user?.id });
             }
         });
 
@@ -172,25 +221,30 @@ async function startInstance(instanceId, instanceName) {
 
                 if (!messageText.trim()) continue;
 
-                const phone = remoteJid.replace('@s.whatsapp.net', '');
-                const bufferKey = `${instanceId}:${phone}`;
+                // Normaliza o número
+                const rawPhone = remoteJid.replace('@s.whatsapp.net', '');
+                const cleanPhone = DatabaseService.normalizePhone(rawPhone);
+
+                const bufferKey = `${instanceId}:${cleanPhone}`;
 
                 if (!messageBuffers.has(bufferKey)) {
                     messageBuffers.set(bufferKey, {
                         messages: [messageText],
                         remoteJid: remoteJid,
-                        timer: setTimeout(() => handleBufferedMessages(instanceId, phone, remoteJid), 1200)
+                        timer: setTimeout(() => handleBufferedMessages(instanceId, cleanPhone, remoteJid), 1200)
                     });
                 } else {
                     const current = messageBuffers.get(bufferKey);
                     current.messages.push(messageText);
                     clearTimeout(current.timer);
-                    current.timer = setTimeout(() => handleBufferedMessages(instanceId, phone, remoteJid), 1200);
+                    current.timer = setTimeout(() => handleBufferedMessages(instanceId, cleanPhone, remoteJid), 1200);
                 }
             }
         });
     } catch (err) {
         console.error(`[${instanceName} START ERROR]`, err);
+        instanceObj.status = 'ERROR';
+        Logger.log('WHATSAPP_CONNECTION_ERROR', { instanceId, error: err.message });
     }
 }
 
@@ -210,11 +264,15 @@ function getAllWhatsAppStatus() {
         const id = `instance_${i}`;
         const inst = instances.get(id);
         const name = meta[id]?.name || `WhatsApp ${i}`;
+        
+        let realStatus = inst ? inst.status : 'DISCONNECTED';
+        
         list.push({
             id: id,
             name: name,
-            status: inst ? inst.status : 'disconnected',
-            qrCode: inst ? inst.qrCode : null
+            status: realStatus,
+            qrCode: inst ? inst.qrCode : null,
+            user: inst?.user ? (inst.user.name || inst.user.id?.split(':')[0] || 'Conectado') : null
         });
     }
     return list;
@@ -223,15 +281,16 @@ function getAllWhatsAppStatus() {
 function getWhatsAppStatus(instanceId = 'instance_1') {
     const inst = instances.get(instanceId);
     return {
-        status: inst ? inst.status : 'disconnected',
-        qrCode: inst ? inst.qrCode : null
+        status: inst ? inst.status : 'DISCONNECTED',
+        qrCode: inst ? inst.qrCode : null,
+        user: inst?.user ? (inst.user.name || inst.user.id?.split(':')[0]) : null
     };
 }
 
 async function resetWhatsAppSession(instanceId = 'instance_1') {
     const inst = instances.get(instanceId);
     if (inst) {
-        console.log(`[WHATSAPP] Resetando ${inst.name}...`);
+        console.log(`[WHATSAPP] Reiniciando sessão ${inst.name}...`);
         try {
             if (inst.sock) {
                 inst.sock.end();
@@ -241,8 +300,9 @@ async function resetWhatsAppSession(instanceId = 'instance_1') {
                 fs.rmSync(inst.authDir, { recursive: true, force: true });
                 fs.mkdirSync(inst.authDir, { recursive: true });
             }
-            inst.status = 'disconnected';
+            inst.status = 'DISCONNECTED';
             inst.qrCode = null;
+            inst.user = null;
             setTimeout(() => startInstance(instanceId, inst.name), 1500);
             return true;
         } catch (e) {
@@ -270,20 +330,19 @@ async function sendDirectMessage(phone, text, instanceId = null) {
     if (instanceId && instances.has(instanceId)) {
         targetInstance = instances.get(instanceId);
     } else {
-        // Encontra a primeira instância conectada
         for (const inst of instances.values()) {
-            if (inst.status === 'connected') {
+            if (inst.status === 'CONNECTED') {
                 targetInstance = inst;
                 break;
             }
         }
     }
 
-    if (!targetInstance || !targetInstance.sock || targetInstance.status !== 'connected') {
+    if (!targetInstance || !targetInstance.sock || targetInstance.status !== 'CONNECTED') {
         return false;
     }
 
-    const cleanPhone = phone.replace(/\D/g, '');
+    const cleanPhone = DatabaseService.normalizePhone(phone);
     const remoteJid = `${cleanPhone}@s.whatsapp.net`;
     await targetInstance.sock.sendMessage(remoteJid, { text });
     return true;

@@ -7,6 +7,7 @@ const DatabaseService = require('./database');
 const { processIncomingMessage } = require('./agent/orchestrator');
 const EvolutionApi = require('./integrations/evolutionApi');
 const { startWhatsAppBot, getAllWhatsAppStatus, getWhatsAppStatus, resetWhatsAppSession, renameInstance, sendDirectMessage } = require('./integrations/whatsappDirect');
+const Logger = require('./logger');
 
 const app = express();
 app.use(cors());
@@ -22,7 +23,7 @@ app.get('/health', (req, res) => {
         status: 'online',
         service: config.office.name,
         timestamp: new Date().toISOString(),
-        version: '1.0.0'
+        version: '2.0.0'
     });
 });
 
@@ -55,6 +56,54 @@ app.post('/api/whatsapp/reset', async (req, res) => {
 });
 
 // ====================================================
+// ROTAS DE MÉTRICAS & QUALIFICAÇÃO
+// ====================================================
+app.get('/api/metrics', (req, res) => {
+    try {
+        const metrics = DatabaseService.getLeadMetrics();
+        res.json(metrics);
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// ====================================================
+// REGRAS DE TRIAGEM & PONTUAÇÃO CONFIGURÁVEIS
+// ====================================================
+const rulesPath = path.join(__dirname, '..', 'data', 'triage_rules.json');
+
+app.get('/api/triage-rules', (req, res) => {
+    try {
+        if (fs.existsSync(rulesPath)) {
+            const raw = fs.readFileSync(rulesPath, 'utf8');
+            return res.json(JSON.parse(raw));
+        }
+        res.json({});
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+app.post('/api/triage-rules', (req, res) => {
+    try {
+        const newRules = req.body;
+        if (!newRules || typeof newRules !== 'object') {
+            return res.status(400).json({ error: 'Formato de regras inválido' });
+        }
+        fs.writeFileSync(rulesPath, JSON.stringify(newRules, null, 2), 'utf8');
+        res.json({ success: true, message: 'Regras de triagem atualizadas com sucesso' });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// Logs de auditoria interna
+app.get('/api/audit-logs', (req, res) => {
+    const logs = Logger.getRecentLogs(100);
+    res.json(logs);
+});
+
+// ====================================================
 // WEBHOOK RECEIVER DA EVOLUTION API (WHATSAPP EXTERNO)
 // ====================================================
 app.post('/webhook/evolution', async (req, res) => {
@@ -82,7 +131,7 @@ app.post('/webhook/evolution', async (req, res) => {
 
             if (!messageText.trim()) return;
 
-            console.log(`[WHATSAPP MESSAGE from ${phone}]: ${messageText}`);
+            console.log(`[WHATSAPP EVOLUTION MESSAGE from ${phone}]: ${messageText}`);
             await EvolutionApi.sendPresence(phone, 'composing');
 
             const reply = await processIncomingMessage(phone, messageText);
@@ -92,6 +141,7 @@ app.post('/webhook/evolution', async (req, res) => {
         }
     } catch (error) {
         console.error('[WEBHOOK ERROR]', error);
+        Logger.log('CRM_SYNC_ERROR', { error: error.message });
     }
 });
 
@@ -105,7 +155,7 @@ app.get('/api/leads', (req, res) => {
 
 app.get('/api/export-leads', (req, res) => {
     const clients = DatabaseService.getAllClients();
-    let csv = 'Nome,Telefone,Cidade,Area_Juridica,Status,Resumo,Criado_Em\n';
+    let csv = 'Nome,Telefone,Cidade,Area_Juridica,Status,Score,Qualificacao,Origem,Campanha,Criado_Em\n';
     
     clients.forEach(c => {
         const name = (c.name || 'Cliente').replace(/,/g, ' ');
@@ -113,13 +163,16 @@ app.get('/api/export-leads', (req, res) => {
         const city = (c.city || '').replace(/,/g, ' ');
         const area = (c.law_area || '').replace(/,/g, ' ');
         const status = (c.status || '').replace(/,/g, ' ');
-        const summary = (c.summary || '').replace(/[\r\n,]/g, ' ');
+        const score = c.qualification_score || 0;
+        const qual = (c.qualification_status || '').replace(/,/g, ' ');
+        const source = (c.source || '').replace(/,/g, ' ');
+        const camp = (c.campaign || '').replace(/,/g, ' ');
         const date = (c.created_at || '').substring(0, 10);
-        csv += `"${name}","${phone}","${city}","${area}","${status}","${summary}","${date}"\n`;
+        csv += `"${name}","${phone}","${city}","${area}","${status}",${score},"${qual}","${source}","${camp}","${date}"\n`;
     });
 
     res.setHeader('Content-Type', 'text/csv; charset=utf-8');
-    res.setHeader('Content-Disposition', 'attachment; filename="leads_glaucio_advocacia.csv"');
+    res.setHeader('Content-Disposition', 'attachment; filename="leads_qualificados_glaucio_advocacia.csv"');
     res.send('\uFEFF' + csv);
 });
 
@@ -129,7 +182,7 @@ app.get('/api/manual-pdf', (req, res) => {
     if (fs.existsSync(pdfPath)) {
         res.download(pdfPath, 'Manual_Completo_CRM_Glaucio_Advocacia.pdf');
     } else {
-        res.status(404).send('PDF em geração. Tente novamente em alguns segundos.');
+        res.status(404).send('PDF em geração.');
     }
 });
 
@@ -150,7 +203,7 @@ app.post('/api/appointments/create', (req, res) => {
         time,
         meeting_type: meeting_type || 'Presencial',
         law_area: law_area || 'Direito Geral',
-        summary: summary || 'Reunião agendada manualmente pelo advogado'
+        summary: summary || 'Reunião agendada pelo advogado'
     });
     res.json({ success: true, appointment: appt });
 });

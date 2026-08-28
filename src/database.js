@@ -14,6 +14,39 @@ const defaultData = {
     appointments: []
 };
 
+// Normalizador seguro de números de telefone brasileiros
+function normalizePhone(rawPhone) {
+    if (!rawPhone) return '';
+    let digits = String(rawPhone).replace(/\D/g, '');
+    
+    // Remove sufixo de dispositivo WhatsApp se houver (ex: :1, :2)
+    if (digits.length > 15) {
+        digits = digits.substring(0, 13);
+    }
+
+    // Se começar com 0, remove o zero
+    if (digits.startsWith('0')) {
+        digits = digits.substring(1);
+    }
+
+    // Se for número BR sem DDI (10 ou 11 dígitos, ex: 31988776655)
+    if (digits.length === 10 || digits.length === 11) {
+        digits = '55' + digits;
+    }
+
+    // Se tiver 12 dígitos (55 + DDD + 8 dígitos móvel), adiciona o 9º dígito se for celular
+    if (digits.length === 12 && digits.startsWith('55')) {
+        const ddd = digits.substring(2, 4);
+        const rest = digits.substring(4);
+        // Se primeiro dígito do número for 6, 7, 8 ou 9, insere o 9
+        if (['6', '7', '8', '9'].includes(rest[0])) {
+            digits = `55${ddd}9${rest}`;
+        }
+    }
+
+    return digits;
+}
+
 function readDb() {
     try {
         if (!fs.existsSync(dbFile)) {
@@ -37,47 +70,80 @@ function writeDb(data) {
 }
 
 const DatabaseService = {
+    normalizePhone,
+
     getClientByPhone(phone) {
+        const cleanPhone = normalizePhone(phone);
+        if (!cleanPhone) return null;
         const db = readDb();
-        return db.clients.find(c => c.phone === phone) || null;
+        return db.clients.find(c => normalizePhone(c.phone) === cleanPhone) || null;
     },
 
     saveOrUpdateClient(phone, data = {}) {
-        if (!phone || phone === 'undefined') return null;
+        const cleanPhone = normalizePhone(phone);
+        if (!cleanPhone) return null;
+
         const db = readDb();
-        let client = db.clients.find(c => c.phone === phone);
+        let client = db.clients.find(c => normalizePhone(c.phone) === cleanPhone);
 
         if (!client) {
             client = {
                 id: Date.now(),
-                phone: phone,
+                phone: cleanPhone,
+                phone_raw: String(phone),
+                whatsapp: `https://wa.me/${cleanPhone}`,
                 instance_id: data.instance_id || 'instance_1',
                 name: data.name || null,
                 city: data.city || null,
                 law_area: data.law_area || null,
+                source: data.source || (data.from_ad ? 'anuncio' : 'organico'),
+                campaign: data.campaign || null,
+                adset: data.adset || null,
+                ad: data.ad || null,
+                creative: data.creative || null,
+                utm_source: data.utm_source || null,
+                utm_campaign: data.utm_campaign || null,
+                utm_medium: data.utm_medium || null,
+                utm_content: data.utm_content || null,
+                status: data.status || 'NOVO LEAD',
+                triage_step: data.triage_step || 'area_selection',
+                triage_answers: Array.isArray(data.triage_answers) ? data.triage_answers : [],
+                qualification_score: data.qualification_score !== undefined ? Number(data.qualification_score) : 0,
+                qualification_status: data.qualification_status || 'EM TRIAGEM',
                 summary: data.summary || null,
                 urgency: data.urgency || 'A AVALIAR',
                 documents: data.documents || null,
                 client_goal: data.client_goal || null,
-                status: data.status || 'TRIAGEM',
-                from_ad: data.from_ad !== undefined ? (data.from_ad ? 1 : 0) : 1,
+                notes: data.notes || '',
+                assigned_to: data.assigned_to || 'Dr. Glaucio Dias',
+                from_ad: data.from_ad !== undefined ? (data.from_ad ? 1 : 0) : 0,
                 ai_active: data.ai_active !== undefined ? (data.ai_active ? 1 : 0) : 1,
                 created_at: new Date().toISOString(),
                 updated_at: new Date().toISOString()
             };
             db.clients.push(client);
         } else {
-            for (const key of ['name', 'city', 'law_area', 'summary', 'urgency', 'documents', 'client_goal', 'status', 'instance_id']) {
+            const updatableKeys = [
+                'name', 'city', 'law_area', 'source', 'campaign', 'adset', 'ad', 'creative',
+                'utm_source', 'utm_campaign', 'utm_medium', 'utm_content', 'status',
+                'triage_step', 'triage_answers', 'qualification_score', 'qualification_status',
+                'summary', 'urgency', 'documents', 'client_goal', 'notes', 'assigned_to',
+                'instance_id'
+            ];
+
+            for (const key of updatableKeys) {
                 if (data[key] !== undefined && data[key] !== null) {
                     client[key] = data[key];
                 }
             }
+
             if (data.from_ad !== undefined) {
                 client.from_ad = data.from_ad ? 1 : 0;
             }
             if (data.ai_active !== undefined) {
                 client.ai_active = data.ai_active ? 1 : 0;
             }
+
             client.updated_at = new Date().toISOString();
         }
 
@@ -85,9 +151,65 @@ const DatabaseService = {
         return client;
     },
 
-    setAiActive(phone, isActive) {
+    saveTriageAnswer(phone, step, question, answer, points = 0, nextStep = null) {
+        const cleanPhone = normalizePhone(phone);
         const db = readDb();
-        const client = db.clients.find(c => c.phone === phone);
+        const client = db.clients.find(c => normalizePhone(c.phone) === cleanPhone);
+        if (!client) return null;
+
+        if (!Array.isArray(client.triage_answers)) {
+            client.triage_answers = [];
+        }
+
+        // Se já havia resposta para este step, atualiza, senão adiciona
+        const existingIdx = client.triage_answers.findIndex(a => a.step === step);
+        const answerObj = {
+            step,
+            question,
+            answer,
+            points: Number(points) || 0,
+            answered_at: new Date().toISOString()
+        };
+
+        if (existingIdx >= 0) {
+            client.triage_answers[existingIdx] = answerObj;
+        } else {
+            client.triage_answers.push(answerObj);
+        }
+
+        // Recalcula score total somando todas as respostas
+        const totalScore = Math.min(100, client.triage_answers.reduce((acc, curr) => acc + (curr.points || 0), 0));
+        client.qualification_score = totalScore;
+
+        // Classificação automática conforme faixas
+        if (totalScore >= 81) {
+            client.qualification_status = 'ALTA PRIORIDADE';
+        } else if (totalScore >= 61) {
+            client.qualification_status = 'QUALIFICADO';
+        } else if (totalScore >= 31) {
+            client.qualification_status = 'EM ANÁLISE';
+        } else {
+            client.qualification_status = 'BAIXA PRIORIDADE';
+        }
+
+        if (nextStep) {
+            client.triage_step = nextStep;
+            if (nextStep === 'completed') {
+                client.status = totalScore >= 61 ? 'QUALIFICADO' : 'EM TRIAGEM';
+            } else {
+                client.status = 'EM TRIAGEM';
+            }
+        }
+
+        client.updated_at = new Date().toISOString();
+        writeDb(db);
+        return client;
+    },
+
+    setAiActive(phone, isActive) {
+        const cleanPhone = normalizePhone(phone);
+        const db = readDb();
+        const client = db.clients.find(c => normalizePhone(c.phone) === cleanPhone);
         if (client) {
             client.ai_active = isActive ? 1 : 0;
             client.updated_at = new Date().toISOString();
@@ -102,10 +224,11 @@ const DatabaseService = {
     },
 
     addMessage(phone, role, content) {
+        const cleanPhone = normalizePhone(phone);
         const db = readDb();
         db.messages.push({
             id: Date.now() + Math.random(),
-            phone,
+            phone: cleanPhone,
             role,
             content,
             created_at: new Date().toISOString()
@@ -113,18 +236,18 @@ const DatabaseService = {
         writeDb(db);
     },
 
-    getRecentMessages(phone, limit = 20) {
+    getRecentMessages(phone, limit = 30) {
+        const cleanPhone = normalizePhone(phone);
         const db = readDb();
-        const clientMsgs = db.messages.filter(m => m.phone === phone);
+        const clientMsgs = db.messages.filter(m => normalizePhone(m.phone) === cleanPhone);
         return clientMsgs.slice(-limit);
     },
 
     createAppointment({ phone, name, date, time, law_area, notes, summary, city, meeting_type }) {
         const db = readDb();
-        const cleanPhone = (!phone || phone === 'undefined') ? (db.clients[0]?.phone || 'WhatsApp') : phone;
-        const client = db.clients.find(c => c.phone === cleanPhone);
+        const cleanPhone = normalizePhone(phone) || (db.clients[0]?.phone || 'WhatsApp');
+        const client = db.clients.find(c => normalizePhone(c.phone) === cleanPhone);
 
-        // Define formato
         let finalMeetingType = 'Presencial';
         const checkText = `${meeting_type || ''} ${summary || ''} ${notes || ''}`.toLowerCase();
         if (checkText.includes('online') || checkText.includes('meet') || checkText.includes('video')) {
@@ -163,19 +286,15 @@ const DatabaseService = {
     getAllAppointments() {
         const db = readDb();
         return db.appointments.map(a => {
-            const client = db.clients.find(c => c.phone === a.client_phone) || db.clients[0];
+            const cleanPhone = normalizePhone(a.client_phone);
+            const client = db.clients.find(c => normalizePhone(c.phone) === cleanPhone) || db.clients[0];
             const checkText = `${a.meeting_type || ''} ${a.summary || ''} ${a.notes || ''}`.toLowerCase();
             const isOnline = checkText.includes('online') || checkText.includes('meet') || checkText.includes('video');
             const meetingType = isOnline ? 'Online (Google Meet)' : 'Presencial';
 
-            let validPhone = a.client_phone;
-            if (!validPhone || validPhone === 'undefined') {
-                validPhone = client?.phone || 'WhatsApp';
-            }
-
             return {
                 ...a,
-                client_phone: validPhone,
+                client_phone: cleanPhone || client?.phone || 'WhatsApp',
                 client_name: a.client_name || client?.name || 'Cliente',
                 city: a.city || client?.city || 'Belo Horizonte / MG',
                 meeting_type: meetingType,
@@ -199,10 +318,11 @@ const DatabaseService = {
     },
 
     deleteClient(phone) {
+        const cleanPhone = normalizePhone(phone);
         const db = readDb();
-        db.clients = db.clients.filter(c => c.phone !== phone);
-        db.messages = db.messages.filter(m => m.phone !== phone);
-        db.appointments = db.appointments.filter(a => a.client_phone !== phone);
+        db.clients = db.clients.filter(c => normalizePhone(c.phone) !== cleanPhone);
+        db.messages = db.messages.filter(m => normalizePhone(m.phone) !== cleanPhone);
+        db.appointments = db.appointments.filter(a => normalizePhone(a.client_phone) !== cleanPhone);
         writeDb(db);
         return true;
     },
@@ -214,6 +334,60 @@ const DatabaseService = {
         db.appointments = [];
         writeDb(db);
         return true;
+    },
+
+    getLeadMetrics() {
+        const db = readDb();
+        const clients = db.clients || [];
+        const totalLeads = clients.length;
+
+        const emTriagem = clients.filter(c => c.status === 'EM TRIAGEM' || c.status === 'NOVO LEAD').length;
+        const triagensConcluidas = clients.filter(c => c.triage_step === 'completed' || ['QUALIFICADO', 'ALTA PRIORIDADE', 'AGENDADO'].includes(c.status)).length;
+        const triagensIncompletas = clients.filter(c => c.status === 'TRIAGEM INCOMPLETA' || (c.triage_answers?.length > 0 && c.triage_step !== 'completed')).length;
+
+        const qualificados = clients.filter(c => c.qualification_status === 'QUALIFICADO' || c.qualification_status === 'ALTA PRIORIDADE' || c.status === 'QUALIFICADO').length;
+        const altaPrioridade = clients.filter(c => c.qualification_status === 'ALTA PRIORIDADE').length;
+        const naoQualificados = clients.filter(c => c.qualification_status === 'BAIXA PRIORIDADE' || c.qualification_status === 'NÃO QUALIFICADO' || c.status === 'NÃO QUALIFICADO').length;
+
+        const taxaQualificacao = totalLeads > 0 ? Math.round((qualificados / totalLeads) * 100) : 0;
+
+        // Por área
+        const porArea = {
+            trabalhista: clients.filter(c => (c.law_area || '').toLowerCase().includes('trabalh')).length,
+            previdenciario: clients.filter(c => (c.law_area || '').toLowerCase().includes('previd')).length,
+            familia: clients.filter(c => (c.law_area || '').toLowerCase().includes('fam')).length,
+            bancario_consumidor: clients.filter(c => (c.law_area || '').toLowerCase().includes('banc') || (c.law_area || '').toLowerCase().includes('consum')).length,
+            outros: clients.filter(c => {
+                const a = (c.law_area || '').toLowerCase();
+                return a && !a.includes('trabalh') && !a.includes('previd') && !a.includes('fam') && !a.includes('banc') && !a.includes('consum');
+            }).length
+        };
+
+        // Campanhas
+        const campanhasMap = {};
+        clients.forEach(c => {
+            const camp = c.campaign || c.source || 'Não Identificada';
+            if (!campanhasMap[camp]) {
+                campanhasMap[camp] = { total: 0, qualificados: 0 };
+            }
+            campanhasMap[camp].total++;
+            if (c.qualification_status === 'QUALIFICADO' || c.qualification_status === 'ALTA PRIORIDADE') {
+                campanhasMap[camp].qualificados++;
+            }
+        });
+
+        return {
+            totalLeads,
+            emTriagem,
+            triagensConcluidas,
+            triagensIncompletas,
+            qualificados,
+            altaPrioridade,
+            naoQualificados,
+            taxaQualificacao,
+            porArea,
+            campanhas: campanhasMap
+        };
     }
 };
 
