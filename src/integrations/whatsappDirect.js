@@ -40,6 +40,15 @@ function saveInstancesMeta(meta) {
     }
 }
 
+function sanitizeJid(jid) {
+    if (!jid) return '';
+    if (jid.includes(':')) {
+        const [userPart, domainPart] = jid.split('@');
+        return `${userPart.split(':')[0]}@${domainPart}`;
+    }
+    return jid;
+}
+
 // Resolve o número de telefone real brasileiro a partir do JID ou do LID
 function resolveRealPhone(authDir, remoteJid) {
     if (!remoteJid) return '';
@@ -125,23 +134,25 @@ async function handleBufferedMessages(instanceId, cleanPhone, remoteJid) {
 
     if (reply && instance.sock) {
         let sent = false;
-        // 1ª Tentativa: Enviar diretamente no JID de onde veio (LID ou número)
+        const targetJid = sanitizeJid(remoteJid);
+        // 1ª Tentativa: Enviar diretamente no JID limpo de onde veio (LID ou número sem :xx)
         try {
-            const res = await instance.sock.sendMessage(remoteJid, { text: reply });
+            const res = await instance.sock.sendMessage(targetJid, { text: reply });
             if (res?.key?.id) {
                 sentByBotMessageIds.add(res.key.id);
                 addToProcessedCache(res.key.id);
             }
             sent = true;
-            console.log(`🤖 [${instance.name} RESPOSTA ENVIADA DIRETA para ${finalCleanPhone} (JID: ${remoteJid})]: "${reply.substring(0, 70)}..."`);
+            console.log(`🤖 [${instance.name} RESPOSTA ENVIADA DIRETA para ${targetJid}]: "${reply.substring(0, 70)}..."`);
         } catch (err) {
-            console.error(`⚠️ [${instance.name} FALHA AO ENVIAR DIRETO para ${remoteJid}]:`, err.message);
+            console.error(`⚠️ [${instance.name} FALHA AO ENVIAR DIRETO para ${targetJid}]:`, err.message);
         }
 
         // 2ª Tentativa (fallback): Se falhar no LID, tenta no JID padrão do telefone
         if (!sent && finalCleanPhone) {
+            const cleanDigits = finalCleanPhone.replace(/\D/g, '');
+            const fallbackJid = `${cleanDigits}@s.whatsapp.net`;
             try {
-                const fallbackJid = `${finalCleanPhone}@s.whatsapp.net`;
                 console.log(`🔄 [${instance.name} TENTANDO FALLBACK para ${fallbackJid}]...`);
                 const res = await instance.sock.sendMessage(fallbackJid, { text: reply });
                 if (res?.key?.id) {
@@ -444,6 +455,7 @@ async function sendDirectMessage(phone, messageText, instanceId = 'instance_1') 
         const client = DatabaseService.getClientByPhone(clean);
         jid = (client && client.remote_jid) ? client.remote_jid : `${clean}@s.whatsapp.net`;
     }
+    jid = sanitizeJid(jid);
 
     try {
         const sent = await instance.sock.sendMessage(jid, { text: messageText });
