@@ -310,4 +310,25 @@ app.listen(PORT, () => {
     startWhatsAppBot().catch(err => {
         console.error('[WHATSAPP START ERROR]', err);
     });
+
+    // Dispara primeiro ping de keep-alive 30s após subir
+    setTimeout(triggerKeepAlivePing, 30000);
 });
+
+// ====================================================
+// ROBÔ DESPERTADOR (KEEP-ALIVE 24H): Impede repouso do Render
+// ====================================================
+const https = require('https');
+const RENDER_PUBLIC_URL = 'https://crm-adevocacia.onrender.com/health';
+
+function triggerKeepAlivePing() {
+    try {
+        https.get(RENDER_PUBLIC_URL, (res) => {
+            console.log(`[KEEP-ALIVE 24H] Ping enviado para manter servidor acordado. Status: ${res.statusCode}`);
+        }).on('error', () => {});
+    } catch (e) {}
+}
+
+// Dispara a cada 8 minutos (480.000 ms) para nunca atingir os 15 min de inatividade
+setInterval(triggerKeepAlivePing, 8 * 60 * 1000);
+
