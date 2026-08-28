@@ -105,7 +105,10 @@ async function handleBufferedMessages(instanceId, cleanPhone, remoteJid) {
     if (!combinedText) return;
 
     const instance = instances.get(instanceId);
-    if (!instance || !instance.sock || instance.status !== 'CONNECTED') return;
+    if (!instance || !instance.sock) {
+        console.error(`[BUFFER ERROR] Instância ${instanceId} ou socket inexistente.`);
+        return;
+    }
 
     // Tenta re-resolver o telefone caso o mapping tenha sido gravado no debounce
     const realPhone = resolveRealPhone(instance.authDir, remoteJid);
@@ -120,18 +123,37 @@ async function handleBufferedMessages(instanceId, cleanPhone, remoteJid) {
     // Processa com o motor de triagem inteligente passando o remoteJid para persistência
     const reply = await processIncomingMessage(finalCleanPhone, combinedText, instanceId, remoteJid);
 
-    if (reply && instance.sock && instance.status === 'CONNECTED') {
-        // Envia a resposta de volta exatamente no chat de onde a mensagem veio (remoteJid)
-        const sent = await instance.sock.sendMessage(remoteJid, { text: reply });
-        if (sent?.key?.id) {
-            sentByBotMessageIds.add(sent.key.id);
-            addToProcessedCache(sent.key.id);
-            if (sentByBotMessageIds.size > 1000) {
-                const first = sentByBotMessageIds.values().next().value;
-                sentByBotMessageIds.delete(first);
+    if (reply && instance.sock) {
+        let sent = false;
+        // 1ª Tentativa: Enviar diretamente no JID de onde veio (LID ou número)
+        try {
+            const res = await instance.sock.sendMessage(remoteJid, { text: reply });
+            if (res?.key?.id) {
+                sentByBotMessageIds.add(res.key.id);
+                addToProcessedCache(res.key.id);
+            }
+            sent = true;
+            console.log(`🤖 [${instance.name} RESPOSTA ENVIADA DIRETA para ${finalCleanPhone} (JID: ${remoteJid})]: "${reply.substring(0, 70)}..."`);
+        } catch (err) {
+            console.error(`⚠️ [${instance.name} FALHA AO ENVIAR DIRETO para ${remoteJid}]:`, err.message);
+        }
+
+        // 2ª Tentativa (fallback): Se falhar no LID, tenta no JID padrão do telefone
+        if (!sent && finalCleanPhone) {
+            try {
+                const fallbackJid = `${finalCleanPhone}@s.whatsapp.net`;
+                console.log(`🔄 [${instance.name} TENTANDO FALLBACK para ${fallbackJid}]...`);
+                const res = await instance.sock.sendMessage(fallbackJid, { text: reply });
+                if (res?.key?.id) {
+                    sentByBotMessageIds.add(res.key.id);
+                    addToProcessedCache(res.key.id);
+                }
+                sent = true;
+                console.log(`🤖 [${instance.name} RESPOSTA ENVIADA VIA FALLBACK para ${fallbackJid}]`);
+            } catch (err2) {
+                console.error(`❌ [${instance.name} ERRO FATAL AO ENVIAR no fallback]:`, err2.message);
             }
         }
-        console.log(`🤖 [${instance.name} RESPOSTA ENVIADA para ${finalCleanPhone} (JID: ${remoteJid})]: "${reply.substring(0, 70)}..."`);
     }
 }
 
@@ -255,7 +277,13 @@ async function startInstance(instanceId, instanceName) {
                 // Detecta se é mensagem enviada pelo próprio número conectado (auto-chat de teste)
                 const rawBot = instanceObj.user ? instanceObj.user.split('@')[0].split(':')[0] : '';
                 const botPhone = DatabaseService.normalizePhone(rawBot);
-                const isSelfMessage = (cleanPhone && botPhone && cleanPhone === botPhone);
+                const rawRemote = remoteJid ? remoteJid.split('@')[0].split(':')[0] : '';
+                const isSelfMessage = (
+                    (cleanPhone && botPhone && cleanPhone === botPhone) ||
+                    (rawRemote && rawBot && rawRemote === rawBot) ||
+                    (instanceObj.user && remoteJid && remoteJid.includes(instanceObj.user.split(':')[0])) ||
+                    (instanceObj.user && remoteJid && remoteJid.includes(instanceObj.user.split('@')[0]))
+                );
 
                 // Se fromMe for true e NÃO for teste no próprio número, ignora
                 if (msg.key.fromMe && !isSelfMessage) {

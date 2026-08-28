@@ -151,8 +151,9 @@
                 <p id="qrHelpText" class="text-xs text-slate-400 mb-4">Abra o WhatsApp > Aparelhos Conectados > Conectar Aparelho.</p>
 
                 <div class="flex gap-2">
-                    <button onclick="resetCurrentWhatsApp()" class="flex-1 text-xs text-rose-400 hover:text-rose-300 font-semibold bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 py-2.5 rounded-xl transition">🔄 Desconectar & Novo QR</button>
-                    <button onclick="checkWhatsAppInstances()" class="px-4 text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 py-2.5 rounded-xl font-semibold transition">🔄 Atualizar</button>
+                    <button onclick="resetCurrentWhatsApp()" class="flex-1 text-xs text-rose-400 hover:text-rose-300 font-semibold bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 py-2.5 rounded-xl transition">🔄 Desconectar & QR</button>
+                    <button onclick="restartFullSystem()" class="flex-1 text-xs text-amber-400 hover:text-amber-300 font-semibold bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 py-2.5 rounded-xl transition">⚡ Reiniciar Sistema</button>
+                    <button onclick="checkWhatsAppInstances()" class="px-3 text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 py-2.5 rounded-xl font-semibold transition">🔄 Atualizar</button>
                 </div>
             </div>
         </div>
@@ -679,6 +680,21 @@
                 body: JSON.stringify({ name: newName.trim() })
             });
             checkWhatsAppInstances();
+        }
+
+        async function restartFullSystem() {
+            if (!confirm('Deseja realmente reiniciar todo o sistema e reiniciar as conexões do WhatsApp?')) return;
+            const badge = document.getElementById('selectedInstanceBadge');
+            if (badge) {
+                badge.innerText = '🔄 REINICIANDO SISTEMA...';
+                badge.className = 'text-xs font-bold px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-400';
+            }
+            try {
+                await fetch('/api/system/restart', { method: 'POST' });
+            } catch (e) {}
+            setTimeout(() => {
+                location.reload();
+            }, 3500);
         }
 
         async function loadData() {

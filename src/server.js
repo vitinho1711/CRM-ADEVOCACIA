@@ -55,6 +55,15 @@ app.post('/api/whatsapp/reset', async (req, res) => {
     res.json({ success });
 });
 
+// Reinício completo de todo o sistema
+app.post('/api/system/restart', (req, res) => {
+    res.json({ success: true, message: 'Reiniciando todo o sistema com reboot do processo...' });
+    console.log('🔄 [SISTEMA] Reinício completo solicitado via API. Reiniciando processo Node...');
+    setTimeout(() => {
+        process.exit(0);
+    }, 800);
+});
+
 // ====================================================
 // ROTAS DE MÉTRICAS & QUALIFICAÇÃO
 // ====================================================
