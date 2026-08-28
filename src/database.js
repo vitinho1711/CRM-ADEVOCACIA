@@ -17,11 +17,17 @@ function getOfficeMeetLink() {
             const raw = fs.readFileSync(officeConfigFile, 'utf8');
             const data = JSON.parse(raw);
             if (data.meet_link && data.meet_link.startsWith('http')) {
+                // Se for o link antigo com nome inválido que o Meet rejeita, migra para código válido 3-4-3
+                if (data.meet_link.includes('glaucio-advocacia')) {
+                    const validDefault = 'https://meet.google.com/gla-ucio-dia';
+                    setOfficeMeetLink(validDefault);
+                    return validDefault;
+                }
                 return data.meet_link;
             }
         }
     } catch (e) {}
-    return 'https://meet.google.com/glaucio-advocacia';
+    return 'https://meet.google.com/gla-ucio-dia';
 }
 
 function setOfficeMeetLink(link) {
@@ -585,6 +591,26 @@ const DatabaseService = {
 
     getAppointmentsForDate(date) {
         return memoryCache.appointments.filter(a => a.date === date && a.status !== 'CANCELADO');
+    },
+
+    isTimeSlotAvailable(date, time) {
+        if (!date || !time) return false;
+        const cleanTime = String(time).trim();
+        const booked = (memoryCache.appointments || []).find(a => 
+            a.date === date && 
+            (a.time === cleanTime || a.time?.startsWith(cleanTime.substring(0, 4))) && 
+            a.status !== 'CANCELADO'
+        );
+        return !booked;
+    },
+
+    getAvailableSlotsForDate(date) {
+        const allStandardSlots = ['09:30', '10:30', '11:30', '13:00', '14:00', '15:00', '16:00', '17:00'];
+        const booked = (memoryCache.appointments || [])
+            .filter(a => a.date === date && a.status !== 'CANCELADO')
+            .map(a => a.time);
+        
+        return allStandardSlots.filter(slot => !booked.some(b => b === slot || b?.startsWith(slot.substring(0, 4))));
     },
 
     getAllAppointments() {

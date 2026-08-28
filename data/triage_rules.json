@@ -60,13 +60,13 @@
       "steps": [
         {
           "id": "familia_situacao",
-          "question": "Para entendermos sua situação, qual caso melhor representa o que você precisa?\n\n1️⃣ Divórcio ou Dissolução de União Estável\n2️⃣ Separação de Corpos / Afastamento\n3️⃣ Guarda ou Convivência de Filhos\n4️⃣ Pensão Alimentícia (Fixação, Revisão ou Cobrança)\n5️⃣ Partilha de Bens ou Inventário\n6️⃣ Outro assunto de família",
+          "question": "Para entendermos sua situação com clareza, qual caso melhor representa o que você precisa?\n\n1️⃣ Divórcio ou Dissolução de União Estável\n2️⃣ Separação de Corpos / Afastamento do Lar\n3️⃣ Guarda ou Regulamentação de Convivência dos Filhos\n4️⃣ Pensão Alimentícia (Fixação, Revisão ou Cobrança)\n5️⃣ Partilha de Bens ou Inventário / Herança\n6️⃣ Outro assunto de família",
           "options": [
-            { "text": "Divórcio", "points": 25, "aliases": ["1", "1️⃣", "divorcio", "divórcio", "separar", "uniao estavel"] },
-            { "text": "Separação", "points": 20, "aliases": ["2", "2️⃣", "separacao", "separação", "afastamento"] },
-            { "text": "Guarda de Filhos", "points": 25, "aliases": ["3", "3️⃣", "guarda", "visitas", "filhos", "filho"] },
-            { "text": "Pensão Alimentícia", "points": 25, "aliases": ["4", "4️⃣", "pensao", "pensão", "alimentos"] },
-            { "text": "Partilha de Bens", "points": 25, "aliases": ["5", "5️⃣", "partilha", "bens", "inventario", "herança"] },
+            { "text": "Divórcio", "points": 20, "aliases": ["1", "1️⃣", "divorcio", "divórcio", "separar", "uniao estavel"] },
+            { "text": "Separação", "points": 15, "aliases": ["2", "2️⃣", "separacao", "separação", "afastamento"] },
+            { "text": "Guarda de Filhos", "points": 20, "aliases": ["3", "3️⃣", "guarda", "visitas", "filhos", "filho"] },
+            { "text": "Pensão Alimentícia", "points": 20, "aliases": ["4", "4️⃣", "pensao", "pensão", "alimentos"] },
+            { "text": "Partilha de Bens", "points": 20, "aliases": ["5", "5️⃣", "partilha", "bens", "inventario", "herança"] },
             { "text": "Outro assunto", "points": 10, "aliases": ["6", "6️⃣", "outro", "outros"] }
           ]
         },
@@ -74,38 +74,47 @@
           "id": "familia_processo",
           "question": "Já existe algum processo judicial ou acordo formal em andamento sobre essa questão?\n\n1️⃣ Sim, já existe processo\n2️⃣ Não, ainda nada formalizado\n3️⃣ Não sei informar",
           "options": [
-            { "text": "Sim, já existe processo", "points": 20, "aliases": ["1", "1️⃣", "sim", "ja existe", "processo"] },
+            { "text": "Sim, já existe processo", "points": 15, "aliases": ["1", "1️⃣", "sim", "ja existe", "processo"] },
             { "text": "Não, ainda nada formalizado", "points": 15, "aliases": ["2", "2️⃣", "nao", "não", "nada"] },
             { "text": "Não sei informar", "points": 10, "aliases": ["3", "3️⃣", "nao sei", "não sei"] }
           ]
         },
         {
-          "id": "familia_bens",
-          "question": "Existem bens ou patrimônio envolvidos na situação?\n\n1️⃣ Imóvel (Casa, Apartamento, Terreno)\n2️⃣ Veículo (Carro, Moto)\n3️⃣ Empresa ou Participação Societária\n4️⃣ Dinheiro / Investimentos / Contas\n5️⃣ Outros bens\n6️⃣ Não existem bens",
-          "options": [
-            { "text": "Imóvel", "points": 25, "aliases": ["1", "1️⃣", "imovel", "imóvel", "casa", "apartamento", "lote", "terreno"] },
-            { "text": "Veículo", "points": 15, "aliases": ["2", "2️⃣", "veiculo", "veículo", "carro", "moto"] },
-            { "text": "Empresa", "points": 30, "aliases": ["3", "3️⃣", "empresa", "comercio", "socio"] },
-            { "text": "Dinheiro ou Investimentos", "points": 20, "aliases": ["4", "4️⃣", "dinheiro", "investimento", "banco", "saldo"] },
-            { "text": "Outros bens", "points": 15, "aliases": ["5", "5️⃣", "outros", "moveis"] },
-            { "text": "Não existem bens", "points": 5, "aliases": ["6", "6️⃣", "nao", "não", "sem bens", "nenhum"] }
-          ]
-        },
-        {
           "id": "familia_filhos",
-          "question": "Existem filhos menores de idade envolvidos?\n\n1️⃣ Sim, temos filhos menores\n2️⃣ Não temos filhos menores",
+          "question": "Existem filhos menores de idade ou dependentes envolvidos?\n\n1️⃣ Sim, temos filhos menores ou dependentes\n2️⃣ Não temos filhos menores",
           "options": [
             { "text": "Sim, filhos menores", "points": 15, "aliases": ["1", "1️⃣", "sim", "temos filhos", "menor"] },
             { "text": "Não", "points": 5, "aliases": ["2", "2️⃣", "nao", "não", "sem filhos", "maiores"] }
           ]
         },
         {
+          "id": "familia_bens",
+          "question": "Existem bens ou patrimônio envolvidos a serem partilhados?\n\n1️⃣ Imóvel (Casa, Apartamento, Terreno)\n2️⃣ Veículo (Carro, Moto)\n3️⃣ Empresa ou Participação Societária\n4️⃣ Dinheiro / Investimentos / Contas bancárias\n5️⃣ Outros bens patrimoniais\n6️⃣ Não existem bens a partilhar",
+          "options": [
+            { "text": "Imóvel", "points": 20, "aliases": ["1", "1️⃣", "imovel", "imóvel", "casa", "apartamento", "lote", "terreno"] },
+            { "text": "Veículo", "points": 15, "aliases": ["2", "2️⃣", "veiculo", "veículo", "carro", "moto"] },
+            { "text": "Empresa", "points": 25, "aliases": ["3", "3️⃣", "empresa", "comercio", "socio"] },
+            { "text": "Dinheiro ou Investimentos", "points": 15, "aliases": ["4", "4️⃣", "dinheiro", "investimento", "banco", "saldo"] },
+            { "text": "Outros bens", "points": 10, "aliases": ["5", "5️⃣", "outros", "moveis"] },
+            { "text": "Não existem bens", "points": 5, "aliases": ["6", "6️⃣", "nao", "não", "sem bens", "nenhum"] }
+          ]
+        },
+        {
+          "id": "familia_acordo",
+          "question": "Existe possibilidade de um acordo amigável (consensual) entre vocês ou há muito conflito (litígio)?\n\n1️⃣ Há chance de acordo amigável (consensual)\n2️⃣ Não há acordo, existe conflito e disputa (litigioso)\n3️⃣ Ainda não conversamos sobre os termos",
+          "options": [
+            { "text": "Chance de acordo amigável", "points": 15, "aliases": ["1", "1️⃣", "amigavel", "acordo", "consensual"] },
+            { "text": "Litigioso com conflito", "points": 20, "aliases": ["2", "2️⃣", "litigio", "litígio", "briga", "conflito", "disputa"] },
+            { "text": "Não conversamos ainda", "points": 10, "aliases": ["3", "3️⃣", "nao conversamos", "nao sei"] }
+          ]
+        },
+        {
           "id": "familia_momento",
-          "question": "Em que momento a situação se encontra atualmente?\n\n1️⃣ Ainda estou avaliando a situação\n2️⃣ A separação já aconteceu de fato\n3️⃣ Já existe um conflito ativo sobre bens, filhos ou pensão\n4️⃣ Já recebi intimação / notificação judicial",
+          "question": "Em que momento a situação se encontra atualmente?\n\n1️⃣ Ainda estou avaliando a situação\n2️⃣ A separação já aconteceu de fato\n3️⃣ Há urgência sobre guarda, pensão ou bloqueio de bens\n4️⃣ Já recebi intimação ou notificação judicial",
           "options": [
             { "text": "Ainda estou avaliando", "points": 10, "aliases": ["1", "1️⃣", "avaliando", "pensando"] },
             { "text": "Separação já aconteceu", "points": 15, "aliases": ["2", "2️⃣", "ja aconteceu", "aconteceu"] },
-            { "text": "Conflito ativo", "points": 25, "aliases": ["3", "3️⃣", "conflito", "briga", "disputa", "urgente"] },
+            { "text": "Urgência em guarda/pensão/bens", "points": 25, "aliases": ["3", "3️⃣", "urgencia", "urgência", "conflito", "urgente"] },
             { "text": "Recebi intimação judicial", "points": 30, "aliases": ["4", "4️⃣", "intimacao", "intimação", "oficial", "notificacao", "notificação", "urgente"] }
           ]
         }
@@ -116,51 +125,64 @@
       "steps": [
         {
           "id": "trabalhista_situacao",
-          "question": "Qual situação melhor descreve o que está acontecendo ou aconteceu no seu trabalho?\n\n1️⃣ Fui demitido(a)\n2️⃣ Não recebi corretamente minhas verbas rescisórias\n3️⃣ Tenho dúvidas sobre valores da minha rescisão\n4️⃣ Faço horas extras sem receber ou desvio de função\n5️⃣ Empresa não deposita FGTS ou atrasa salários\n6️⃣ Sofro assédio moral ou problemas graves no ambiente de trabalho\n7️⃣ Outra situação",
+          "question": "Qual situação melhor descreve o que aconteceu ou está acontecendo no seu trabalho?\n\n1️⃣ Fui demitido(a) sem justa causa\n2️⃣ Não recebi corretamente minhas verbas rescisórias\n3️⃣ Quero pedir rescisão indireta (sair por culpa da empresa)\n4️⃣ Faço horas extras sem receber ou desvio de função\n5️⃣ Empresa atrasa salários ou não deposita FGTS\n6️⃣ Sofro assédio moral ou perseguição no trabalho\n7️⃣ Outra situação",
           "options": [
-            { "text": "Fui demitido", "points": 25, "aliases": ["1", "1️⃣", "demitido", "demissao", "fui mandado embora", "despedido"] },
-            { "text": "Não recebi rescisão correta", "points": 25, "aliases": ["2", "2️⃣", "rescisao", "rescisão", "nao recebi", "nao pagaram"] },
-            { "text": "Dúvidas sobre rescisão", "points": 15, "aliases": ["3", "3️⃣", "duvidas", "duvida", "calcular"] },
+            { "text": "Fui demitido", "points": 20, "aliases": ["1", "1️⃣", "demitido", "demissao", "fui mandado embora", "despedido"] },
+            { "text": "Não recebi rescisão correta", "points": 20, "aliases": ["2", "2️⃣", "rescisao", "rescisão", "nao recebi", "nao pagaram"] },
+            { "text": "Rescisão indireta", "points": 25, "aliases": ["3", "3️⃣", "rescisao indireta", "sair", "culpa da empresa"] },
             { "text": "Horas extras / Desvio de função", "points": 20, "aliases": ["4", "4️⃣", "horas extras", "desvio", "sobrecarga"] },
-            { "text": "Problemas de FGTS / Salário", "points": 25, "aliases": ["5", "5️⃣", "fgts", "salario atrasado", "sem pagar"] },
-            { "text": "Assédio moral / Problema grave", "points": 30, "aliases": ["6", "6️⃣", "assedio", "assédio", "perseguição", "humilhação"] },
+            { "text": "FGTS / Salários atrasados", "points": 20, "aliases": ["5", "5️⃣", "fgts", "salario atrasado", "sem pagar"] },
+            { "text": "Assédio moral / Problema grave", "points": 25, "aliases": ["6", "6️⃣", "assedio", "assédio", "perseguição", "humilhação"] },
             { "text": "Outro", "points": 10, "aliases": ["7", "7️⃣", "outro", "outra"] }
           ]
         },
         {
-          "id": "trabalhista_vinculo",
-          "question": "Você ainda trabalha nessa empresa atualmente?\n\n1️⃣ Sim, continuo trabalhando lá\n2️⃣ Não, já saí ou fui desligado(a)",
+          "id": "trabalhista_carteira",
+          "question": "Sua carteira de trabalho era devidamente assinada pela empresa?\n\n1️⃣ Sim, totalmente assinada desde o início\n2️⃣ Não, trabalhei todo o tempo sem carteira assinada\n3️⃣ Assinaram após meses de trabalho ou com valor menor que o real\n4️⃣ Fui contratado como PJ / MEI (pejotização)",
           "options": [
-            { "text": "Sim, ainda trabalho", "points": 20, "aliases": ["1", "1️⃣", "sim", "trabalho", "continuo"] },
-            { "text": "Não, já saí", "points": 25, "aliases": ["2", "2️⃣", "nao", "não", "ja sai", "fui demitido", "sai"] }
+            { "text": "Totalmente assinada", "points": 15, "aliases": ["1", "1️⃣", "assinada", "sim", "carteira assinada"] },
+            { "text": "Sem carteira assinada", "points": 25, "aliases": ["2", "2️⃣", "sem carteira", "nao assinada", "informal"] },
+            { "text": "Assinatura irregular/atrasada", "points": 20, "aliases": ["3", "3️⃣", "atrasada", "valor menor", "irregular"] },
+            { "text": "Contratado como PJ/MEI", "points": 25, "aliases": ["4", "4️⃣", "pj", "mei", "pejotizacao", "pejotização"] }
+          ]
+        },
+        {
+          "id": "trabalhista_vinculo",
+          "question": "Você ainda continua trabalhando nessa empresa atualmente?\n\n1️⃣ Sim, continuo trabalhando lá\n2️⃣ Não, já saí ou fui desligado(a)",
+          "options": [
+            { "text": "Sim, ainda trabalho", "points": 15, "aliases": ["1", "1️⃣", "sim", "trabalho", "continuo"] },
+            { "text": "Não, já saí", "points": 20, "aliases": ["2", "2️⃣", "nao", "não", "ja sai", "fui demitido", "sai"] }
           ]
         },
         {
           "id": "trabalhista_tempo",
-          "question": "Há quanto tempo essa situação ou desligamento aconteceu?\n\n1️⃣ Menos de 30 dias\n2️⃣ Entre 1 e 3 meses\n3️⃣ Entre 3 e 12 meses\n4️⃣ Mais de 1 ano\n5️⃣ Mais de 2 anos",
+          "question": "Há quanto tempo você saiu da empresa ou essa situação aconteceu?\n\n1️⃣ Menos de 30 dias\n2️⃣ Entre 1 e 6 meses\n3️⃣ Entre 6 meses e 1 ano e meio\n4️⃣ Mais de 2 anos (Atenção ao prazo de prescrição)",
           "options": [
-            { "text": "Menos de 30 dias", "points": 25, "aliases": ["1", "1️⃣", "menos de 30", "recente", "este mes", "esse mes", "dias"] },
-            { "text": "Entre 1 e 3 meses", "points": 20, "aliases": ["2", "2️⃣", "1 a 3 meses", "meses"] },
-            { "text": "Entre 3 e 12 meses", "points": 15, "aliases": ["3", "3️⃣", "3 a 12", "meses"] },
-            { "text": "Mais de 1 ano", "points": 10, "aliases": ["4", "4️⃣", "mais de 1 ano", "1 ano"] },
-            { "text": "Mais de 2 anos (risco de prescrição)", "points": 0, "aliases": ["5", "5️⃣", "mais de 2 anos", "2 anos", "anos"] }
+            { "text": "Menos de 30 dias", "points": 25, "aliases": ["1", "1️⃣", "menos de 30", "recente", "este mes", "dias"] },
+            { "text": "Entre 1 e 6 meses", "points": 20, "aliases": ["2", "2️⃣", "1 a 6 meses", "meses"] },
+            { "text": "Entre 6 meses e 1 ano e meio", "points": 15, "aliases": ["3", "3️⃣", "1 ano", "meses"] },
+            { "text": "Mais de 2 anos", "points": 0, "aliases": ["4", "4️⃣", "mais de 2 anos", "2 anos", "prescricao"] }
+          ]
+        },
+        {
+          "id": "trabalhista_irregularidades",
+          "question": "Além do desligamento, quais direitos foram desrespeitados?\n\n1️⃣ Horas extras não pagas e trabalho em feriados/folgas\n2️⃣ Salários, férias ou 13º atrasados\n3️⃣ Não depositaram meu FGTS ou multa dos 40%\n4️⃣ Adicional de insalubridade ou periculosidade não pago\n5️⃣ Nenhuma dessas / Somente a demissão",
+          "options": [
+            { "text": "Horas extras / Feriados", "points": 20, "aliases": ["1", "1️⃣", "horas extras", "feriados", "intervalo"] },
+            { "text": "Salários / Férias atrasados", "points": 20, "aliases": ["2", "2️⃣", "salario", "salário", "ferias", "férias", "13"] },
+            { "text": "FGTS / Multa 40%", "points": 20, "aliases": ["3", "3️⃣", "fgts", "40", "multa"] },
+            { "text": "Insalubridade / Periculosidade", "points": 20, "aliases": ["4", "4️⃣", "insalubridade", "periculosidade", "risco"] },
+            { "text": "Somente demissão", "points": 10, "aliases": ["5", "5️⃣", "somente demissao", "nenhuma"] }
           ]
         },
         {
           "id": "trabalhista_documentos",
-          "question": "Você possui documentos ou registros da relação de trabalho (Carteira de Trabalho, contracheques, mensagens de WhatsApp, extrato do FGTS)?\n\n1️⃣ Sim, tenho documentos e mensagens\n2️⃣ Parcialmente, tenho algumas coisas\n3️⃣ Não possuo documentos no momento",
+          "question": "Você possui documentos comprobatórios (holerites, mensagens de WhatsApp, extrato do FGTS, cartão de ponto ou testemunhas)?\n\n1️⃣ Sim, tenho holerites, extratos e mensagens\n2️⃣ Tenho apenas parte dos documentos\n3️⃣ Não possuo documentos no momento, mas tenho testemunhas\n4️⃣ Não tenho documentos nem testemunhas",
           "options": [
-            { "text": "Sim, possui documentos", "points": 20, "aliases": ["1", "1️⃣", "sim", "tenho tudo", "tenho"] },
+            { "text": "Possui documentos completos", "points": 20, "aliases": ["1", "1️⃣", "sim", "tenho tudo", "tenho"] },
             { "text": "Parcialmente", "points": 15, "aliases": ["2", "2️⃣", "parcialmente", "alguns", "algumas"] },
-            { "text": "Não possuo", "points": 5, "aliases": ["3", "3️⃣", "nao", "não", "sem documentos"] }
-          ]
-        },
-        {
-          "id": "trabalhista_orientacao",
-          "question": "Você gostaria de agendar uma reunião com o Dr. Glaucio para orientação e cálculo exato das suas verbas?\n\n1️⃣ Sim, com certeza\n2️⃣ Apenas tirando dúvidas por enquanto",
-          "options": [
-            { "text": "Sim, desejo agendamento", "points": 20, "aliases": ["1", "1️⃣", "sim", "quero", "agendar", "com certeza"] },
-            { "text": "Apenas dúvidas", "points": 10, "aliases": ["2", "2️⃣", "duvidas", "apenas", "so duvidas"] }
+            { "text": "Sem documentos, com testemunhas", "points": 15, "aliases": ["3", "3️⃣", "testemunhas", "testemunha"] },
+            { "text": "Sem documentos nem testemunhas", "points": 5, "aliases": ["4", "4️⃣", "nao", "não", "sem nada"] }
           ]
         }
       ]
@@ -170,32 +192,42 @@
       "steps": [
         {
           "id": "previdenciario_situacao",
-          "question": "Qual situação melhor descreve o que você precisa junto ao INSS?\n\n1️⃣ Benefício Negado / Recusado pelo INSS\n2️⃣ Pedido em análise há muito tempo sem resposta\n3️⃣ Planejamento ou Pedido de Aposentadoria\n4️⃣ Auxílio por Incapacidade / Auxílio-Doença\n5️⃣ Benefício BPC / LOAS (Idoso ou Deficiência)\n6️⃣ Revisão de Valor de Benefício já concedido\n7️⃣ Outra situação previdenciária",
+          "question": "Qual situação melhor descreve o que você precisa junto ao INSS?\n\n1️⃣ Benefício Negado ou Recusado pelo INSS\n2️⃣ Pedido em análise há muito tempo sem resposta\n3️⃣ Planejamento ou Pedido de Aposentadoria\n4️⃣ Auxílio por Incapacidade Temporária (Auxílio-Doença)\n5️⃣ Benefício BPC / LOAS (Idoso ou Pessoa com Deficiência)\n6️⃣ Revisão de Valor de Benefício já concedido\n7️⃣ Outra situação previdenciária",
           "options": [
-            { "text": "Benefício Negado", "points": 30, "aliases": ["1", "1️⃣", "negado", "recusado", "indeferido"] },
-            { "text": "Pedido em análise", "points": 20, "aliases": ["2", "2️⃣", "analise", "análise", "demora", "esperando"] },
-            { "text": "Aposentadoria", "points": 25, "aliases": ["3", "3️⃣", "aposentadoria", "aposentar", "tempo"] },
+            { "text": "Benefício Negado", "points": 25, "aliases": ["1", "1️⃣", "negado", "recusado", "indeferido"] },
+            { "text": "Pedido em análise", "points": 15, "aliases": ["2", "2️⃣", "analise", "análise", "demora", "esperando"] },
+            { "text": "Aposentadoria", "points": 20, "aliases": ["3", "3️⃣", "aposentadoria", "aposentar", "tempo"] },
             { "text": "Auxílio por incapacidade", "points": 25, "aliases": ["4", "4️⃣", "doenca", "doença", "incapacidade", "auxilio"] },
-            { "text": "BPC / LOAS", "points": 25, "aliases": ["5", "5️⃣", "loas", "bpc", "baixa renda", "idoso"] },
-            { "text": "Revisão de benefício", "points": 20, "aliases": ["6", "6️⃣", "revisao", "revisão", "aumentar"] },
+            { "text": "BPC / LOAS", "points": 20, "aliases": ["5", "5️⃣", "loas", "bpc", "baixa renda", "idoso"] },
+            { "text": "Revisão de benefício", "points": 15, "aliases": ["6", "6️⃣", "revisao", "revisão", "aumentar"] },
             { "text": "Outro", "points": 10, "aliases": ["7", "7️⃣", "outro", "outra"] }
           ]
         },
         {
           "id": "previdenciario_pedido",
-          "question": "Você já fez algum pedido formal administrativo diretamente no INSS (pelo Meu INSS ou agência)?\n\n1️⃣ Sim, já fiz o pedido\n2️⃣ Não, ainda não fiz",
+          "question": "Você já deu entrada em algum pedido formal diretamente no INSS (pelo aplicativo Meu INSS ou agência)?\n\n1️⃣ Sim, já fiz o pedido e tenho o número do protocolo\n2️⃣ Não, ainda não dei entrada",
           "options": [
-            { "text": "Sim, já solicitou no INSS", "points": 25, "aliases": ["1", "1️⃣", "sim", "ja fiz", "fiz"] },
+            { "text": "Sim, já solicitou no INSS", "points": 20, "aliases": ["1", "1️⃣", "sim", "ja fiz", "fiz", "protocolo"] },
             { "text": "Não fez ainda", "points": 15, "aliases": ["2", "2️⃣", "nao", "não", "ainda nao"] }
           ]
         },
         {
-          "id": "previdenciario_documentos",
-          "question": "Você possui a carta de indeferimento, extrato do CNIS ou laudos médicos atualizados?\n\n1️⃣ Sim, tenho documentos em mãos\n2️⃣ Não tenho no momento\n3️⃣ Não sei verificar",
+          "id": "previdenciario_tempo_contribuicao",
+          "question": "Qual é o seu histórico de trabalho e contribuição ao INSS?\n\n1️⃣ Mais de 30 anos (Homem) / Mais de 25 anos (Mulher)\n2️⃣ Entre 15 e 25 anos de carteira/contribuição\n3️⃣ Menos de 15 anos de contribuição\n4️⃣ Trabalho rural, informal ou dona de casa",
           "options": [
-            { "text": "Sim, tem documentos/laudos", "points": 25, "aliases": ["1", "1️⃣", "sim", "tenho", "laudo", "carta"] },
-            { "text": "Não tenho no momento", "points": 10, "aliases": ["2", "2️⃣", "nao", "não"] },
-            { "text": "Não sei verificar", "points": 10, "aliases": ["3", "3️⃣", "nao sei", "não sei"] }
+            { "text": "Mais de 25/30 anos", "points": 25, "aliases": ["1", "1️⃣", "mais de 30", "mais de 25", "muito tempo"] },
+            { "text": "Entre 15 e 25 anos", "points": 20, "aliases": ["2", "2️⃣", "15 a 25", "15 anos", "20 anos"] },
+            { "text": "Menos de 15 anos", "points": 10, "aliases": ["3", "3️⃣", "menos de 15", "pouco tempo"] },
+            { "text": "Rural / Informal", "points": 15, "aliases": ["4", "4️⃣", "rural", "roça", "informal", "dona de casa"] }
+          ]
+        },
+        {
+          "id": "previdenciario_documentos",
+          "question": "Você possui documentos (carta de indeferimento do INSS, extrato do CNIS ou laudos médicos detalhados)?\n\n1️⃣ Sim, tenho documentos e laudos atualizados\n2️⃣ Tenho apenas parte dos documentos\n3️⃣ Não possuo documentos médicos ou CNIS no momento",
+          "options": [
+            { "text": "Possui documentos/laudos", "points": 25, "aliases": ["1", "1️⃣", "sim", "tenho", "laudo", "carta", "cnis"] },
+            { "text": "Parcialmente", "points": 15, "aliases": ["2", "2️⃣", "parcialmente", "alguns"] },
+            { "text": "Não possui", "points": 5, "aliases": ["3", "3️⃣", "nao", "não", "sem documentos"] }
           ]
         }
       ]
@@ -205,31 +237,43 @@
       "steps": [
         {
           "id": "bancario_situacao",
-          "question": "Qual problema financeiro ou bancário você enfrentou?\n\n1️⃣ Golpe do Pix / Fraude Bancária / Falso Boleto\n2️⃣ Empréstimo consignado ou contratação que nunca autorizei\n3️⃣ Juros abusivos em financiamento de veículo ou dívida\n4️⃣ Nome negativado indevidamente no SPC/Serasa\n5️⃣ Bloqueio indevido de conta bancária\n6️⃣ Outro problema",
+          "question": "Qual problema financeiro ou bancário você enfrentou?\n\n1️⃣ Golpe do Pix / Falso Boleto / Fraude Bancária\n2️⃣ Empréstimo consignado ou contratação que nunca autorizei\n3️⃣ Juros abusivos em financiamento de veículo ou dívida bancária\n4️⃣ Nome negativado indevidamente no SPC/Serasa\n5️⃣ Bloqueio indevido de conta ou retenção de salário\n6️⃣ Outro problema",
           "options": [
-            { "text": "Golpe do Pix / Fraude", "points": 35, "aliases": ["1", "1️⃣", "golpe", "pix", "fraude", "falso boleto", "roubo"] },
-            { "text": "Empréstimo indevido", "points": 30, "aliases": ["2", "2️⃣", "emprestimo", "consignado", "desconto indevido"] },
-            { "text": "Juros abusivos", "points": 20, "aliases": ["3", "3️⃣", "juros", "veiculo", "carro", "financiamento"] },
-            { "text": "Negativação indevida", "points": 25, "aliases": ["4", "4️⃣", "negativado", "serasa", "spc", "sujo"] },
-            { "text": "Bloqueio de conta", "points": 25, "aliases": ["5", "5️⃣", "bloqueio", "bloqueada", "conta"] },
+            { "text": "Golpe do Pix / Fraude", "points": 25, "aliases": ["1", "1️⃣", "golpe", "pix", "fraude", "falso boleto", "roubo"] },
+            { "text": "Empréstimo indevido", "points": 25, "aliases": ["2", "2️⃣", "emprestimo", "consignado", "desconto indevido"] },
+            { "text": "Juros abusivos", "points": 15, "aliases": ["3", "3️⃣", "juros", "veiculo", "carro", "financiamento"] },
+            { "text": "Negativação indevida", "points": 20, "aliases": ["4", "4️⃣", "negativado", "serasa", "spc", "sujo"] },
+            { "text": "Bloqueio de conta/salário", "points": 20, "aliases": ["5", "5️⃣", "bloqueio", "bloqueada", "conta", "salario"] },
             { "text": "Outro", "points": 10, "aliases": ["6", "6️⃣", "outro"] }
           ]
         },
         {
           "id": "bancario_tempo",
-          "question": "Há quanto tempo esse fato aconteceu?\n\n1️⃣ Nas últimas 24 a 48 horas (urgência)\n2️⃣ Menos de 30 dias\n3️⃣ Mais de 30 dias",
+          "question": "Há quanto tempo esse fato ou cobrança indevida aconteceu?\n\n1️⃣ Nas últimas 24 a 48 horas (Urgência máxima para bloqueio)\n2️⃣ Menos de 30 dias\n3️⃣ Mais de 30 dias",
           "options": [
-            { "text": "Últimas 48 horas", "points": 35, "aliases": ["1", "1️⃣", "hoje", "ontem", "48 horas", "24 horas", "urgente"] },
-            { "text": "Menos de 30 dias", "points": 25, "aliases": ["2", "2️⃣", "menos de 30", "dias"] },
+            { "text": "Últimas 48 horas (Urgente)", "points": 25, "aliases": ["1", "1️⃣", "hoje", "ontem", "48 horas", "24 horas", "urgente"] },
+            { "text": "Menos de 30 dias", "points": 20, "aliases": ["2", "2️⃣", "menos de 30", "dias"] },
             { "text": "Mais de 30 dias", "points": 15, "aliases": ["3", "3️⃣", "mais de 30", "meses"] }
           ]
         },
         {
-          "id": "bancario_bo",
-          "question": "Você já registrou Boletim de Ocorrência (B.O.) ou reclamação no banco?\n\n1️⃣ Sim, já registrei B.O. e tenho protocolos\n2️⃣ Ainda não registrei",
+          "id": "bancario_valor",
+          "question": "Qual é o valor aproximado do prejuízo sofrido ou da dívida em discussão?\n\n1️⃣ Até R$ 5.000\n2️⃣ Entre R$ 5.000 e R$ 20.000\n3️⃣ Entre R$ 20.000 e R$ 50.000\n4️⃣ Acima de R$ 50.000\n5️⃣ Não sei o valor exato",
           "options": [
-            { "text": "Sim, com B.O./protocolo", "points": 20, "aliases": ["1", "1️⃣", "sim", "bo", "b.o.", "protocolo"] },
-            { "text": "Ainda não", "points": 10, "aliases": ["2", "2️⃣", "nao", "não", "ainda nao"] }
+            { "text": "Até R$ 5.000", "points": 15, "aliases": ["1", "1️⃣", "5000", "5 mil"] },
+            { "text": "R$ 5.000 a R$ 20.000", "points": 20, "aliases": ["2", "2️⃣", "20000", "20 mil"] },
+            { "text": "R$ 20.000 a R$ 50.000", "points": 25, "aliases": ["3", "3️⃣", "50000", "50 mil"] },
+            { "text": "Acima de R$ 50.000", "points": 30, "aliases": ["4", "4️⃣", "mais de 50", "acima"] },
+            { "text": "Não sei exato", "points": 10, "aliases": ["5", "5️⃣", "nao sei", "não sei"] }
+          ]
+        },
+        {
+          "id": "bancario_bo",
+          "question": "Você já registrou Boletim de Ocorrência (B.O.) ou possui comprovantes bancários e protocolos de atendimento?\n\n1️⃣ Sim, já registrei B.O. e tenho comprovantes/protocolos\n2️⃣ Tenho os comprovantes bancários, mas ainda não registrei B.O.\n3️⃣ Ainda não fiz B.O. nem registrei reclamação",
+          "options": [
+            { "text": "Sim, com B.O. e comprovantes", "points": 25, "aliases": ["1", "1️⃣", "sim", "bo", "b.o.", "protocolo"] },
+            { "text": "Apenas comprovantes", "points": 15, "aliases": ["2", "2️⃣", "comprovantes", "sem bo"] },
+            { "text": "Ainda não registrou", "points": 5, "aliases": ["3", "3️⃣", "nao", "não", "ainda nao"] }
           ]
         }
       ]
