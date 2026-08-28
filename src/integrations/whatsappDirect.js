@@ -121,12 +121,8 @@ async function handleBufferedMessages(instanceId, cleanPhone, remoteJid) {
     const reply = await processIncomingMessage(finalCleanPhone, combinedText, instanceId, remoteJid);
 
     if (reply && instance.sock && instance.status === 'CONNECTED') {
-        // Se o remoteJid for @lid, envia diretamente para o número @s.whatsapp.net do cliente para garantir entrega
-        const targetJid = (remoteJid.endsWith('@lid') && finalCleanPhone) 
-            ? `${finalCleanPhone}@s.whatsapp.net` 
-            : remoteJid;
-
-        const sent = await instance.sock.sendMessage(targetJid, { text: reply });
+        // Envia a resposta de volta exatamente no chat de onde a mensagem veio (remoteJid)
+        const sent = await instance.sock.sendMessage(remoteJid, { text: reply });
         if (sent?.key?.id) {
             sentByBotMessageIds.add(sent.key.id);
             addToProcessedCache(sent.key.id);
@@ -135,7 +131,7 @@ async function handleBufferedMessages(instanceId, cleanPhone, remoteJid) {
                 sentByBotMessageIds.delete(first);
             }
         }
-        console.log(`🤖 [${instance.name} RESPOSTA ENVIADA para ${finalCleanPhone} (JID: ${targetJid})]: "${reply.substring(0, 70)}..."`);
+        console.log(`🤖 [${instance.name} RESPOSTA ENVIADA para ${finalCleanPhone} (JID: ${remoteJid})]: "${reply.substring(0, 70)}..."`);
     }
 }
 
@@ -389,8 +385,12 @@ async function sendDirectMessage(phone, messageText, instanceId = 'instance_1') 
         return false;
     }
 
-    const clean = DatabaseService.normalizePhone(phone);
-    const jid = `${clean}@s.whatsapp.net`;
+    let jid = String(phone);
+    if (!jid.includes('@')) {
+        const clean = DatabaseService.normalizePhone(phone);
+        const client = DatabaseService.getClientByPhone(clean);
+        jid = (client && client.remote_jid) ? client.remote_jid : `${clean}@s.whatsapp.net`;
+    }
 
     try {
         const sent = await instance.sock.sendMessage(jid, { text: messageText });
